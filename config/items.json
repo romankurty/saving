@@ -27,7 +27,8 @@
    "bounds": [
     1.5,
     15
-   ]
+   ],
+   "count_required": true
   },
   {
    "id": "mozzarella",
@@ -126,6 +127,7 @@
    "skt": [
     "avokádo"
    ],
+   "count_required": false,
    "bounds": [
     5,
     60
@@ -455,7 +457,7 @@
    "id": "onion",
    "en": "Onions",
    "sk": "Cibuľa",
-   "group": "lunch",
+   "group": "pantry",
    "unit": "kg",
    "weekly": 0.3,
    "shelf": "long",
@@ -475,7 +477,7 @@
    "id": "garlic",
    "en": "Garlic",
    "sk": "Cesnak",
-   "group": "lunch",
+   "group": "pantry",
    "unit": "kg",
    "weekly": 0.05,
    "shelf": "long",
@@ -856,7 +858,8 @@
    "bounds": [
     1.5,
     40
-   ]
+   ],
+   "count_required": true
   },
   {
    "id": "wet_wipes",
@@ -878,7 +881,8 @@
    "bounds": [
     0.1,
     5
-   ]
+   ],
+   "count_required": true
   },
   {
    "id": "toothpaste",
