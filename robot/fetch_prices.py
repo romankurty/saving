@@ -197,7 +197,7 @@ def billa(city, base_url, terms_key, currency):
     ok_calls = 0
     for it in ITEMS:
         for term in it[terms_key]:
-            r = get(f"{base_url}/api/product-discovery/products?page=0&pageSize=40&term={urllib.parse.quote(term)}", as_json=True)
+            r = get(f"{base_url}/api/product-discovery/products?page=0&pageSize=100&term={urllib.parse.quote(term)}", as_json=True)
             if r is None:
                 continue
             ok_calls += 1
@@ -215,21 +215,27 @@ def billa(city, base_url, terms_key, currency):
                 seen.add(key)
                 pr = p.get("price") or {}
                 reg = pr.get("regular") or {}
-                cur = reg.get("value")
+                loy = pr.get("loyalty") or {}
+                use = loy if loy.get("value") else reg
+                cur = use.get("value")
                 if not cur:
                     continue
                 cur = cur / 100
-                per_std = (reg.get("perStandardizedQuantity") or 0) / 100 or None
+                per_std = (use.get("perStandardizedQuantity") or 0) / 100 or None
                 bu = (pr.get("baseUnitShort") or "").lower()
                 std = pr.get("standard") or {}
-                normal = (std.get("value") or pr.get("crossed") or 0) / 100 or None
-                normal_std = (std.get("perStandardizedQuantity") or 0) / 100 or None
-                promo = bool(p.get("inPromotion") or pr.get("crossed"))
+                if use is loy:
+                    normal = (reg.get("value") or 0) / 100 or None
+                    normal_std = (reg.get("perStandardizedQuantity") or 0) / 100 or None
+                else:
+                    normal = (std.get("value") or pr.get("crossed") or 0) / 100 or None
+                    normal_std = (std.get("perStandardizedQuantity") or 0) / 100 or None
+                promo = bool(p.get("inPromotion") or pr.get("crossed") or use is loy)
                 min_qty = 1
-                if reg.get("promotionType") == "FROM" and (reg.get("promotionQuantity") or 0) >= 2:
-                    min_qty = int(reg.get("promotionQuantity"))
-                tags = [str(t).lower() for t in (reg.get("tags") or [])]
-                card = "Billa card" if any(k in t for t in tags for k in ("club", "klub", "card", "karta")) else None
+                if use.get("promotionType") == "FROM" and (use.get("promotionQuantity") or 0) >= 2:
+                    min_qty = int(use.get("promotionQuantity"))
+                tags = [str(t).lower() for t in (use.get("tags") or [])]
+                card = "Billa card" if (use is loy or any(k in t for t in tags for k in ("club", "klub", "card", "karta", "loyal"))) else None
                 weighted = bool(p.get("weightArticle"))
                 # pack size
                 pack_amt = None
@@ -272,8 +278,8 @@ def billa(city, base_url, terms_key, currency):
                           source=f"{base_url.split('//')[1]} catalogue", conf="high")
                 if o:
                     found.append(o)
-    STATUS[f"billa_{city}"] = {"status": "ok" if ok_calls else "error", "offers": len(found),
-                               "note": "full catalogue: normal and promo prices"}
+    STATUS[f"billa_{city}"] = {"status": "ok" if ok_calls else "error", "offers": len(found), "checked": NOW.isoformat(),
+                               "note": "full catalogue: normal, promo and Billa card prices"}
     log(f"Billa {city}: {len(found)} matched products from {ok_calls} searches")
     return found
 
@@ -376,7 +382,7 @@ def lidl(city, base_url, currency):
                           url=base_url + (d.get("canonicalUrl") or ""))
                 if o:
                     found.append(o)
-    STATUS[f"lidl_{city}"] = {"status": "ok", "offers": len(found), "note": "weekly offers incl. Lidl Plus prices"}
+    STATUS[f"lidl_{city}"] = {"status": "ok", "offers": len(found), "checked": NOW.isoformat(), "note": "weekly offers incl. Lidl Plus prices"}
     log(f"Lidl {city}: {len(found)} matched offers")
     return found
 
@@ -503,17 +509,44 @@ def albert():
     if page is None:
         STATUS["albert_brno"] = {"status": "error", "offers": 0, "note": "leaflet list not reachable"}
         return [], []
-    slugs = [s for s in dict.fromkeys(re.findall(r"letaky\.albert\.cz/([a-z0-9_]+)", page.text)) if "letak" in s]
     leaflets = []
-    for s in slugs:
-        dates = []
-        for mm in re.finditer(re.escape(s), page.text):
-            dates += re.findall(r"(20\d\d-\d\d-\d\d)", page.text[max(0, mm.start() - 800): mm.end() + 800])
-        dates = sorted(set(dates))
-        leaflets.append({"slug": s, "valid_from": dates[0] if dates else None, "valid_to": dates[-1] if len(dates) > 1 else None})
+    m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', page.text, re.S)
+    if m:
+        try:
+            nd = json.loads(m.group(1))
+        except Exception:  # noqa: BLE001
+            nd = None
+        stack = [nd]
+        while stack:
+            o = stack.pop()
+            if isinstance(o, dict):
+                if o.get("viewUrl") and o.get("validityEndDate"):
+                    slug = o["viewUrl"].rstrip("/").split("/")[-1]
+                    vf = vt = None
+                    try:
+                        d1 = dt.datetime.strptime(o.get("validityStartDateFormatted", ""), "%d.%m.%Y")
+                        vf = d1.strftime("%Y-%m-%dT00:00:00+01:00")
+                    except Exception:  # noqa: BLE001
+                        pass
+                    try:
+                        d2 = dt.datetime.strptime(o["validityEndDate"], "%d/%m/%Y %H:%M:%S")
+                        vt = d2.strftime("%Y-%m-%dT%H:%M:%S+01:00")
+                    except Exception:  # noqa: BLE001
+                        pass
+                    leaflets.append({"slug": slug, "valid_from": vf, "valid_to": vt, "type": o.get("documentType"),
+                                     "location": o.get("locationType"), "title": o.get("title")})
+                stack.extend(o.values())
+            elif isinstance(o, list):
+                stack.extend(o)
+    uniq = {}
+    for l in leaflets:
+        uniq.setdefault(l["slug"], l)
+    leaflets = list(uniq.values())
     log(f"Albert leaflets: {leaflets}")
-    # prefer supermarket leaflets ("sm") for a city-centre store, else hypermarket
-    ordered = sorted(slugs, key=lambda s: (0 if "sm" in s.split("_")[0] else 1, s))[:3]
+    current = [l for l in leaflets if not l["valid_to"] or l["valid_to"][:10] >= TODAY]
+    sm = [l["slug"] for l in current if l.get("location") == "SUPERMARKET"]
+    hm = [l["slug"] for l in current if l.get("location") != "SUPERMARKET"]
+    ordered = (sorted(sm, key=lambda x: (0 if "letak" in x else 1, x)) or sorted(hm, key=lambda x: (0 if "letak" in x else 1, x)))[:3]
     found, seen = [], set()
     for slug in ordered:
         lf = next((l for l in leaflets if l["slug"] == slug), {})
@@ -540,10 +573,122 @@ def albert():
                                     url=f"https://letaky.albert.cz/{slug}/page/{f.get('page_number')}")
                         if rec:
                             found.append(rec)
-    STATUS["albert_brno"] = {"status": "ok" if ordered else "error", "offers": len(found),
-                             "note": "leaflet offers read from leaflet text (check unusual numbers)"}
+    STATUS["albert_brno"] = {"status": "ok" if ordered else "error", "offers": len(found), "checked": NOW.isoformat(),
+                             "note": "leaflet offers incl. Albert app prices, read from leaflet text: " + ", ".join(ordered)}
     log(f"Albert: {len(found)} matched offers from {len(ordered)} leaflets")
     return found, leaflets
+
+
+# ---------------------------------------------------------------- Teta (CZ drugstore): e-shop category pages
+TETA_SLUGS = {
+    "toilet_paper": ["toaletni-papir"],
+    "wet_wipes": ["vlhcene-toaletni-papiry", "vlhcene-ubrousky"],
+    "toothpaste": ["zubni-pasty"],
+    "shampoo": ["sampony"],
+    "shower_gel": ["sprchove-gely-a-oleje"],
+    "dish_soap": ["rucni-myti-nadobi"],
+}
+
+
+def unflatten_nuxt(payload):
+    memo = {}
+
+    def res(i, depth=0):
+        if not isinstance(i, int) or isinstance(i, bool) or i < 0 or i >= len(payload):
+            return i
+        if i in memo:
+            return memo[i]
+        if depth > 80:
+            return None
+        v = payload[i]
+        if isinstance(v, list):
+            if v and isinstance(v[0], str) and v[0] in ("Reactive", "ShallowReactive", "Ref", "ShallowRef", "EmptyRef"):
+                out = res(v[1], depth + 1) if len(v) > 1 else None
+            elif v and isinstance(v[0], str) and v[0] in ("Set", "Map", "Date", "RegExp", "BigInt", "null", "undefined", "NaN"):
+                out = v[1] if v[0] == "Date" and len(v) > 1 else None
+            else:
+                out = []
+                memo[i] = out
+                out.extend(res(x, depth + 1) for x in v)
+                return out
+        elif isinstance(v, dict):
+            out = {}
+            memo[i] = out
+            for k, x in v.items():
+                out[k] = res(x, depth + 1)
+            return out
+        else:
+            out = v
+        memo[i] = out
+        return out
+
+    return res(0)
+
+
+def teta():
+    found, seen = [], set()
+    ok_pages = 0
+    for iid, slugs in TETA_SLUGS.items():
+        it = ITEM[iid]
+        for slug in slugs:
+            for page_no in (1, 2, 3):
+                url = f"https://www.tetadrogerie.cz/eshop/produkty/{slug}" + (f"?page={page_no}" if page_no > 1 else "")
+                r = get(url)
+                if r is None:
+                    break
+                m = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)</script>', r.text, re.S)
+                if not m:
+                    break
+                try:
+                    data = unflatten_nuxt(json.loads(m.group(1)))
+                except Exception:  # noqa: BLE001
+                    break
+                ok_pages += 1
+                prods, stack, new = [], [data], 0
+                while stack:
+                    o = stack.pop()
+                    if isinstance(o, dict):
+                        if "name" in o and "price" in o and "code" in o and isinstance(o.get("price"), (int, float)):
+                            prods.append(o)
+                            continue
+                        stack.extend(o.values())
+                    elif isinstance(o, list):
+                        stack.extend(o)
+                for p in prods:
+                    name = p.get("name") or ""
+                    if (p.get("code"), iid) in seen:
+                        continue
+                    seen.add((p.get("code"), iid))
+                    new += 1
+                    if iid not in match_items(name) or p.get("isStockAvailable") is False:
+                        continue
+                    price = p["price"] / 100
+                    orig = (p.get("originalPrice") or 0) / 100 or None
+                    q = parse_qty(name)
+                    pack = convert(q[0], q[1], it["unit"]) if q else None
+                    if it["unit"] == "ks" and not pack:
+                        continue
+                    if not pack:
+                        up = ((p.get("bbyPrices") or {}).get("unit_price") or {})
+                        if str(up.get("unit")).upper() in ("L", "KG") and up.get("number"):
+                            unit = up["number"]
+                            pack = price / unit
+                        else:
+                            continue
+                    unit = price / pack
+                    promo = bool(orig and orig > price)
+                    o = offer(iid, "teta", "brno", "CZK", name, price, unit, pack,
+                              normal_price=orig if promo else None, normal_unit=(unit * orig / price) if promo else None,
+                              promo=promo, source="tetadrogerie.cz e-shop", conf="high",
+                              url=f"https://www.tetadrogerie.cz/eshop/produkt/{p.get('slug')}" if p.get("slug") else None)
+                    if o:
+                        found.append(o)
+                if new == 0:
+                    break  # page parameter ignored or no more products
+    STATUS["teta_brno"] = {"status": "ok" if ok_pages else "error", "offers": len(found), "checked": NOW.isoformat(),
+                           "note": "e-shop prices for drugstore items"}
+    log(f"Teta: {len(found)} matched products from {ok_pages} pages")
+    return found
 
 
 # ---------------------------------------------------------------- history, usual prices, output
@@ -563,9 +708,13 @@ def main():
     all_offers += alb
     all_offers += lidl("kezmarok", "https://www.lidl.sk", "EUR")
     all_offers += billa("kezmarok", "https://www.billa.sk", "skt", "EUR")
-    for name in ("kaufland_brno", "tesco_brno", "dm_brno", "teta_brno", "kaufland_kezmarok", "tesco_kezmarok", "sintra_kezmarok"):
-        STATUS.setdefault(name, {"status": "not covered", "offers": 0,
-                                 "note": "blocks robots / no open data" if not name.startswith(("teta", "sintra")) else "not built yet"})
+    all_offers += teta()
+    notes = {"kaufland": "blocks robots on its website; leaflet only as images",
+             "tesco": "blocks robots on all its websites",
+             "dm": "its robots rules forbid reading product data",
+             "sintra": "no online prices"}
+    for name in ("kaufland_brno", "tesco_brno", "dm_brno", "kaufland_kezmarok", "tesco_kezmarok", "sintra_kezmarok"):
+        STATUS.setdefault(name, {"status": "not covered", "offers": 0, "note": notes[name.split("_")[0]]})
 
     hist_path = os.path.join(ROOT, "data", "history.json")
     history = load(hist_path, {})
@@ -578,7 +727,7 @@ def main():
             offs.sort(key=lambda o: o["unit_price"])
             # history: best unit price per shop today + normal price observations
             ih = ch.setdefault(it["id"], {})
-            for shop in shops:
+            for shop in shops + (["teta"] if city == "brno" else []):
                 so = [o for o in offs if o["shop"] == shop]
                 if not so:
                     continue
@@ -607,6 +756,8 @@ def main():
             "currency": currency,
             "covered": shops,
             "uncovered": ["kaufland", "tesco"] if city == "brno" else ["kaufland", "tesco", "sintra"],
+            "drug_covered": ["lidl", "billa", "albert", "teta"] if city == "brno" else ["lidl", "billa"],
+            "drug_uncovered": ["dm"] if city == "brno" else [],
             "items": items_out,
         }
 
