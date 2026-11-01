@@ -156,7 +156,7 @@
 
   <section class="page" id="p-plan">
     <div class="card">
-      <div class="seg full" id="mode"><button data-v="quick" data-t="quick"></button><button data-v="big" data-t="big"></button></div>
+      <div class="seg full" id="mode"><button data-v="quick" data-t="quick"></button><button data-v="big" data-t="big"></button><button data-v="lunch" data-t="lunchMode"></button></div>
       <div class="toggle" id="gymRow"><b data-t="gym"></b><label class="switch"><input type="checkbox" id="gym"><span></span></label></div>
     </div>
     <div id="planOut"><div class="loading">…</div></div>
@@ -180,11 +180,11 @@
 // ============================================================ texts
 const T = {
   en: {
-    quick: "Quick evening", big: "Big shop · 3–4 days", gym: "Coming from the gym (via Albert)",
+    quick: "Quick", big: "Big shop", lunchMode: "Lunch only", gym: "Coming from the gym (via Albert)",
     tPlan: "Plan", tDeals: "Deals", tPrices: "Prices", tDrug: "Drugstore", tSet: "Settings",
     goTo: "Go to", pay: "you pay", save: "save", vsUsual: "vs usual prices", noCard: "no card needed",
     list: "Shopping list", addItem: "+ Add item", pickItem: "Tap to add", worth: "Worth adding on your route", add: "+ Add", added: "✓ Added",
-    meals: "Two cheapest lunches", perPortion: "/ portion", addMeal: "+ Add to list", calc: "Calculation",
+    meals: "5 cheapest healthy lunches", perPortion: "/ portion", addMeal: "+ Add to list", calc: "Ingredients & prices", goMeal: "Shop just for this", pickMeals: "Which lunch? (tap to choose)", forPortions: "for 4 portions", ingr: "ingredients",
     portions: "4 big portions (2 lunches for 2)", why: "Why this plan", options: "All options",
     option: "Option", basket: "Basket", stockup: "Stock-up", effective: "Effective",
     bestSingle: "Best single shop: {s} — {v}.", addWorth: "Adding {s} saves {v} (≥ {th}) → go.", addNot: "Adding {s} saves only {v} (< {th}) → skip.",
@@ -203,11 +203,11 @@ const T = {
     leftover: "kept", allDone: "All done 🎉"
   },
   sk: {
-    quick: "Rýchly večerný", big: "Veľký nákup · 3–4 dni", gym: "Idem z posilňovne (cez Albert)",
+    quick: "Rýchly", big: "Veľký nákup", lunchMode: "Len obed", gym: "Idem z posilňovne (cez Albert)",
     tPlan: "Plán", tDeals: "Akcie", tPrices: "Ceny", tDrug: "Drogéria", tSet: "Nastavenia",
     goTo: "Choď do", pay: "zaplatíš", save: "ušetríš", vsUsual: "oproti bežným cenám", noCard: "karta netreba",
     list: "Nákupný zoznam", addItem: "+ Pridať položku", pickItem: "Ťukni a pridaj", worth: "Oplatí sa pridať na trase", add: "+ Pridať", added: "✓ Pridané",
-    meals: "Dva najlacnejšie obedy", perPortion: "/ porcia", addMeal: "+ Do zoznamu", calc: "Výpočet",
+    meals: "5 najlacnejších zdravých obedov", perPortion: "/ porcia", addMeal: "+ Do zoznamu", calc: "Suroviny a ceny", goMeal: "Nakúpiť len na tento obed", pickMeals: "Ktorý obed? (ťukni a vyber)", forPortions: "za 4 porcie", ingr: "suroviny",
     portions: "4 veľké porcie (2 obedy pre 2)", why: "Prečo tento plán", options: "Všetky možnosti",
     option: "Možnosť", basket: "Košík", stockup: "Zásoby", effective: "Efektívne",
     bestSingle: "Najlepší 1 obchod: {s} — {v}.", addWorth: "Pridanie {s} ušetrí {v} (≥ {th}) → choď.", addNot: "Pridanie {s} ušetrí iba {v} (< {th}) → vynechaj.",
@@ -236,7 +236,8 @@ const today = new Date().toISOString().slice(0, 10);
 let state = { city: "brno", lang: "en", mode: "big", gym: false, tab: "plan", set: { ...DEFAULTS }, weekly: {}, low: [], drugLow: [], hide: [], day: null };
 try { const s = JSON.parse(localStorage.getItem(LS) || "{}"); state = { ...state, ...s, set: { ...DEFAULTS, ...(s.set || {}) } }; } catch (e) {}
 function day() {
-  if (!state.day || state.day.date !== today) state.day = { date: today, skip: [], add: {}, qty: {}, done: [], drop: [] };
+  if (!state.day || state.day.date !== today) state.day = { date: today, skip: [], add: {}, qty: {}, done: [], drop: [], meals: [] };
+  if (!state.day.meals) state.day.meals = [];
   return state.day;
 }
 function save() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
@@ -286,8 +287,9 @@ function validTxt(o) {
   return `${t("priceOn")} ${dateTxt(chk)}`;
 }
 
+function byWeight(o) { return o.weighted || !o.pack || Math.abs(o.price / o.pack - o.unit_price) / o.unit_price > 0.15; }
 function purchase(o, need) {
-  if (o.weighted || !o.pack) return { o, packs: null, qty: need, cost: o.unit_price * need, paid: o.unit_price };
+  if (byWeight(o)) return { o, packs: null, qty: need, cost: o.unit_price * need, paid: o.unit_price };
   let packs = Math.max(1, Math.ceil(need / o.pack - 1e-6)), price = o.price;
   if (o.min_qty > 1 && packs < o.min_qty) {
     const A = o.min_qty * o.price, B = o.normal_price ? packs * o.normal_price : Infinity;
@@ -303,7 +305,7 @@ function bestPurchase(id, shop, need) {
   if (!offs.length) return null;
   const good = offs.filter((o) => o.conf !== "low"); if (good.length) offs = good;
   const cap = packCap(it, need);
-  let cands = offs.filter((o) => o.weighted || !o.pack || o.pack <= cap || o.pack <= need);
+  let cands = offs.filter((o) => byWeight(o) || o.pack <= cap || o.pack <= need);
   if (!cands.length) cands = [offs.slice().sort((a, b) => (a.pack || 0) - (b.pack || 0))[0]];
   let best = null, bestEff = Infinity;
   for (const o of cands) {
@@ -326,7 +328,7 @@ function deals() {
     const o = best.o;
     let qty = kind === "extra" ? (it.deal_qty || 0.5) : kind === "stock" ? (weeklyOf(it) > 0 ? weeklyOf(it) * 4 : (o.pack || 1) * 2) : (weeklyOf(it) || o.pack || 1);
     let packs = null;
-    if (o.pack && !o.weighted) { packs = Math.min(12, Math.max(o.min_qty || 1, Math.ceil(qty / o.pack - 1e-6))); qty = packs * o.pack; } else qty = Math.min(qty, 5);
+    if (!byWeight(o)) { packs = Math.min(12, Math.max(o.min_qty || 1, Math.ceil(qty / o.pack - 1e-6))); qty = packs * o.pack; } else qty = Math.min(qty, 5);
     const ref = usual(it.id) || o.normal_unit;
     res.push({ it, o, d: best.d, kind, qty, packs, cost: packs ? packs * o.price : qty * o.unit_price, saving: (ref - o.unit_price) * qty, ref });
   }
@@ -335,7 +337,9 @@ function deals() {
 
 function basket() {
   const D = day(), days = state.mode === "quick" ? 1 : 3.5, need = {};
-  for (const it of ITEMS) {
+  if (state.mode === "lunch") {
+    for (const m of D.meals || []) for (const [id, q] of m.parts) need[id] = (need[id] || 0) + q;
+  } else for (const it of ITEMS) {
     if (it.group === "drugstore" || it.group === "extras") continue;
     const w = weeklyOf(it);
     if (it.group === "pantry" || w === 0) { if (state.low.includes(it.id)) need[it.id] = w > 0 ? w * 2 : (it.unit === "ks" ? 1 : 0.5); continue; }
@@ -384,14 +388,7 @@ function combos() {
   return out;
 }
 
-function decide() {
-  const ds = deals();
-  const D = day();
-  // healthy extras at a very good price go straight into the list (unless removed)
-  const bask = basket();
-  for (const d of ds) if (d.kind === "extra" && !D.drop.includes(d.it.id) && !bask.find((b) => b.it.id === d.it.id)) bask.push({ it: d.it, need: d.qty, auto: true });
-  const opts = combos().map((c) => evaluate(c, bask, ds));
-  if (!opts.length) return { bask, ds, opts, rec: null, steps: [] };
+function pickRoute(opts) {
   const th = thresholds();
   const singles = opts.filter((o) => o.shops.length === 1).sort((a, b) => a.score - b.score);
   let rec = singles[0];
@@ -403,34 +400,73 @@ function decide() {
     steps.push({ ok: gain >= th.stop, added, gain });
     if (gain >= th.stop) rec = next; else break;
   }
+  return { rec, steps, bestSingle: singles[0] };
+}
+
+function decide() {
+  const ds = deals();
+  const D = day();
+  if (state.mode === "lunch" && !D.meals.length) { const m = mealIdeas(1)[0]; if (m) D.meals = [{ key: m.key, parts: m.parts.map((p) => [p.id, p.qty]) }]; }
+  // healthy extras at a very good price go straight into the list (unless removed) — not on a lunch-only trip
+  const bask = basket();
+  if (state.mode !== "lunch") for (const d of ds) if (d.kind === "extra" && !D.drop.includes(d.it.id) && !bask.find((b) => b.it.id === d.it.id)) bask.push({ it: d.it, need: d.qty, auto: true });
+  const opts = combos().map((c) => evaluate(c, bask, ds));
+  if (!opts.length) return { bask, ds, opts, rec: null, steps: [] };
+  const pr = pickRoute(opts);
+  let rec = pr.rec;
+  const steps = pr.steps, singles = [pr.bestSingle];
   // auto extras only stay if they are really on a deal in the chosen shops
   rec.lines = rec.lines.filter((l) => !(l.b.auto && (l.est || !l.o || discount(l.o) < state.set.alertPct / 100)));
   rec.total = rec.lines.reduce((a, l) => a + (l.cost || 0), 0);
   return { bask, ds, opts, rec, steps, bestSingle: singles[0] };
 }
 
-function mealIdeas(n = 2) {
-  const proteins = [["chicken", "chicken"], ["chicken_frozen", "chicken"], ["turkey", "turkey"], ["pork", "pork"], ["liver_chicken", "liver"], ["liver_pork", "liver"], ["beef", "beef"], ["salmon", "fish"]];
-  const bestOf = (id) => offersFor(id).filter((o) => o.conf !== "low").sort((a, b) => a.unit_price - b.unit_price)[0] || null;
-  const fb = (czk) => (cur() === "EUR" ? czk / PRICES.eur_czk : czk);
-  const part = (id, qty, fallbackCzk) => { const o = bestOf(id); const u = o ? o.unit_price : (usual(id) ?? fb(fallbackCzk)); return { id, o, qty, unit: u, cost: u * qty }; };
-  const rice = part("rice", 0.4, 40), pasta = part("pasta", 0.4, 45), cans = part("tomato_can", 0.8, 60), sweet = part("sweet_potato", 0.8, 80);
-  const vegs = ["broccoli", "frozen_veg", "carrot", "paprika", "spinach", "mushrooms"].map((id) => part(id, 0.4, 60)).filter((v) => v.o).sort((a, b) => a.unit - b.unit);
-  const veg = vegs[0] || null;
-  const carbOpts = [[rice], [pasta, cans]];
-  if (sweet.o && discount(sweet.o) >= 0.3) carbOpts.push([sweet]);
-  const carbs = carbOpts.map((c) => ({ c, cost: c.reduce((a, p) => a + p.cost, 0) })).sort((a, b) => a.cost - b.cost)[0].c;
-  const ideas = [];
-  for (const [id, fam] of proteins) {
-    const o = bestOf(id); if (!o) continue;
-    const parts = [{ id, o, qty: 0.75, unit: o.unit_price, cost: 0.75 * o.unit_price }, ...carbs].concat(veg ? [veg] : []);
-    const total = parts.reduce((a, p) => a + p.cost, 0);
-    ideas.push({ id, fam, parts, total, per: total / 4 });
+const MEAL_PROTEINS = [["chicken", "chicken", 0.75], ["chicken_frozen", "chicken", 0.75], ["turkey", "turkey", 0.75], ["pork", "pork", 0.75],
+  ["liver_chicken", "liver", 0.75], ["liver_pork", "liver", 0.75], ["beef", "beef", 0.75], ["salmon", "fish", 0.6], ["tuna", "tuna", 0.32]];
+const MEAL_CARBS = [[["rice", 0.4]], [["pasta", 0.4], ["tomato_can", 0.8]], [["sweet_potato", 0.8]]];
+const MEAL_VEGS = [["broccoli", 0.4], ["frozen_veg", 0.4], ["carrot", 0.4], ["paprika", 0.4], ["spinach", 0.3], ["mushrooms", 0.4], ["sauerkraut", 0.5]];
+const SHORT = {
+  en: { chicken: "Chicken", chicken_frozen: "Chicken", turkey: "Turkey", pork: "Pork", liver_chicken: "Chicken liver", liver_pork: "Pork liver", beef: "Beef", salmon: "Salmon", tuna: "Tuna",
+        rice: "rice", pasta: "pasta", tomato_can: "tomato sauce", sweet_potato: "sweet potatoes", broccoli: "broccoli", frozen_veg: "frozen veg", carrot: "carrots", paprika: "peppers", spinach: "spinach", mushrooms: "mushrooms", sauerkraut: "sauerkraut" },
+  sk: { chicken: "Kuracie", chicken_frozen: "Kuracie", turkey: "Morčacie", pork: "Bravčové", liver_chicken: "Kuracia pečeň", liver_pork: "Bravčová pečeň", beef: "Hovädzie", salmon: "Losos", tuna: "Tuniak",
+        rice: "ryža", pasta: "cestoviny", tomato_can: "paradajková omáčka", sweet_potato: "batáty", broccoli: "brokolica", frozen_veg: "mrazená zelenina", carrot: "mrkva", paprika: "paprika", spinach: "špenát", mushrooms: "šampiňóny", sauerkraut: "kyslá kapusta" },
+};
+function shortName(id) { return (SHORT[state.lang] || SHORT.en)[id] || iname(BYID[id]); }
+function mealIdeas(n = 5) {
+  const cheap = (id) => { const o = offersFor(id).filter((x) => x.conf !== "low").sort((a, b) => a.unit_price - b.unit_price)[0]; return o ? o.unit_price : null; };
+  const vegs = MEAL_VEGS.filter(([id]) => BYID[id] && cheap(id) != null).sort((a, b) => cheap(a[0]) * a[1] - cheap(b[0]) * b[1]).slice(0, 5);
+  const sweetDeal = offersFor("sweet_potato").some((o) => o.promo && discount(o) >= state.set.stockPct / 100);
+  const carbs = MEAL_CARBS.filter((c) => c.every(([id]) => BYID[id] && (cheap(id) != null || usual(id) != null)) && (c[0][0] !== "sweet_potato" || sweetDeal));
+  const cands = [];
+  for (const [pid, fam, pq] of MEAL_PROTEINS) {
+    if (!BYID[pid] || cheap(pid) == null) continue;
+    for (const c of carbs) for (const v of vegs) {
+      if (v[0] === "sauerkraut" && (pid !== "pork" || c[0][0] === "pasta")) continue;
+      const parts = [[pid, pq], ...c, v];
+      const bask = parts.map(([id, q]) => ({ it: BYID[id], need: q }));
+      const opts = combos().map((cs) => evaluate(cs, bask, []));
+      if (!opts.length) continue;
+      const { rec } = pickRoute(opts);
+      if (rec.lines.some((l) => l.missing)) continue;
+      cands.push({ key: parts.map((x) => x[0]).join("+"), fam, parts: parts.map(([id, q]) => ({ id, qty: q })), rec, total: rec.total, per: rec.total / 4 });
+    }
   }
-  ideas.sort((a, b) => a.per - b.per);
-  const out = [], fams = new Set();
-  for (const i of ideas) { if (fams.has(i.fam)) continue; fams.add(i.fam); out.push(i); if (out.length >= n) break; }
-  return out;
+  cands.sort((a, b) => a.per - b.per);
+  const out = [], fams = new Set(), keys = new Set(), used = {};
+  const side = (c) => c.parts.slice(1, -1).map((p) => p.id).join("+"), veg = (c) => c.parts[c.parts.length - 1].id;
+  const ok = (c, cap) => (used["s:" + side(c)] || 0) < cap && (used["v:" + veg(c)] || 0) < cap;
+  const take = (c) => { fams.add(c.fam); keys.add(c.key); out.push(c); used["s:" + side(c)] = (used["s:" + side(c)] || 0) + 1; used["v:" + veg(c)] = (used["v:" + veg(c)] || 0) + 1; };
+  for (const cap of [2, 3, 99]) {
+    for (const c of cands) { if (out.length >= n) break; if (!fams.has(c.fam) && !keys.has(c.key) && ok(c, cap)) take(c); }
+  }
+  for (const c of cands) { if (out.length >= n) break; if (!keys.has(c.key)) take(c); }
+  return out.sort((a, b) => a.per - b.per);
+}
+function mealName(m) { const ids = m.parts.map((p) => p.id); return ids.map((id, i) => (i === 0 ? shortName(id) : shortName(id))).join(" + "); }
+function mealWhere(m) {
+  const shops = m.rec.shops.filter((s) => m.rec.lines.some((l) => l.shop === s));
+  if (shops.length === 1) return `<span class="dot" style="background:${SHOP_COLOR[shops[0]]};display:inline-block"></span> <b>${SHOP[shops[0]]}</b> — ${state.lang === "sk" ? "všetko" : "everything"}`;
+  return shops.map((s) => `<span class="dot" style="background:${SHOP_COLOR[s]};display:inline-block"></span> <b>${SHOP[s]}</b> (${m.rec.lines.filter((l) => l.shop === s).map((l) => shortName(l.b.it.id).toLowerCase()).join(", ")})`).join(" → ");
 }
 
 // ============================================================ rendering helpers
@@ -469,14 +505,16 @@ function addRowHtml(d, onRoute) {
     <div class="m">${SHOP[d.o.shop]} · ${money(d.cost)} · ${t("save")} <b>${money(d.saving)}</b>${onRoute ? "" : " · " + SHOP[d.o.shop]}</div></div>
     <button class="btn ${added ? "" : "primary"}" data-adddeal="${d.it.id}" data-qty="${d.qty}">${added ? t("added") : t("add")}</button></div>`;
 }
-function mealsHtml(list) {
+function mealsHtml(list, picker) {
   if (!list.length) return "";
-  return `<div class="card idea"><h2>${t("meals")}</h2>${list.map((m, k) => {
-    const names = m.parts.map((p) => iname(BYID[p.id])).join(" + ");
-    const calc = m.parts.map((p) => `<div class="row"><span>${qtyTxt(p.qty, BYID[p.id].unit)} ${esc(iname(BYID[p.id]).toLowerCase())}${p.o ? ` · ${SHOP[p.o.shop]}` : ""}</span><span>${money(p.cost)}</span></div>`).join("");
-    return `<div class="meal"><div class="row"><div class="t">${k + 1}. ${esc(names)}</div><span class="per">${money(m.per)}</span></div>
-      <div class="row" style="margin-top:6px"><details><summary class="small">${t("calc")}</summary><div class="calc">${calc}<div class="row"><b>${t("portions")}</b><b>${money(m.total)}</b></div></div></details>
-      <button class="btn" data-meal="${k}">${t("addMeal")}</button></div></div>`;
+  const D = day(), sel = new Set((D.meals || []).map((m) => m.key));
+  return `<div class="card idea"><h2>${picker ? t("pickMeals") : t("meals")}</h2>${list.map((m, k) => {
+    const lines = m.rec.lines.map((l) => `<div class="row"><span>${amountTxt(l)} ${esc(shortName(l.b.it.id).toLowerCase())} · <b>${SHOP[l.shop]}</b>${l.o ? ` <span class="muted">${esc(l.o.name.slice(0, 32))}</span>` : ` <span class="muted">${t("est")}</span>`}</span><span>${money(l.cost)}</span></div>`).join("");
+    const chosen = sel.has(m.key);
+    return `<div class="meal" ${picker ? `data-mealpick="${k}" style="cursor:pointer"` : ""}><div class="row"><div class="t">${picker ? (chosen ? "✅ " : "⬜ ") : k + 1 + ". "}${esc(mealName(m))}</div><span class="per">${money(m.per)} <span class="tiny" style="font-weight:600">${t("perPortion")}</span></span></div>
+      <div class="small" style="margin-top:4px">📍 ${mealWhere(m)} · ${money(m.total)} ${t("forPortions")}</div>
+      <details style="margin-top:4px"><summary class="small">${t("calc")}</summary><div class="calc">${lines}</div></details>
+      ${picker ? "" : `<div class="row" style="margin-top:8px;justify-content:flex-start;gap:6px"><button class="btn primary" data-mealgo="${k}">${t("goMeal")}</button><button class="btn" data-meal="${k}">${t("addMeal")}</button></div>`}</div>`;
   }).join("")}</div>`;
 }
 
@@ -491,10 +529,13 @@ function renderPlan() {
   const rec = r.rec, D = day(), th = thresholds();
   const cards = new Set(); rec.lines.forEach((l) => l.o?.card && cards.add(l.o.card));
   const saved = Math.max(0, rec.normal - rec.total);
+  const lunch = state.mode === "lunch", nMeals = Math.max(1, (D.meals || []).length);
+  const usedShops = rec.shops.filter((s) => rec.lines.some((l) => l.shop === s && !l.missing));
   let html = `<div class="card hero"><div class="label">${t("goTo")}</div>
-    <div class="go">${rec.shops.map((s) => SHOP[s]).join(" → ")}</div>
-    <div class="big"><div><b>${money(rec.total)}</b> <span>${t("pay")}</span></div><div><b>${money(saved)}</b> <span>${t("save")}</span></div></div>
+    <div class="go">${(usedShops.length ? usedShops : rec.shops).map((s) => SHOP[s]).join(" → ")}</div>
+    <div class="big"><div><b>${money(rec.total)}</b> <span>${t("pay")}</span></div>${lunch ? `<div><b>${money(rec.total / (4 * nMeals))}</b> <span>${t("perPortion")}</span></div>` : `<div><b>${money(saved)}</b> <span>${t("save")}</span></div>`}</div>
     <div class="pills">${cards.size ? [...cards].map((c) => `<span class="pill">💳 ${esc(c)}</span>`).join("") : `<span class="pill">${t("noCard")}</span>`}</div></div>`;
+  if (lunch) { LAST_MEALS = mealIdeas(5); html += mealsHtml(LAST_MEALS, true); }
   // shopping list
   html += `<div class="card"><h2>${t("list")}</h2>`;
   const all = rec.lines.filter((l) => !l.missing);
@@ -514,10 +555,12 @@ function renderPlan() {
   if (ADDING) html += `<div class="note">${t("pickItem")}</div><div class="chips">${ITEMS.filter((it) => it.group !== "drugstore" && !inList.has(it.id)).map((it) => `<button class="chip" data-additem="${it.id}">${esc(iname(it))}</button>`).join("")}</div>`;
   html += `</div>`;
   // worth adding on route (stock-ups + removed extras)
-  const worth = r.ds.filter((d) => (d.kind === "stock" || (d.kind === "extra" && D.drop.includes(d.it.id))) && rec.shops.includes(d.o.shop)).slice(0, 5);
-  if (worth.length) html += `<div class="card"><h2>${t("worth")}</h2>${worth.map((d) => addRowHtml(d, true)).join("")}</div>`;
-  LAST_MEALS = mealIdeas(2);
-  html += mealsHtml(LAST_MEALS);
+  if (!lunch) {
+    const worth = r.ds.filter((d) => (d.kind === "stock" || (d.kind === "extra" && D.drop.includes(d.it.id))) && rec.shops.includes(d.o.shop)).slice(0, 5);
+    if (worth.length) html += `<div class="card"><h2>${t("worth")}</h2>${worth.map((d) => addRowHtml(d, true)).join("")}</div>`;
+    LAST_MEALS = mealIdeas(5);
+    html += mealsHtml(LAST_MEALS);
+  }
   // why + options (folded)
   const cd = cityData(), why = [];
   why.push(t("bestSingle", { s: SHOP[r.bestSingle.shops[0]], v: money(r.bestSingle.total) }));
@@ -540,7 +583,7 @@ function renderDeals() {
   const fresh = ds.filter((d) => d.kind === "fresh");
   let html = `<div class="card"><h2>${t("stockTitle")}</h2>${stock.length ? stock.map((d) => addRowHtml(d, false)).join("") : `<div class="empty">${t("none")}</div>`}</div>`;
   if (fresh.length) html += `<div class="card"><h2>${t("freshTitle")}</h2>${fresh.map((d) => `<div class="deal"><div class="row"><div class="t">${esc(iname(d.it))} · ${SHOP[d.o.shop]}</div>${discBadge(d.o)}</div><div class="m">${esc(d.o.name)} · ${money(d.o.price)} · ${money(d.o.unit_price)}/${uName(d.it.unit)} · ${validTxt(d.o)}</div></div>`).join("")}</div>`;
-  LAST_MEALS = mealIdeas(2);
+  LAST_MEALS = mealIdeas(5);
   html += mealsHtml(LAST_MEALS);
   const up = [];
   for (const it of ITEMS) for (const o of (cityData().items[it.id]?.offers || [])) if (upcoming(o) && discount(o) >= 0.2) up.push({ it, o });
@@ -630,7 +673,7 @@ function step(id) {
   return o && o.pack && !o.weighted ? o.pack : it.unit === "ks" ? 1 : 0.25;
 }
 document.addEventListener("click", (e) => {
-  const b = e.target.closest("button, [data-open]"); if (!b) return;
+  const b = e.target.closest("button, [data-open], [data-mealpick]"); if (!b) return;
   const D = day();
   const seg = b.closest(".seg");
   if (seg && b.dataset.v) { state[seg.id] = b.dataset.v; OPEN = null; save(); renderAll(); return; }
@@ -666,6 +709,18 @@ document.addEventListener("click", (e) => {
     const m = LAST_MEALS[+b.dataset.meal]; if (!m) return;
     for (const p of m.parts) { D.add[p.id] = (D.add[p.id] || 0) + p.qty; D.skip = D.skip.filter((x) => x !== p.id); }
     state.tab = "plan"; save(); renderAll(); window.scrollTo(0, 0); return;
+  }
+  if (b.dataset.mealgo != null) {
+    const m = LAST_MEALS[+b.dataset.mealgo]; if (!m) return;
+    state.mode = "lunch"; D.meals = [{ key: m.key, parts: m.parts.map((p) => [p.id, p.qty]) }];
+    state.tab = "plan"; save(); renderAll(); window.scrollTo(0, 0); return;
+  }
+  if (b.dataset.mealpick != null) {
+    if (e.target.closest("summary, details")) return;
+    const m = LAST_MEALS[+b.dataset.mealpick]; if (!m) return;
+    const has = D.meals.find((x) => x.key === m.key);
+    D.meals = has ? D.meals.filter((x) => x.key !== m.key) : D.meals.concat({ key: m.key, parts: m.parts.map((p) => [p.id, p.qty]) });
+    save(); renderPlan(); return;
   }
   if (b.dataset.dlow) { const id = b.dataset.dlow; state.drugLow = state.drugLow.includes(id) ? state.drugLow.filter((x) => x !== id) : state.drugLow.concat(id); save(); renderDrug(); return; }
 });

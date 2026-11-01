@@ -271,6 +271,9 @@ def billa(city, base_url, terms_key, currency):
                     else:
                         continue
                     n_unit = normal_std if normal_std else (unit * normal / cur if normal else None)
+                    # price per piece of varying weight (e.g. one sweet potato): trust the per-kg price, buy by weight
+                    if p.get("weightPieceArticle") or (pack and per_std and abs(cur / pack - per_std) / per_std > 0.15):
+                        weighted = True
                     if weighted:
                         pack = None
                 o = offer(it["id"], shop, city, currency, name, cur, unit, pack, normal_price=normal, normal_unit=n_unit,
