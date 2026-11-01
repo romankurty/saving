@@ -1,7 +1,8 @@
-"""Discovery run 10: Teta product pages with prices, Kaufland flyers via the Schwarz leaflet overview.
+"""Discovery run 12: Lidl full leaflet text (PDF), news roundups of Kaufland/Tesco leaflet prices (arecenze.cz).
 
 Personal, non-commercial use. One slow pass, identifies itself honestly, respects robots.txt and blocks.
 """
+import io
 import json
 import re
 import time
@@ -9,7 +10,6 @@ import urllib.parse
 import urllib.robotparser
 
 import requests
-from bs4 import BeautifulSoup
 
 UA = "saving-pricebot/1.0 (personal grocery price check; non-commercial; github.com/romankurty/saving)"
 DELAY_S = 3
@@ -24,13 +24,15 @@ def allowed(url):
     if base not in _robots:
         rp = urllib.robotparser.RobotFileParser()
         status = None
+        text = ""
         try:
             r = session.get(base + "/robots.txt", timeout=20)
-            status = r.status_code
-            rp.parse(r.text.splitlines() if status == 200 and "<html" not in r.text[:200].lower() else [])
+            status, text = r.status_code, r.text
+            rp.parse(text.splitlines() if status == 200 and "<html" not in text[:200].lower() else [])
         except Exception:  # noqa: BLE001
             rp.parse([])
         _robots[base] = (rp, status)
+        print(f"  robots {base}: {status} {[l for l in text.splitlines() if l.lower().startswith(('disallow', 'crawl'))][:12]}")
         time.sleep(DELAY_S)
     rp, status = _robots[base]
     if status in (401, 403):
@@ -38,106 +40,58 @@ def allowed(url):
     return rp.can_fetch(UA, url)
 
 
-def get(url, as_json=False, ok_any=False):
+def get(url, as_json=False):
     if not allowed(url):
         print(f"[SKIP blocked/robots] {url}")
         return None
     time.sleep(DELAY_S)
     try:
-        r = session.get(url, timeout=30, headers={"Accept": "application/json"} if as_json else {})
+        r = session.get(url, timeout=60, headers={"Accept": "application/json"} if as_json else {})
     except Exception as e:  # noqa: BLE001
         print(f"[ERR] {url}: {e}")
         return None
-    print(f"[{r.status_code}] {url[:170]} ({len(r.content)} B)")
-    return r if (r.status_code == 200 or ok_any) else None
+    print(f"[{r.status_code}] {url[:170]} ({len(r.content)} B, {r.headers.get('content-type')})")
+    return r if r.status_code == 200 else None
 
 
-def c(o, n=900):
-    return json.dumps(o, ensure_ascii=False, default=str)[:n]
+print("=== 1. Lidl leaflet PDF text ===")
+home = get("https://www.lidl.cz/c/akcni-letak/s10008644")
+slugs = sorted(set(re.findall(r"/l/cs/letak/([a-z0-9-]+)/", home.text))) if home is not None else []
+food = [s for s in slugs if s.startswith("akcni-letak")]
+print("  food leaflets:", food)
+for slug in food[:1]:
+    fj = get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={slug}&region_id=0&region_code=0", as_json=True)
+    if fj is None:
+        continue
+    fl = fj.json().get("flyer", {})
+    print("  pdf:", fl.get("pdfUrl"), fl.get("fileSize"), "| dates:", fl.get("offerStartDate"), fl.get("offerEndDate"))
+    pdf = get(fl.get("pdfUrl")) if fl.get("pdfUrl") else None
+    if pdf is not None:
+        import pdfplumber
+        with pdfplumber.open(io.BytesIO(pdf.content)) as doc:
+            print("  pages:", len(doc.pages))
+            for pn in (1, 2, 5):
+                if pn < len(doc.pages):
+                    txt = doc.pages[pn].extract_text() or ""
+                    print(f"  --- page {pn + 1}: {len(txt)} chars, prices: {len(re.findall(r'\\d+[,.]\\d{2}', txt))}")
+                    print("  ", txt[:1200].replace("\n", " | "))
+                    words = doc.pages[pn].extract_words()[:40]
+                    print("   words:", [(w['text'], round(w['x0']), round(w['top'])) for w in words])
 
-
-def walk(o, pred, out, limit=5):
-    if len(out) >= limit:
-        return out
-    if isinstance(o, dict):
-        if pred(o):
-            out.append(o)
-        for v in o.values():
-            walk(v, pred, out, limit)
-    elif isinstance(o, list):
-        for v in o:
-            walk(v, pred, out, limit)
-    return out
-
-
-def unflatten_nuxt(payload):
-    memo = {}
-
-    def res(i, depth=0):
-        if not isinstance(i, int) or i < 0 or i >= len(payload):
-            return i
-        if i in memo:
-            return memo[i]
-        if depth > 80:
-            return None
-        v = payload[i]
-        if isinstance(v, list):
-            if v and isinstance(v[0], str) and v[0] in ("Reactive", "ShallowReactive", "Ref", "ShallowRef", "EmptyRef"):
-                out = res(v[1], depth + 1) if len(v) > 1 else None
-            elif v and isinstance(v[0], str) and v[0] in ("Set", "Map", "Date", "RegExp", "BigInt", "null", "undefined", "NaN"):
-                out = v[1] if v[0] == "Date" and len(v) > 1 else None
-            else:
-                out = []
-                memo[i] = out
-                out.extend(res(x, depth + 1) for x in v)
-                return out
-        elif isinstance(v, dict):
-            out = {}
-            memo[i] = out
-            for k, x in v.items():
-                out[k] = res(x, depth + 1)
-            return out
-        else:
-            out = v
-        memo[i] = out
-        return out
-
-    return res(0)
-
-
-def nuxt(r):
-    s = BeautifulSoup(r.text, "html.parser").find("script", id="__NUXT_DATA__")
-    return unflatten_nuxt(json.loads(s.string)) if s else None
-
-
-print("=== 1. Teta e-shop category pages ===")
-r = get("https://www.tetadrogerie.cz/")
-slugs = []
+print("=== 2. News roundups with Kaufland / Tesco leaflet prices ===")
+r = get("https://www.arecenze.cz/")
+links = []
 if r is not None:
-    d = (nuxt(r) or {}).get("data", {})
-    menu = d.get("/api/v2/shop/search/taxons/menu_category")
-    items = walk(menu, lambda x: isinstance(x, dict) and "slug" in x and "name" in x, [], 2000)
-    keys = ("toalet", "papír", "vlhč", "ubrous", "zub", "šampon", "sprch", "nádob", "nadob")
-    sel = [(i.get("name"), i.get("slug")) for i in items if any(k in (i.get("name") or "").lower() for k in keys)]
-    print("  matching taxons:", sel)
-    slugs = [s for _, s in sel]
-for slug in (slugs[:1] or ["hygiena"]):
-    r = get(f"https://www.tetadrogerie.cz/eshop/produkty/{slug}")
-    if r is None:
-        continue
-    d = (nuxt(r) or {}).get("data", {})
-    print("  data keys:", [k[:140] for k in d.keys()][:12])
-    prods = walk(d, lambda x: isinstance(x, dict) and "name" in x and any(("price" in k.lower()) for k in x.keys()), [], 2)
-    for p in prods:
-        print("   product:", c(p, 2200))
-    cnt = len(walk(d, lambda x: isinstance(x, dict) and "name" in x and any(("price" in k.lower()) for k in x.keys()), [], 500))
-    print("   product count:", cnt)
-
-print("=== 2. Kaufland flyers via Schwarz overview ===")
-for url in ("https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs_CZ",
-            "https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs_cz",
-            "https://endpoints.leaflets.schwarz/v4/overview?client_locale=cz"):
-    r = get(url, as_json=True, ok_any=True)
-    if r is None:
-        continue
-    print("   body start:", r.text[:400].replace("\n", " "))
+    links = list(dict.fromkeys(re.findall(r'href="(https://www\.arecenze\.cz/clanky/[^"]+)"', r.text)))
+    pick = [l for l in links if any(k in l for k in ("kaufland", "tesco", "nejlepsi-slevy", "letak"))]
+    print("  candidate articles:", pick[:15])
+    for art in pick[:2]:
+        a = get(art)
+        if a is None:
+            continue
+        txt = re.sub(r"<[^>]+>", " ", a.text)
+        txt = re.sub(r"\s+", " ", txt)
+        hits = re.findall(r"[^.]{0,80}\d+[,.]\d{2} Kč[^.]{0,60}", txt)
+        print(f"  {art}: {len(hits)} price sentences")
+        for h in hits[:12]:
+            print("    •", h.strip()[:200])
