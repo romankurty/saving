@@ -88,6 +88,7 @@
   .line .prod { color: var(--muted); font-size: 0.8rem; }
   .line .cost { text-align: right; font-weight: 700; white-space: nowrap; }
   .line .calc { text-align: right; color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; }
   table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
   th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; }
   th { color: var(--muted); font-weight: 600; font-size: 0.75rem; border-top: 0; }
@@ -107,7 +108,7 @@
   input[type=number] { width: 96px; text-align: right; }
   .setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
   .setrow:first-of-type { border-top: 0; }
-  nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+  nav.tabs { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
   nav.tabs .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
   nav.tabs button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 0.7rem; font-weight: 600; padding: 4px 2px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
   nav.tabs button svg { width: 22px; height: 22px; }
@@ -316,7 +317,7 @@ function stockDeals() {
   const a = +state.set.stockPct / 100;
   for (const it of ITEMS) {
     if (it.group === "drugstore") continue;
-    const offs = offersFor(it.id).filter((o) => o.conf !== "low");
+    const offs = offersFor(it.id).filter((o) => o.conf !== "low" && o.promo);
     let best = null;
     for (const o of offs) { const d = discount(o); if (d >= a && (!best || o.unit_price < best.o.unit_price)) best = { o, d }; }
     if (!best) continue;
@@ -487,9 +488,9 @@ function renderPlan() {
   if (idea) html += ideaHtml(idea);
   // options table
   const sorted = r.opts.slice().sort((a, b) => a.score - b.score);
-  html += `<div class="card"><h2>${t("options")}</h2><table><thead><tr><th>${t("option")}</th><th class="num">${t("basket")}</th><th class="num">${t("stockBonus")}</th><th class="num">${t("score")}</th></tr></thead><tbody>
+  html += `<div class="card"><h2>${t("options")}</h2><div class="tw"><table><thead><tr><th>${t("option")}</th><th class="num">${t("basket")}</th><th class="num">${t("stockBonus")}</th><th class="num">${t("score")}</th></tr></thead><tbody>
     ${sorted.map((o) => `<tr class="${o === rec ? "best" : ""}"><td>${o.shops.map((s) => SHOP[s]).join(" + ")}${o.est ? ` <span class="badge b-warn">${o.est} ${t("est")}</span>` : ""}</td><td class="num">${money(o.total)}</td><td class="num">${o.bonus > 0.5 ? "−" + money(o.bonus) : "—"}</td><td class="num">${money(o.score)}</td></tr>`).join("")}
-    </tbody></table><div class="note">${t("score")} = ${t("basket")} − ${t("stockBonus").toLowerCase()} (${t("stockHint", { a: state.set.stockPct })})</div></div>`;
+    </tbody></table></div><div class="note">${t("score")} = ${t("basket")} − ${t("stockBonus").toLowerCase()} (${t("stockHint", { a: state.set.stockPct })})</div></div>`;
   out.innerHTML = html;
 }
 
@@ -538,13 +539,13 @@ function renderPrices() {
   for (const g of ["dinner", "lunch", "breakfast", "fruit", "pantry", "drugstore"]) {
     const its = ITEMS.filter((it) => it.group === g && (!q || iname(it).toLowerCase().includes(q) || it.en.toLowerCase().includes(q)));
     if (!its.length) continue;
-    html += `<div class="card"><table><thead><tr><th>${t("item")}</th>${shops.map((s) => `<th class="num">${SHOP[s]}</th>`).join("")}<th class="num">${t("usual")}</th></tr></thead><tbody>`;
+    html += `<div class="card"><div class="tw"><table><thead><tr><th>${t("item")}</th>${shops.map((s) => `<th class="num">${SHOP[s]}</th>`).join("")}<th class="num">${t("usual")}</th></tr></thead><tbody>`;
     for (const it of its) {
       const cells = shops.map((s) => offersFor(it.id, s).sort((a, b) => a.unit_price - b.unit_price)[0] || null);
       const min = Math.min(...cells.filter(Boolean).map((o) => o.unit_price));
       html += `<tr><td><b>${esc(iname(it))}</b><div class="tiny muted">/${uName(it.unit)}</div></td>${cells.map((o) => o ? `<td class="num" title="${esc(o.name)}" style="${o.unit_price === min ? "font-weight:700;color:var(--good)" : ""}">${money(o.unit_price)}${o.promo ? "★" : ""}<div class="tiny muted">${esc(o.name.slice(0, 22))}</div></td>` : `<td class="num muted">—</td>`).join("")}<td class="num muted">${money(usual(it.id))}</td></tr>`;
     }
-    html += `</tbody></table></div>`;
+    html += `</tbody></table></div></div>`;
   }
   out.innerHTML = html;
 }

@@ -37,11 +37,11 @@ ITEMS = [
          bounds=(150, 900)),
     dict(id="avocado", en="Avocado", sk="Avokádo", group="dinner", unit="ks", weekly=3.5, shelf="fresh", quick=True,
          cz=["avokádo"], skt=["avokádo"],
-         inc=r"avokad", exc=r"guacamol|pomazank|olej|sushi|toast|krem|dip|salat|majoran|pepr|susen|koren|kotanyi|\b\d{1,2} ?g\b", count_required=False,
+         inc=r"avokad", exc=r"guacamol|pomazank|olej|sushi|toast|krem|dip|salat|majoran|pepr|susen|koren|kotanyi|muskat|orech|mlet|kmin|skoric|vanil|\b\d{1,2} ?g\b", count_required=False,
          bounds=(5, 60)),
     dict(id="paprika", en="Bell pepper", sk="Paprika", group="dinner", unit="kg", weekly=0.5, shelf="fresh", quick=True,
          cz=["paprika"], skt=["paprika"],
-         inc=r"\bpaprik", exc=r"mlet|koreni|korenie|uden|pasta|chips|klobas|salam|lupink|plnen|marinov|sterilov|nakladan|omack|kecup|ajvar|lecho|susen|chilli|chili|pomazank|krem|slovensk|syr|tycink|krekr|arasid|bites|s paprikou|chrum|orech|orisk",
+         inc=r"\bpaprik", exc=r"mlet|koreni|korenie|uden|pasta|chips|klobas|salam|lupink|plnen|marinov|sterilov|nakladan|omack|kecup|ajvar|lecho|susen|chilli|chili|pomazank|krem|slovensk|syr|tycink|krekr|arasid|bites|s paprikou|chrum|orech|orisk|paprikas|maggi|cest|poch|polievk|polevk|na paprike|instant|vifon",
          bounds=(20, 250)),
     dict(id="cucumber", en="Cucumber", sk="Uhorka", group="dinner", unit="ks", weekly=2, shelf="fresh", quick=True,
          cz=["okurka"], skt=["uhorka"],
@@ -110,7 +110,7 @@ ITEMS = [
          bounds=(8, 120)),
     dict(id="garlic", en="Garlic", sk="Cesnak", group="pantry", unit="kg", weekly=0.05, shelf="long", quick=False,
          cz=["česnek"], skt=["cesnak"],
-         inc=r"\bcesnek|\bcesnak", exc=r"medved|pasta|susen|granul|pomazank|chleb|bagetk|majonez|dresink|kecup|omack|kruton|olej|bylink|sul|bramburk|chips|krekr|maslo|klobas|salam|park|sunk|syr|polevk|sendvic",
+         inc=r"\bcesnek|\bcesnak", exc=r"medved|pasta|susen|granul|pomazank|chleb|bagetk|majonez|dresink|kecup|omack|kruton|olej|bylink|sul|bramburk|chips|krekr|maslo|klobas|salam|park|sunk|syr|polevk|sendvic|spenat|smetan",
          bounds=(40, 600)),
     dict(id="frozen_veg", en="Frozen vegetables", sk="Mrazená zelenina", group="lunch", unit="kg", weekly=0, shelf="freezable", quick=False,
          cz=["mražená zelenina"], skt=["mrazená zelenina"],
@@ -157,19 +157,19 @@ ITEMS = [
     dict(id="nuts", en="Nuts (raw, unsalted)", sk="Orechy (nesolené)", group="pantry", unit="kg", weekly=0.3, shelf="long", quick=False,
          cz=["vlašské ořechy", "mandle", "kešu", "ořechy"], skt=["vlašské orechy", "mandle", "kešu", "orechy"],
          inc=r"vlassk|mandl|kesu|liskov|lieskov|para orech|pekan|orechy|oriesky|orechova smes|orieskov|makadam",
-         exc=r"solen|salted|chilli|chili|\bmed\b|medov|cokol|karamel|wasabi|bbq|mlek|mliek|napoj|krem|pasta|masl|tycin|susen|musli|muesli|arasid|burske|lupin|cukr|jogurt|nugat|marcip|mouk|muk|dort|kolac|pecivo|olej|platk|strouhan|plnen|salat|salad",
+         exc=r"solen|salted|chilli|chili|\bmed\b|medov|cokol|karamel|wasabi|bbq|mlek|mliek|napoj|krem|pasta|masl|tycin|susen|musli|muesli|arasid|burske|lupin|cukr|jogurt|nugat|marcip|mouk|muk|dort|kolac|pecivo|olej|platk|strouhan|plnen|salat|salad|pomazank|chlebick|mysli|cereal|kase|flakes",
          bounds=(120, 900)),
     dict(id="salt", en="Salt", sk="Soľ", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["sůl"], skt=["soľ"],
-         inc=r"\bsul\b|\bsol\b|jodidovan", exc=r"solen|mycky|koupel|posyp|tablet|regener|kupel|bylink|bazanov|kosmet|kozni|pletov|somat|finish|umyvac|riad|do umyv|clean",
+         inc=r"\bsul\b|\bsol\b|jodidovan", exc=r"solen|mycky|koupel|posyp|tablet|regener|kupel|bylink|bazanov|kosmet|kozni|pletov|somat|finish|umyvac|riad|do umyv|clean|tycink|rasc|krekr|preclik|chips|slovakia",
          bounds=(5, 300)),
     dict(id="pepper", en="Black pepper", sk="Čierne korenie", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["pepř černý"], skt=["čierne korenie"],
-         inc=r"\bpepr|cierne koren", exc=r"paprik|chilli|klobas|salam|steak|omack|chips|salat|syr|sunk|zlato|eidam|blatack|\d{2} ?%|avokad",
+         inc=r"\bpepr|cierne koren", exc=r"paprik|chilli|klobas|salam|steak|omack|chips|salat|syr|sunk|zlato|eidam|blatack|\d{2} ?%|avokad|vroubk|chips|brambur|bohemia|kajensk|paliv|lupin",
          bounds=(150, 3000)),
     dict(id="turmeric", en="Turmeric", sk="Kurkuma", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["kurkuma"], skt=["kurkuma"],
-         inc=r"kurkum", exc=r"caj|kapsl|tablet|napoj|latte|mydl|kosmet|pfanner|dzus|zazvor|pomeranc|citron|smoothie",
+         inc=r"kurkum", exc=r"caj|kapsl|tablet|napoj|latte|mydl|kosmet|pfanner|dzus|zazvor|pomeranc|citron|smoothie|shot|\d+ ?ml",
          bounds=(100, 3000)),
     dict(id="oregano", en="Oregano", sk="Oregano", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["oregano"], skt=["oregano"],
@@ -178,7 +178,7 @@ ITEMS = [
     # ---------------- fruit ----------------
     dict(id="bananas", en="Bananas", sk="Banány", group="fruit", unit="kg", weekly=1.0, shelf="fresh", quick=False,
          cz=["banány"], skt=["banány"],
-         inc=r"\bbanan", exc=r"chips|susen|lupin|jogurt|cokol|napoj|smoothie|sirup|ochucen|pyre|dzus|kase|pecivo|chleb|musli|muesli|bonbon|zmrzl|tycin|piskot|kefir|mlek|mliek|pudin|dort|kolac|chips|mullermilch|drink|\d+ ?ml|\d ?l\b",
+         inc=r"\bbanan", exc=r"chips|susen|lupin|jogurt|cokol|napoj|smoothie|sirup|ochucen|pyre|dzus|kase|pecivo|chleb|musli|muesli|bonbon|zmrzl|tycin|piskot|kefir|mlek|mliek|pudin|dort|kolac|chips|mullermilch|drink|\d+ ?ml|\d ?l\b|lipan|kakao|madeta|duo|tvaroh|dezert|pudink",
          bounds=(15, 120)),
     dict(id="apples", en="Apples", sk="Jablká", group="fruit", unit="kg", weekly=1.0, shelf="fresh", quick=False,
          cz=["jablka"], skt=["jablká"],
@@ -211,6 +211,6 @@ ITEMS = [
          bounds=(15, 400)),
 ]
 
-PET_EXC = r"gourmet|whiskas|felix|kitekat|pedigree|frolic|kapsick|krmiv|pro psy|pro kock|pre psy|pre mack|cesar|sheba|friskies|purina|granul|\bpes\b|\bpsa\b|\bmacka\b|kocka"
+PET_EXC = r"zooroyal|gourmet|whiskas|felix|kitekat|pedigree|frolic|kapsick|krmiv|pro psy|pro kock|pre psy|pre mack|cesar|sheba|friskies|purina|granul|\bpes\b|\bpsa\b|\bmacka\b|kocka"
 
 GROUP_ORDER = ["dinner", "lunch", "breakfast", "fruit", "pantry", "drugstore"]

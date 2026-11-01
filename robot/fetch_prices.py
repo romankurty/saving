@@ -160,7 +160,7 @@ def p25(values):
         return None
     if len(v) < 3:
         return v[0]
-    k = (len(v) - 1) * 0.25
+    k = (len(v) - 1) * 0.10
     f = int(k)
     return v[f] + (v[min(f + 1, len(v) - 1)] - v[f]) * (k - f)
 
@@ -421,6 +421,7 @@ def parse_albert(text, term, item):
         if end_name == -1 or end_name - i > 45:
             continue
         name = (" ".join(prefix) + " " + text[i:end_name]).strip()
+        name = re.split(r"\s\d{1,4},\d{2}\s*/|\s\d{1,4},-", name)[0].strip(" –-/")
         window = text[i:i + 240]
         wn = norm(window)
         if item["id"] not in match_items(name + " " + window[:80]):
