@@ -54,44 +54,22 @@ def get(url, as_json=False):
     return r if r.status_code == 200 else None
 
 
-print("=== 1. Lidl leaflet PDF text ===")
-home = get("https://www.lidl.cz/c/akcni-letak/s10008644")
-slugs = sorted(set(re.findall(r"/l/cs/letak/([a-z0-9-]+)/", home.text))) if home is not None else []
-food = [s for s in slugs if s.startswith("akcni-letak")]
-print("  food leaflets:", food)
-for slug in food[:1]:
-    fj = get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={slug}&region_id=0&region_code=0", as_json=True)
-    if fj is None:
-        continue
-    fl = fj.json().get("flyer", {})
-    print("  pdf:", fl.get("pdfUrl"), fl.get("fileSize"), "| dates:", fl.get("offerStartDate"), fl.get("offerEndDate"))
-    pdf = get(fl.get("pdfUrl")) if fl.get("pdfUrl") else None
-    if pdf is not None:
-        import pdfplumber
-        with pdfplumber.open(io.BytesIO(pdf.content)) as doc:
-            print("  pages:", len(doc.pages))
-            for pn in (1, 2, 5):
-                if pn < len(doc.pages):
-                    txt = doc.pages[pn].extract_text() or ""
-                    print(f"  --- page {pn + 1}: {len(txt)} chars, prices: {len(re.findall(r'\\d+[,.]\\d{2}', txt))}")
-                    print("  ", txt[:1200].replace("\n", " | "))
-                    words = doc.pages[pn].extract_words()[:40]
-                    print("   words:", [(w['text'], round(w['x0']), round(w['top'])) for w in words])
-
-print("=== 2. News roundups with Kaufland / Tesco leaflet prices ===")
-r = get("https://www.arecenze.cz/")
-links = []
+print("=== News roundups (arecenze.cz) ===")
+r = get("https://www.arecenze.cz/clanky/nejlepsi-slevy/")
 if r is not None:
-    links = list(dict.fromkeys(re.findall(r'href="(https://www\.arecenze\.cz/clanky/[^"]+)"', r.text)))
-    pick = [l for l in links if any(k in l for k in ("kaufland", "tesco", "nejlepsi-slevy", "letak"))]
-    print("  candidate articles:", pick[:15])
-    for art in pick[:2]:
+    links = list(dict.fromkeys(re.findall(r'href="(https://www\.arecenze\.cz/clanky/[a-z0-9-]+/)"', r.text)))
+    print("  links:", links[:25])
+    pick = [l for l in links if "kaufland" in l][:1] + [l for l in links if "tesco" in l][:1] + [l for l in links if "nejlepsi-slevy-z-letaku" in l][:1]
+    for art in pick:
         a = get(art)
         if a is None:
             continue
-        txt = re.sub(r"<[^>]+>", " ", a.text)
-        txt = re.sub(r"\s+", " ", txt)
-        hits = re.findall(r"[^.]{0,80}\d+[,.]\d{2} Kč[^.]{0,60}", txt)
-        print(f"  {art}: {len(hits)} price sentences")
-        for h in hits[:12]:
-            print("    •", h.strip()[:200])
+        m = re.search(r'"datePublished"\s*:\s*"([^"]+)"', a.text)
+        print("  ---", art, "| published:", m.group(1) if m else None)
+        body = re.sub(r"<script.*?</script>|<style.*?</style>", " ", a.text, flags=re.S)
+        body = re.sub(r"<[^>]+>", "\n", body)
+        lines = [re.sub(r"\s+", " ", l).strip() for l in body.split("\n")]
+        lines = [l for l in lines if re.search(r"\d+[,.]\d{2}\s*Kč|\d+\s*Kč", l) and 8 < len(l) < 260]
+        print("   price lines:", len(lines))
+        for l in lines[:25]:
+            print("    •", l)
