@@ -1,0 +1,43 @@
+name: price-robot
+
+on:
+  schedule:
+    - cron: "15 4 * * *"      # every morning (~05:15 Brno time in winter)
+    - cron: "15 17 * * 3,4"   # Wednesday + Thursday evening, when new leaflets start
+  workflow_dispatch:
+  push:
+    paths:
+      - "robot/fetch_prices.py"
+      - "robot/items_def.py"
+      - ".github/workflows/robot.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: price-robot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python robot/fetch_prices.py
+      - name: Save new prices
+        run: |
+          git config user.name "saving-robot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data config
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Prices update $(date -u +'%Y-%m-%d %H:%M') UTC"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

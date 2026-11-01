@@ -2,10 +2,6 @@ name: discover-sources
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "robot/discover.py"
-      - ".github/workflows/discover.yml"
 
 permissions:
   contents: read
