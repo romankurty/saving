@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>App Check</title>
+<meta name="description" content="Test app: confirms your phone can install and run a web app from GitHub Pages.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#f4f6f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1412" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="App Check">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+  :root {
+    --bg: #f4f6f5;
+    --card: #ffffff;
+    --text: #14211d;
+    --muted: #5b6b66;
+    --line: #e2e8e5;
+    --accent: #0f766e;
+    --ok: #166534;
+    --ok-soft: #dcf2e3;
+    --wait: #9a4a07;
+    --wait-soft: #fbeedc;
+    --no: #9f1239;
+    --no-soft: #fbe4ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1412;
+      --card: #151f1c;
+      --text: #e6eeeb;
+      --muted: #93a39e;
+      --line: #24312d;
+      --accent: #2dd4bf;
+      --ok: #86efac;
+      --ok-soft: #143221;
+      --wait: #fcd34d;
+      --wait-soft: #33270f;
+      --no: #fda4af;
+      --no-soft: #3a1720;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
+             calc(28px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+  }
+  .hero { display: flex; align-items: center; gap: 14px; margin: 8px 0 22px; }
+  .logo { width: 56px; height: 56px; border-radius: 14px; flex: none; }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+  .sub { margin: 2px 0 0; color: var(--muted); font-size: 0.95rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h2 { font-size: 1.02rem; margin: 0; }
+  .step { color: var(--muted); font-weight: 500; margin-right: 6px; }
+  .badge {
+    flex: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--line);
+    color: var(--muted);
+  }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .badge.wait { background: var(--wait-soft); color: var(--wait); }
+  .badge.no { background: var(--no-soft); color: var(--no); }
+  .hint { margin: 10px 0 0; color: var(--muted); font-size: 0.93rem; }
+  .net { margin: 10px 0 0; font-size: 0.88rem; font-weight: 600; }
+  .btn {
+    margin-top: 12px;
+    width: 100%;
+    font: inherit;
+    font-weight: 600;
+    padding: 12px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--bg);
+    cursor: pointer;
+  }
+  textarea {
+    width: 100%;
+    margin-top: 12px;
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    resize: vertical;
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .saved { margin: 6px 0 0; min-height: 1.3em; font-size: 0.85rem; color: var(--muted); }
+  footer { margin-top: 18px; color: var(--muted); font-size: 0.82rem; text-align: center; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <img src="icon-192.png" alt="" class="logo" width="56" height="56">
+    <div>
+      <h1>App Check</h1>
+      <p class="sub">If you can read this, GitHub Pages is working. Three checks to go.</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <h2><span class="step">1</span>Installed on home screen</h2>
+      <span class="badge" id="b-install">…</span>
+    </div>
+    <p class="hint" id="h-install"></p>
+    <button class="btn" id="btn-install" hidden>Install app</button>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <h2><span class="step">2</span>Works offline</h2>
+      <span class="badge" id="b-offline">…</span>
+    </div>
+    <p class="hint" id="h-offline"></p>
+    <p class="net" id="net"></p>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <h2><span class="step">3</span>Saves data on this phone</h2>
+      <span class="badge" id="b-store">…</span>
+    </div>
+    <p class="hint">Type something, close the app and open it again. The text should still be here. It is stored only on this phone and is never uploaded to GitHub.</p>
+    <textarea id="note" rows="3" placeholder="e.g. My first app works"></textarea>
+    <p class="saved" id="saved"></p>
+  </section>
+
+  <footer>App version <span id="ver"></span></footer>
+</main>
+
+<script>
+  // Change this when you upload a new version, so you can see the update arrive.
+  var APP_VERSION = '1.0';
+
+  function $(id) { return document.getElementById(id); }
+  function setBadge(id, state, text) {
+    var el = $(id);
+    el.className = 'badge ' + state;
+    el.textContent = text;
+  }
+  $('ver').textContent = APP_VERSION;
+
+  // ---------- 1. Installed on home screen ----------
+  var ua = navigator.userAgent;
+  var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/.test(ua);
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  if (isStandalone) {
+    setBadge('b-install', 'ok', 'Done');
+    $('h-install').textContent = 'You opened this from the home-screen icon, so it runs full-screen like a normal app.';
+  } else {
+    setBadge('b-install', 'wait', 'To do');
+    if (isIOS) {
+      $('h-install').textContent = 'Tap the Share button (square with an arrow up), scroll down, tap "Add to Home Screen", then "Add". Then open the app from the new icon.';
+    } else if (isAndroid) {
+      $('h-install').textContent = 'In Chrome, tap the ⋮ menu (top right), then "Install app" or "Add to home screen". Then open the app from the new icon.';
+    } else {
+      $('h-install').textContent = 'Open this page on your phone to install it. On a computer, Chrome and Edge show an install icon in the address bar.';
+    }
+  }
+
+  var deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    $('btn-install').hidden = false;
+  });
+  $('btn-install').addEventListener('click', function () {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () {
+      deferredPrompt = null;
+      $('btn-install').hidden = true;
+    });
+  });
+  window.addEventListener('appinstalled', function () {
+    $('btn-install').hidden = true;
+    $('h-install').textContent = 'Installed. Now close this tab and open the app from the new icon on your home screen.';
+  });
+
+  // ---------- 2. Works offline ----------
+  function updateOffline() {
+    if (!('serviceWorker' in navigator)) {
+      setBadge('b-offline', 'no', 'Not supported');
+      $('h-offline').textContent = 'This browser cannot store the app for offline use. Try Safari (iPhone) or Chrome (Android).';
+      return;
+    }
+    if (navigator.serviceWorker.controller) {
+      setBadge('b-offline', 'ok', 'Ready');
+      $('h-offline').textContent = 'The app is saved on your phone. Test it: switch on airplane mode, close the app completely and open it again.';
+    } else {
+      setBadge('b-offline', 'wait', 'Preparing');
+      $('h-offline').textContent = 'Saving the app for offline use. If this does not turn green in a few seconds, reload the page once.';
+    }
+  }
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .then(updateOffline)
+        .catch(function () {
+          setBadge('b-offline', 'no', 'Error');
+          $('h-offline').textContent = 'The offline helper (sw.js) could not start. Check that sw.js was uploaded next to index.html.';
+        });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', updateOffline);
+  }
+  updateOffline();
+
+  function updateNet() {
+    $('net').textContent = navigator.onLine
+      ? 'Connection: online'
+      : 'Connection: offline — and the app still opened. Offline works.';
+  }
+  window.addEventListener('online', updateNet);
+  window.addEventListener('offline', updateNet);
+  updateNet();
+
+  // ---------- 3. Saves data on this phone ----------
+  var KEY = 'appcheck-note';
+  var storageOk = false;
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved !== null) $('note').value = saved;
+    localStorage.setItem('appcheck-probe', '1');
+    localStorage.removeItem('appcheck-probe');
+    storageOk = true;
+  } catch (e) { storageOk = false; }
+
+  if (!storageOk) {
+    setBadge('b-store', 'no', 'Blocked');
+    $('saved').textContent = 'This browser is blocking storage (private browsing?). Open the page in a normal window.';
+    $('note').disabled = true;
+  } else if ($('note').value) {
+    setBadge('b-store', 'ok', 'Done');
+    $('saved').textContent = 'This text survived closing the app. Storage works.';
+  } else {
+    setBadge('b-store', 'wait', 'To do');
+  }
+
+  $('note').addEventListener('input', function () {
+    try {
+      localStorage.setItem(KEY, $('note').value);
+      setBadge('b-store', 'wait', 'Saved');
+      $('saved').textContent = 'Saved on this phone. Now close the app and reopen it to confirm.';
+    } catch (e) {
+      setBadge('b-store', 'no', 'Blocked');
+      $('saved').textContent = 'Could not save. The phone may be out of storage or in private mode.';
+    }
+  });
+</script>
+</body>
+</html>
