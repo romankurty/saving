@@ -110,59 +110,34 @@ def nuxt(r):
     return unflatten_nuxt(json.loads(s.string)) if s else None
 
 
-print("=== 1. Teta: leaflet page + menu categories ===")
-r = get("https://www.tetadrogerie.cz/akce/letak")
-if r is not None:
-    d = (nuxt(r) or {}).get("data", {})
-    print("  data keys:", [k[:120] for k in d.keys()])
-    prods = walk(d, lambda x: isinstance(x, dict) and "name" in x and any("price" in k.lower() for k in x.keys()), [], 3)
-    for p in prods:
-        print("   product:", c(p, 1500))
+print("=== 1. Teta e-shop category pages ===")
 r = get("https://www.tetadrogerie.cz/")
-cats = []
+slugs = []
 if r is not None:
     d = (nuxt(r) or {}).get("data", {})
     menu = d.get("/api/v2/shop/search/taxons/menu_category")
-    items = walk(menu, lambda x: isinstance(x, dict) and "slug" in x and "name" in x, [], 60)
-    cats = [(i.get("name"), i.get("slug"), i.get("url")) for i in items]
-    print("  categories:", cats[:40])
-    hrefs = list(dict.fromkeys(a["href"] for a in BeautifulSoup(r.text, "html.parser").find_all("a", href=True)))
-    print("  hrefs:", [h for h in hrefs if h.startswith("/") and h.count("/") >= 1][:50])
-for url in ("https://www.tetadrogerie.cz/drogerie/zubni-pasty", "https://www.tetadrogerie.cz/vyhledavani?q=zubni%20pasta"):
-    r = get(url)
-    if r is not None:
-        d = (nuxt(r) or {}).get("data", {})
-        print("  data keys:", [k[:120] for k in d.keys()][:12])
-        prods = walk(d, lambda x: isinstance(x, dict) and "name" in x and any("price" in k.lower() for k in x.keys()), [], 2)
-        for p in prods:
-            print("   product:", c(p, 1500))
+    items = walk(menu, lambda x: isinstance(x, dict) and "slug" in x and "name" in x, [], 2000)
+    keys = ("toalet", "papír", "vlhč", "ubrous", "zub", "šampon", "sprch", "nádob", "nadob")
+    sel = [(i.get("name"), i.get("slug")) for i in items if any(k in (i.get("name") or "").lower() for k in keys)]
+    print("  matching taxons:", sel)
+    slugs = [s for _, s in sel]
+for slug in (slugs[:1] or ["hygiena"]):
+    r = get(f"https://www.tetadrogerie.cz/eshop/produkty/{slug}")
+    if r is None:
+        continue
+    d = (nuxt(r) or {}).get("data", {})
+    print("  data keys:", [k[:140] for k in d.keys()][:12])
+    prods = walk(d, lambda x: isinstance(x, dict) and "name" in x and any(("price" in k.lower()) for k in x.keys()), [], 2)
+    for p in prods:
+        print("   product:", c(p, 2200))
+    cnt = len(walk(d, lambda x: isinstance(x, dict) and "name" in x and any(("price" in k.lower()) for k in x.keys()), [], 500))
+    print("   product count:", cnt)
 
 print("=== 2. Kaufland flyers via Schwarz overview ===")
-for url in ("https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs-CZ",
-            "https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs_CZ"):
+for url in ("https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs_CZ",
+            "https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs_cz",
+            "https://endpoints.leaflets.schwarz/v4/overview?client_locale=cz"):
     r = get(url, as_json=True, ok_any=True)
     if r is None:
         continue
-    print("   body start:", r.text[:300].replace("\n", " "))
-    try:
-        j = r.json()
-    except Exception:  # noqa: BLE001
-        continue
-    flyers = walk(j, lambda x: isinstance(x, dict) and ("flyerIdentifier" in x or "identifier" in x or "slug" in x) and ("name" in x or "title" in x), [], 60)
-    print("   flyers:", len(flyers))
-    for f in flyers[:30]:
-        print("    -", f.get("flyerIdentifier") or f.get("identifier") or f.get("slug"), "|", f.get("name") or f.get("title"), "|", f.get("client") or f.get("brand") or f.get("clientName"), f.get("startDate"), f.get("endDate"))
-    kf = [f for f in flyers if "kaufland" in json.dumps(f, ensure_ascii=False).lower()]
-    if kf:
-        ident = kf[0].get("flyerIdentifier") or kf[0].get("identifier") or kf[0].get("slug")
-        fr = get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={ident}&region_id=0&region_code=0", as_json=True)
-        if fr is not None:
-            fl = fr.json().get("flyer", {})
-            print("   kaufland flyer:", fl.get("name"), fl.get("startDate"), fl.get("endDate"), "| products:", len(fl.get("products") or {}), "| pages:", len(fl.get("pages") or []))
-            for k2, v2 in list((fl.get("products") or {}).items())[:2]:
-                print("    product:", c(v2, 700))
-            pages = fl.get("pages") or []
-            if len(pages) > 2:
-                print("    page2 keywords:", (pages[2].get("keyWords") or "")[:500])
-                print("    page2 links:", c(pages[2].get("links"), 600))
-    break
+    print("   body start:", r.text[:400].replace("\n", " "))
