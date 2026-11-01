@@ -266,8 +266,8 @@ function qtyTxt(q, u) {
   if (u === "l") return q < 1 ? Math.round(q * 1000) + " ml" : (+q.toFixed(2)).toLocaleString() + " l";
   return (+q.toFixed(1)).toLocaleString() + " " + t("piece");
 }
-function dateTxt(iso) { if (!iso) return ""; const d = new Date(iso.length === 10 ? iso + "T12:00:00" : iso); return d.toLocaleDateString(state.lang === "sk" ? "sk-SK" : "en-GB", { day: "numeric", month: "numeric" }); }
-function dtTxt(iso) { const d = new Date(iso); return d.toLocaleDateString(state.lang === "sk" ? "sk-SK" : "en-GB", { weekday: "short", day: "numeric", month: "numeric" }) + " " + d.toLocaleTimeString(state.lang === "sk" ? "sk-SK" : "en-GB", { hour: "2-digit", minute: "2-digit" }); }
+function dateTxt(iso) { if (!iso) return ""; const d = new Date(iso.length === 10 ? iso + "T12:00:00" : iso); return d.getDate() + "." + (d.getMonth() + 1) + "."; }
+function dtTxt(iso) { const d = new Date(iso); return d.toLocaleDateString(state.lang === "sk" ? "sk-SK" : "en-GB", { weekday: "short" }) + " " + dateTxt(iso) + " " + d.toLocaleTimeString(state.lang === "sk" ? "sk-SK" : "en-GB", { hour: "2-digit", minute: "2-digit" }); }
 function thresholds() { return state.city === "brno" ? { stop: +state.set.stopBrno, trip: +state.set.tripBrno } : { stop: +state.set.stopKk, trip: +state.set.tripKk }; }
 
 // ============================================================ price logic
@@ -452,13 +452,14 @@ function srcChecked(o) {
   const key = o.shop + "_" + (o.city || state.city);
   return PRICES?.sources?.[key]?.checked || PRICES?.generated;
 }
-function validTxt(o) {
+function validTxt(o, always) {
   if (o.valid_from || o.valid_to) {
     const f = o.valid_from ? dateTxt(o.valid_from) : "", to = o.valid_to ? dateTxt(o.valid_to) : "";
     return `${t("valid")} ${f}${f && to ? "–" : ""}${to}`;
   }
-  return `${t("priceOn")} ${dateTxt(srcChecked(o))}`;
+  return always ? `${t("priceOn")} ${dateTxt(srcChecked(o))}` : "";
 }
+function joinBits(...b) { return b.filter(Boolean).join(" · "); }
 function srcLink(o) { return o && o.url ? ` · <a href="${esc(o.url)}" target="_blank" rel="noopener" style="color:inherit">${t("check")} ↗</a>` : ""; }
 function lineCalc(l) {
   const u = l.b.it.unit;
@@ -513,10 +514,11 @@ function renderPlan() {
     const ls = rec.lines.filter((l) => l.shop === s && !l.missing);
     if (!ls.length) continue;
     const sub = ls.reduce((a, l) => a + l.cost, 0);
-    html += `<div class="shop"><span class="dot" style="background:${SHOP_COLOR[s]}"></span>${SHOP[s]}<span class="muted small" style="margin-left:auto">${money(sub)}</span></div>`;
+    const chk = PRICES?.sources?.[s + "_" + state.city]?.checked || PRICES.generated;
+    html += `<div class="shop"><span class="dot" style="background:${SHOP_COLOR[s]}"></span>${SHOP[s]} <span class="muted tiny" style="font-weight:400">${t("priceOn")} ${dtTxt(chk)}</span><span class="muted small" style="margin-left:auto">${money(sub)}</span></div>`;
     for (const l of ls) {
       html += `<div class="line"><div><div class="what">${esc(iname(l.b.it))} ${l.o ? badgeFor(l.o) : `<span class="badge b-warn">${t("est")}</span>`}</div>
-        <div class="prod">${l.o ? esc(l.o.name) + " · " + validTxt(l.o) + srcLink(l.o) : t("noPrice")}</div></div>
+        <div class="prod">${l.o ? joinBits(esc(l.o.name), validTxt(l.o)) + srcLink(l.o) : t("noPrice")}</div></div>
         <div><div class="cost">${money(l.cost)}</div><div class="calc">${lineCalc(l)}</div></div></div>`;
     }
   }
@@ -542,7 +544,7 @@ function dealHtml(d) {
   const amount = d.packs ? `${d.packs} × ${d.o.pack ? qtyTxt(d.o.pack, u) : ""}` : qtyTxt(d.qty, u);
   const why = d.stockable ? (d.it.shelf === "freezable" ? t("freezes") : t("longLife")) + " · " + t("weeks", { n: d.weeks }) : t("freshDeal");
   return `<div class="deal"><div class="row"><div class="t">${esc(iname(d.it))} — ${SHOP[d.o.shop]}</div>${badgeFor(d.o)}</div>
-    <div class="m">${esc(d.o.name)} · ${money(d.o.price)}${d.o.pack && !d.o.weighted ? " / " + qtyTxt(d.o.pack, u) : "/" + uName(u)} = ${money(d.o.unit_price)}/${uName(u)} · ${t("usual")} ${money(d.ref)}/${uName(u)} · ${validTxt(d.o)}${srcLink(d.o)}</div>
+    <div class="m">${esc(d.o.name)} · ${money(d.o.price)}${d.o.pack && !d.o.weighted ? " / " + qtyTxt(d.o.pack, u) : "/" + uName(u)} = ${money(d.o.unit_price)}/${uName(u)} · ${t("usual")} ${money(d.ref)}/${uName(u)} · ${validTxt(d.o, true)}${srcLink(d.o)}</div>
     <div class="s">${t("buy")} <b>${amount}</b> = ${money(d.cost)} → ${t("save")} <b>${money(d.saving)}</b> <span class="muted small">(${why})</span></div></div>`;
 }
 function ideasHtml(list) {
@@ -610,7 +612,7 @@ function renderDrug() {
     html += `<div class="card"><div class="row"><h2 style="margin:0">${esc(iname(it))}</h2>${need ? `<span class="badge b-accent">${t("drugLow")}</span>` : ""}</div>`;
     if (!offs.length) { html += `<div class="empty">${t("noData")}</div></div>`; continue; }
     html += offs.slice(0, 4).map((o, i) => `<div class="deal"><div class="row"><div class="t">${i === 0 ? "★ " : ""}${SHOP[o.shop]} · ${money(o.unit_price)}/${it.unit === "l" ? "l" : uName(it.unit)}</div>${badgeFor(o)}</div>
-      <div class="m">${esc(o.name)} · ${money(o.price)} · ${validTxt(o)}${srcLink(o)}</div></div>`).join("");
+      <div class="m">${esc(o.name)} · ${money(o.price)} · ${validTxt(o, true)}${srcLink(o)}</div></div>`).join("");
     const u = usual(it.id);
     if (u) html += `<div class="note">${t("usual")}: ${money(u)}/${uName(it.unit)}</div>`;
     html += `</div>`;
