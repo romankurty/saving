@@ -1,4 +1,4 @@
-"""Discovery run 9: Albert leaflet validity objects, Teta action products, Kaufland overview params, Billa loyalty tags.
+"""Discovery run 10: Teta product pages with prices, Kaufland flyers via the Schwarz leaflet overview.
 
 Personal, non-commercial use. One slow pass, identifies itself honestly, respects robots.txt and blocks.
 """
@@ -7,7 +7,6 @@ import re
 import time
 import urllib.parse
 import urllib.robotparser
-from collections import Counter
 
 import requests
 from bs4 import BeautifulSoup
@@ -106,66 +105,64 @@ def unflatten_nuxt(payload):
     return res(0)
 
 
-print("=== 1. Albert leaflet validity ===")
-r = get("https://www.albert.cz/aktualni-letaky")
-if r is not None:
-    nd = BeautifulSoup(r.text, "html.parser").find("script", id="__NEXT_DATA__")
-    j = json.loads(nd.string)
-    hits = walk(j, lambda d: "validityEndDate" in d, [], 8)
-    for h in hits:
-        small = {k: v for k, v in h.items() if not isinstance(v, (dict, list))}
-        print("  ", c(small, 700))
+def nuxt(r):
+    s = BeautifulSoup(r.text, "html.parser").find("script", id="__NUXT_DATA__")
+    return unflatten_nuxt(json.loads(s.string)) if s else None
 
-print("=== 2. Teta action products ===")
-r = get("https://www.tetadrogerie.cz/akce")
-actions = []
+
+print("=== 1. Teta: leaflet page + menu categories ===")
+r = get("https://www.tetadrogerie.cz/akce/letak")
 if r is not None:
-    s = BeautifulSoup(r.text, "html.parser").find("script", id="__NUXT_DATA__")
-    data = unflatten_nuxt(json.loads(s.string))
-    acts = data["data"]["/api/v2/shop/actions?page=1&itemsPerPage=24"]
-    actions = acts.get("result") or []
-    print("  actions:", acts.get("count"), [(a.get("slug"), a.get("name"), a.get("type"), a.get("dateFrom"), a.get("dateTo")) for a in actions[:24]])
-for a in actions[:2]:
-    r = get(f"https://www.tetadrogerie.cz/akce/{a.get('slug')}")
-    if r is None:
-        continue
-    s = BeautifulSoup(r.text, "html.parser").find("script", id="__NUXT_DATA__")
-    data = unflatten_nuxt(json.loads(s.string))
-    d = data.get("data", {}) if isinstance(data, dict) else {}
-    print("  data keys:", [k[:110] for k in d.keys()])
-    prods = walk(d, lambda x: ("price" in x or "variants" in x or "priceWithVat" in x) and ("name" in x or "title" in x), [], 3)
+    d = (nuxt(r) or {}).get("data", {})
+    print("  data keys:", [k[:120] for k in d.keys()])
+    prods = walk(d, lambda x: isinstance(x, dict) and "name" in x and any("price" in k.lower() for k in x.keys()), [], 3)
     for p in prods:
         print("   product:", c(p, 1500))
-    cnt = len(walk(d, lambda x: ("price" in x or "variants" in x) and "name" in x, [], 500))
-    print("   product-like count:", cnt)
-
-print("=== 3. Kaufland overview params ===")
-for url in ("https://endpoints.leaflets.schwarz/v4/overview?country=cz&brand=kaufland&locale=cs-CZ",
-            "https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier=x&region_id=0&region_code=0"):
-    r = get(url, as_json=True, ok_any=True)
+r = get("https://www.tetadrogerie.cz/")
+cats = []
+if r is not None:
+    d = (nuxt(r) or {}).get("data", {})
+    menu = d.get("/api/v2/shop/search/taxons/menu_category")
+    items = walk(menu, lambda x: isinstance(x, dict) and "slug" in x and "name" in x, [], 60)
+    cats = [(i.get("name"), i.get("slug"), i.get("url")) for i in items]
+    print("  categories:", cats[:40])
+    hrefs = list(dict.fromkeys(a["href"] for a in BeautifulSoup(r.text, "html.parser").find_all("a", href=True)))
+    print("  hrefs:", [h for h in hrefs if h.startswith("/") and h.count("/") >= 1][:50])
+for url in ("https://www.tetadrogerie.cz/drogerie/zubni-pasty", "https://www.tetadrogerie.cz/vyhledavani?q=zubni%20pasta"):
+    r = get(url)
     if r is not None:
-        print("   body:", r.text[:400].replace("\n", " "))
+        d = (nuxt(r) or {}).get("data", {})
+        print("  data keys:", [k[:120] for k in d.keys()][:12])
+        prods = walk(d, lambda x: isinstance(x, dict) and "name" in x and any("price" in k.lower() for k in x.keys()), [], 2)
+        for p in prods:
+            print("   product:", c(p, 1500))
 
-print("=== 4. Billa loyalty/club price fields ===")
-tags, pkeys, regkeys = Counter(), Counter(), Counter()
-samples = []
-for slug in ("chlazene-mlecne-a-rostlinne-vyrobky-1207", "maso-a-ryby-1263", "drogerie-a-kosmetika-1599", "trvanlive-potraviny-1343"):
-    r = get(f"https://www.billa.cz/api/product-discovery/categories/{slug}/products?page=0&pageSize=100", as_json=True)
+print("=== 2. Kaufland flyers via Schwarz overview ===")
+for url in ("https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs-CZ",
+            "https://endpoints.leaflets.schwarz/v4/overview?client_locale=cs_CZ"):
+    r = get(url, as_json=True, ok_any=True)
     if r is None:
         continue
-    for p in r.json().get("results", []):
-        pr = p.get("price") or {}
-        for k in pr.keys():
-            pkeys[k] += 1
-        for k in (pr.get("regular") or {}).keys():
-            regkeys[k] += 1
-        for t in (pr.get("regular") or {}).get("tags") or []:
-            tags[t] += 1
-        if any(("club" in str(t).lower() or "klub" in str(t).lower() or "loyal" in str(t).lower()) for t in (pr.get("regular") or {}).get("tags") or []) or any(k not in ("baseUnitLong", "baseUnitShort", "basePriceFactor", "regular", "crossed", "discountPercentage", "standard", "lowestPrice") for k in pr.keys()):
-            if len(samples) < 3:
-                samples.append((p.get("name"), pr))
-print("  price keys:", dict(pkeys))
-print("  regular keys:", dict(regkeys))
-print("  tags:", dict(tags))
-for n, pr in samples:
-    print("  sample:", n, c(pr, 900))
+    print("   body start:", r.text[:300].replace("\n", " "))
+    try:
+        j = r.json()
+    except Exception:  # noqa: BLE001
+        continue
+    flyers = walk(j, lambda x: isinstance(x, dict) and ("flyerIdentifier" in x or "identifier" in x or "slug" in x) and ("name" in x or "title" in x), [], 60)
+    print("   flyers:", len(flyers))
+    for f in flyers[:30]:
+        print("    -", f.get("flyerIdentifier") or f.get("identifier") or f.get("slug"), "|", f.get("name") or f.get("title"), "|", f.get("client") or f.get("brand") or f.get("clientName"), f.get("startDate"), f.get("endDate"))
+    kf = [f for f in flyers if "kaufland" in json.dumps(f, ensure_ascii=False).lower()]
+    if kf:
+        ident = kf[0].get("flyerIdentifier") or kf[0].get("identifier") or kf[0].get("slug")
+        fr = get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={ident}&region_id=0&region_code=0", as_json=True)
+        if fr is not None:
+            fl = fr.json().get("flyer", {})
+            print("   kaufland flyer:", fl.get("name"), fl.get("startDate"), fl.get("endDate"), "| products:", len(fl.get("products") or {}), "| pages:", len(fl.get("pages") or []))
+            for k2, v2 in list((fl.get("products") or {}).items())[:2]:
+                print("    product:", c(v2, 700))
+            pages = fl.get("pages") or []
+            if len(pages) > 2:
+                print("    page2 keywords:", (pages[2].get("keyWords") or "")[:500])
+                print("    page2 links:", c(pages[2].get("links"), 600))
+    break
