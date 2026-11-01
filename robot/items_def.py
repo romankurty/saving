@@ -37,7 +37,7 @@ ITEMS = [
          bounds=(150, 900)),
     dict(id="avocado", en="Avocado", sk="Avokádo", group="dinner", unit="ks", weekly=3.5, shelf="fresh", quick=True,
          cz=["avokádo"], skt=["avokádo"],
-         inc=r"avokad", exc=r"guacamol|pomazank|olej|sushi|toast|krem|dip|salat|majoran|pepr|susen|koren|kotanyi|muskat|orech|mlet|kmin|skoric|vanil|\b\d{1,2} ?g\b", count_required=False,
+         inc=r"avokad", exc=r"guacamol|pomazank|olej|sushi|toast|krem|dip|salat|majoran|pepr|susen|koren|kotanyi|muskat|orech|mlet|kmin|skoric|vanil|marinad|tekut|\d+ ?ml|grilov|bazalk|tymian|rozmarin|oregan|kari|hrebic|bobk|zazvor|cesnek|sul\b|\b\d{1,2} ?g\b", count_required=False,
          bounds=(5, 60)),
     dict(id="paprika", en="Bell pepper", sk="Paprika", group="dinner", unit="kg", weekly=0.5, shelf="fresh", quick=True,
          cz=["paprika"], skt=["paprika"],

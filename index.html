@@ -231,7 +231,7 @@ const T = {
     split: "(košík {b} + zásoby {k})", stockLine: "+ {n} akcií do zásoby na trase: {c} → ušetríš {v}"
   }
 };
-const SHOP = { lidl: "Lidl", billa: "Billa", albert: "Albert", kaufland: "Kaufland", tesco: "Tesco", sintra: "Sintra" };
+const SHOP = { lidl: "Lidl", billa: "Billa", albert: "Albert", kaufland: "Kaufland", tesco: "Tesco", sintra: "Sintra", dm: "dm", teta: "Teta" };
 const SHOP_COLOR = { lidl: "#0050aa", billa: "#e2001a", albert: "#0a7c3d", kaufland: "#c8102e", tesco: "#00539f", sintra: "#f39200" };
 const DEFAULTS = { stopBrno: 100, tripBrno: 150, stopKk: 4, tripKk: 6, stockPct: 30, alertPct: 40 };
 const LS = "saving.v1";
@@ -350,7 +350,7 @@ function evaluate(shops, bask, deals) {
   }
   // stock-up savings available on this route (counted toward thresholds)
   let bonus = 0;
-  for (const d of deals) if (d.stockable && shops.includes(d.o.shop)) {
+  if (state.mode === "big") for (const d of deals) if (d.stockable && shops.includes(d.o.shop)) {
     const inBasket = bask.find((b) => b.it.id === d.it.id);
     const extra = Math.max(0, d.qty - (inBasket ? inBasket.need : 0));
     bonus += (d.ref - d.o.unit_price) * extra;
@@ -446,7 +446,7 @@ function renderPlan() {
   const rec = r.rec, th = thresholds();
   const cards = new Set();
   rec.lines.forEach((l) => { if (l.o && l.o.card) cards.add(l.o.card); });
-  const recDeals = r.deals.filter((d) => d.stockable && rec.shops.includes(d.o.shop));
+  const recDeals = state.mode === "big" ? r.deals.filter((d) => d.stockable && rec.shops.includes(d.o.shop)) : [];
   recDeals.forEach((d) => { if (d.o.card) cards.add(d.o.card); });
   const savedSingle = rec.shops.length > 1 ? r.bestSingle.total - rec.total : 0;
   const stockValue = recDeals.reduce((a, d) => a + d.saving, 0), stockCost = recDeals.reduce((a, d) => a + d.cost, 0);
