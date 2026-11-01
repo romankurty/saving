@@ -157,7 +157,7 @@ ITEMS = [
     dict(id="nuts", en="Nuts (raw, unsalted)", sk="Orechy (nesolené)", group="pantry", unit="kg", weekly=0.3, shelf="long", quick=False,
          cz=["vlašské ořechy", "mandle", "kešu", "ořechy"], skt=["vlašské orechy", "mandle", "kešu", "orechy"],
          inc=r"vlassk|mandl|kesu|liskov|lieskov|para orech|pekan|orechy|oriesky|orechova smes|orieskov|makadam",
-         exc=r"solen|salted|chilli|chili|\bmed\b|medov|cokol|karamel|wasabi|bbq|mlek|mliek|napoj|krem|pasta|masl|tycin|susen|musli|muesli|arasid|burske|lupin|cukr|jogurt|nugat|marcip|mouk|muk|dort|kolac|pecivo|olej|platk|strouhan|plnen|salat|salad|pomazank|chlebick|mysli|cereal|kase|flakes|ryzlink|vino|selection|\d+[,.]\d+ ?l\b",
+         exc=r"solen|salted|chilli|chili|\bmed\b|medov|cokol|karamel|wasabi|bbq|mlek|mliek|napoj|krem|pasta|masl|tycin|susen|musli|muesli|arasid|burske|lupin|cukr|jogurt|nugat|marcip|mouk|muk|dort|kolac|pecivo|olej|platk|strouhan|plnen|salat|salad|pomazank|chlebick|mysli|cereal|kase|flakes|ryzlink|vino|selection|\d+[,.]\d+ ?l\b|vanock|rozink|cukrov|zakusk|stola|stolle",
          bounds=(120, 900)),
     dict(id="salt", en="Salt", sk="Soľ", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["sůl"], skt=["soľ"],

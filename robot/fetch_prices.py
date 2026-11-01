@@ -584,8 +584,8 @@ TETA_SLUGS = {
     "toilet_paper": ["toaletni-papir"],
     "wet_wipes": ["vlhcene-toaletni-papiry", "vlhcene-ubrousky"],
     "toothpaste": ["zubni-pasty"],
-    "shampoo": ["sampony"],
-    "shower_gel": ["sprchove-gely-a-oleje"],
+    "shampoo": ["sampony", "sampony-1"],
+    "shower_gel": ["sprchove-gely-a-oleje", "damske-sprchove-gely", "panske-sprchove-gely"],
     "dish_soap": ["rucni-myti-nadobi"],
 }
 
