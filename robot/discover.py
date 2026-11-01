@@ -1,4 +1,4 @@
-"""Discovery run 6: confirm machine-readable offers for the three centre shops (Lidl, Billa, Albert) + Kupino.sk.
+"""Discovery run 7: Billa promo/loyalty price fields and search, Lidl.sk + Billa.sk for Kezmarok, Albert leaflet text search.
 
 Personal, non-commercial use. One slow pass, identifies itself honestly, respects robots.txt and blocks.
 """
@@ -39,17 +39,17 @@ def allowed(url):
     return rp.can_fetch(UA, url)
 
 
-def get(url, headers=None):
+def get(url, json_ok=False):
     if not allowed(url):
         print(f"[SKIP blocked/robots] {url}")
         return None
     time.sleep(DELAY_S)
     try:
-        r = session.get(url, timeout=30, headers=headers or {})
+        r = session.get(url, timeout=30, headers={"Accept": "application/json"} if json_ok else {})
     except Exception as e:  # noqa: BLE001
         print(f"[ERR] {url}: {e}")
         return None
-    print(f"[{r.status_code}] {url[:160]} ({len(r.content)} B, {r.headers.get('content-type')})")
+    print(f"[{r.status_code}] {url[:160]} ({len(r.content)} B)")
     return r if r.status_code == 200 else None
 
 
@@ -57,76 +57,74 @@ def c(o, n=900):
     return json.dumps(o, ensure_ascii=False, default=str)[:n]
 
 
-print("=== 1. Lidl offer pages (product tiles) ===")
-for url in ("https://www.lidl.cz/c/pondelni-nabidka/a10106398",
-            "https://www.lidl.cz/c/hity-tydne/a10004407",
-            "https://www.lidl.cz/c/ctvrtecni-nabidka/a10105841"):
-    r = get(url)
-    if r is None:
-        continue
-    grids = re.findall(r'data-grid-data="([^"]+)"', r.text)
-    print(f"  data-grid-data tiles: {len(grids)} | 'Kč' count: {r.text.count('Kč')}")
-    for g in grids[:2]:
-        try:
-            d = json.loads(htmlmod.unescape(g))
-            if isinstance(d, list):
-                d = d[0]
-            print("   tile keys:", list(d.keys())[:40])
-            print("   tile:", c({k: d.get(k) for k in ("fullTitle", "title", "price", "lidlPlus", "category", "ians", "stockAvailability", "keyfacts") if k in d}, 1400))
-        except Exception as e:  # noqa: BLE001
-            print("   parse error", e, g[:200])
-    titles = re.findall(r'"fullTitle"\s*:\s*"([^"]+)"', htmlmod.unescape(r.text))
-    print("   sample titles:", titles[:12])
+def walk(nodes, depth=0, out=None):
+    out = [] if out is None else out
+    for n in nodes:
+        out.append((depth, n.get("name"), n.get("slug")))
+        walk(n.get("children") or [], depth + 1, out)
+    return out
 
-print("=== 2. Billa product API ===")
-hdr = {"Accept": "application/json"}
-for url in ("https://www.billa.cz/api/product-discovery/categories/tree",
-            "https://www.billa.cz/api/product-discovery/products?page=0&pageSize=5&search=m%C3%A1slo",
-            "https://www.billa.cz/api/product-discovery/products?page=0&pageSize=5"):
-    r = get(url, hdr)
-    if r is not None:
-        try:
+
+print("=== 1. Billa: categories, promo fields, search param ===")
+tree = get("https://www.billa.cz/api/product-discovery/categories/tree", json_ok=True)
+slugs = {}
+if tree is not None:
+    flat = walk(tree.json())
+    print("  top categories:", [n for d, n, s in flat if d == 0])
+    for d, n, s in flat:
+        slugs[n] = s
+    dairy = [s for d, n, s in flat if n and any(k in n.lower() for k in ("mléčné", "mléko", "sýr", "vejce"))][:4]
+    meat = [s for d, n, s in flat if n and any(k in n.lower() for k in ("drůbež", "maso"))][:3]
+    print("  dairy slugs:", dairy, "| meat slugs:", meat)
+    for slug in (dairy[:1] + meat[:1]):
+        r = get(f"https://www.billa.cz/api/product-discovery/categories/{slug}/products?page=0&pageSize=60", json_ok=True)
+        if r is not None:
             j = r.json()
-            if isinstance(j, dict):
-                print("   keys:", list(j.keys())[:20])
-                items = j.get("results") or j.get("products") or j.get("items") or j.get("data") or []
-                if isinstance(items, list) and items:
-                    print("   first item:", c(items[0], 1500))
-                else:
-                    print("   body:", c(j, 800))
-            else:
-                print("   list len", len(j), c(j[:1], 800))
-        except Exception as e:  # noqa: BLE001
-            print("   not JSON", e, r.text[:300])
-
-print("=== 3. Albert leaflet (Publitas) data ===")
-for url in ("https://letaky.albert.cz/44hm_akcni_letak/spreads.json",
-            "https://letaky.albert.cz/44hm_akcni_letak/data.json",
-            "https://letaky.albert.cz/44hm_akcni_letak/products.json"):
-    r = get(url, hdr)
+            res = j.get("results", [])
+            promo = [p for p in res if p.get("inPromotion")]
+            print(f"  {slug}: total={j.get('total')} returned={len(res)} in promotion={len(promo)}")
+            for p in promo[:2]:
+                print("   PROMO:", p.get("name"), "|", c(p.get("price"), 1200), "| badges:", c(p.get("badges"), 300))
+            for p in res[:2]:
+                print("   ITEM:", p.get("name"), "|", c(p.get("price"), 500))
+for param in ("searchTerm", "query", "q", "term"):
+    r = get(f"https://www.billa.cz/api/product-discovery/products?page=0&pageSize=3&{param}=m%C3%A1slo", json_ok=True)
     if r is not None:
-        t = r.text
-        print("   'price' count:", t.count('"price'), "| sample:", t[:600].replace("\n", " "))
-r = get("https://letaky.albert.cz/44hm_akcni_letak/page/1")
-if r is not None:
-    m = re.findall(r"https?://[a-z0-9./_-]*(?:spreads|products|hotspots|data)[a-z0-9./_?=&-]*\.json[a-z0-9?=&_-]*", r.text)
-    print("  json urls referenced:", sorted(set(m))[:10])
-    m2 = re.findall(r'"(?:jsonUrl|dataUrl|spreadsUrl|productsUrl)"\s*:\s*"([^"]+)"', r.text)
-    print("  data url fields:", m2[:10])
+        print(f"   {param}:", [p.get("name") for p in r.json().get("results", [])])
 
-print("=== 4. Kupino.sk category listing ===")
-r = get("https://www.kupino.sk/kategoria/hypermarkety-a-supermarkety")
+print("=== 2. Lidl.sk offer pages (Kezmarok) ===")
+home = get("https://www.lidl.sk/")
+if home is not None:
+    links = list(dict.fromkeys(re.findall(r'href="(/c/[a-z0-9-]+/a\d+)"', home.text)))
+    print("  offer pages:", links[:10])
+    for l in links[:2]:
+        r = get("https://www.lidl.sk" + l)
+        if r is None:
+            continue
+        tiles = re.findall(r'data-grid-data="([^"]+)"', r.text)
+        food = []
+        for t in tiles:
+            try:
+                d = json.loads(htmlmod.unescape(t))
+                d = d[0] if isinstance(d, list) else d
+                if "Food" in str(d.get("category")) or "Potrav" in str(d.get("keyfacts", {}).get("wonCategoryPrimary", "")):
+                    pr = (d.get("price") or {}).get("price")
+                    lp = [x.get("price", {}).get("price") for x in (d.get("lidlPlus") or [])]
+                    food.append((d.get("fullTitle"), pr, lp))
+            except Exception:  # noqa: BLE001
+                pass
+        print(f"  {l}: tiles={len(tiles)} food={len(food)} sample={food[:6]}")
+
+print("=== 3. Billa.sk API ===")
+r = get("https://www.billa.sk/api/product-discovery/products?page=0&pageSize=2", json_ok=True)
 if r is not None:
-    soup = BeautifulSoup(r.text, "html.parser")
-    akcie = list(dict.fromkeys(a["href"] for a in soup.find_all("a", href=True) if a["href"].startswith("/akcia/")))
-    print("  product links on page:", len(akcie), akcie[:10])
-    txt = soup.get_text(" ", strip=True)
-    print("  euro prices on listing:", len(re.findall(r"\d+[,.]\d{2}\s*€", txt)))
-    nxt = [a["href"] for a in soup.find_all("a", href=True) if "strana" in a["href"] or "page" in a["href"]]
-    print("  pagination:", nxt[:5])
-r = get("https://www.kupino.sk/akcia/euro-standard-bravcova-sunka")
-if r is not None:
-    soup = BeautifulSoup(r.text, "html.parser")
-    main = soup.get_text(" | ", strip=True)
-    i = main.find("€")
-    print("  around prices:", main[max(0, i - 700): i + 900])
+    j = r.json()
+    print("  total:", j.get("total"), "| first:", [p.get("name") for p in j.get("results", [])], c(j.get("results", [{}])[0].get("price"), 300))
+
+print("=== 4. Albert leaflet text search ===")
+for url in ("https://letaky.albert.cz/44hm_akcni_letak/search?q=maslo",
+            "https://letaky.albert.cz/44hm_akcni_letak/search.json?q=maslo",
+            "https://letaky.albert.cz/44hm_akcni_letak/text.json"):
+    r = get(url, json_ok=True)
+    if r is not None:
+        print("   ", r.headers.get("content-type"), r.text[:500].replace("\n", " "))
