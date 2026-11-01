@@ -1,7 +1,6 @@
-// Service worker: the small helper that lets the app open without internet.
-// Bump the number below whenever you upload a new version (v1 -> v2 ...).
-// This clears the old offline copy from phones.
-var CACHE = 'app-check-v1';
+// Service worker: lets the app open without internet (shows the last saved prices).
+// Network first: when online you always get the newest prices and app version.
+var CACHE = 'saving-v1';
 
 var CORE_FILES = [
   './',
@@ -9,19 +8,19 @@ var CORE_FILES = [
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  './config/items.json',
+  './data/prices.json'
 ];
 
-// On install: save the core files on the phone.
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE)
-      .then(function (cache) { return cache.addAll(CORE_FILES); })
+      .then(function (cache) { return cache.addAll(CORE_FILES).catch(function () {}); })
       .then(function () { return self.skipWaiting(); })
   );
 });
 
-// On activate: delete offline copies from older versions.
 self.addEventListener('activate', function (event) {
   event.waitUntil(
     caches.keys()
@@ -33,12 +32,9 @@ self.addEventListener('activate', function (event) {
   );
 });
 
-// Network first: online you always get the newest files,
-// offline the saved copy is used instead.
 self.addEventListener('fetch', function (event) {
   var req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
-
   event.respondWith(
     fetch(req)
       .then(function (res) {

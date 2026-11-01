@@ -20,7 +20,7 @@ import urllib.robotparser
 import requests
 
 sys.path.insert(0, os.path.dirname(__file__))
-from items_def import EUR_CZK, GROUP_ORDER, ITEMS  # noqa: E402
+from items_def import EUR_CZK, GROUP_ORDER, ITEMS, PET_EXC  # noqa: E402
 
 UA = "saving-pricebot/1.0 (personal grocery price check; non-commercial; github.com/romankurty/saving)"
 DELAY_S = 1.5
@@ -139,13 +139,30 @@ COMPILED = {it["id"]: (re.compile(it["inc"]), re.compile(it["exc"]) if it.get("e
 ITEM = {it["id"]: it for it in ITEMS}
 
 
+PET = re.compile(PET_EXC)
+
+
 def match_items(name):
     t = norm(name)
+    pet = bool(PET.search(t))
     out = []
     for iid, (inc, exc) in COMPILED.items():
+        if pet and ITEM[iid]["group"] != "drugstore":
+            continue
         if inc.search(t) and not (exc and exc.search(t)):
             out.append(iid)
     return out
+
+
+def p25(values):
+    v = sorted(x for x in values if x)
+    if not v:
+        return None
+    if len(v) < 3:
+        return v[0]
+    k = (len(v) - 1) * 0.25
+    f = int(k)
+    return v[f] + (v[min(f + 1, len(v) - 1)] - v[f]) * (k - f)
 
 
 def within_bounds(item, unit_price, currency):
@@ -225,7 +242,11 @@ def billa(city, base_url, terms_key, currency):
                 pack = convert(pack_amt[0], pack_amt[1], it["unit"]) if pack_amt else None
                 # unit price in item unit
                 if it["unit"] == "ks":
+                    if weighted:
+                        continue
                     count = pack if pack else (pack_amt[0] if pack_amt and pack_amt[1] == "ks" else None)
+                    if it.get("count_required") and not count:
+                        continue
                     if bu == "ks" and per_std:
                         unit = per_std
                     elif count:
@@ -339,12 +360,12 @@ def lidl(city, base_url, currency):
                         unit, pack, weighted = eff, None, True
                     elif q:
                         pack = convert(q[0], q[1], it["unit"])
-                        if pack is None and it["unit"] == "ks":
+                        if pack is None and it["unit"] == "ks" and not it.get("count_required"):
                             pack = 1
                         if not pack:
                             continue
                         unit = eff / pack
-                    elif it["unit"] == "ks":
+                    elif it["unit"] == "ks" and not it.get("count_required"):
                         pack, unit = 1, eff
                     else:
                         continue
@@ -361,7 +382,7 @@ def lidl(city, base_url, currency):
 
 
 # ---------------------------------------------------------------- Albert (CZ): leaflet text search
-STOP_WORDS = {"neporazitelne", "mimoradne", "bez", "aplikace", "aplikaci", "akce", "novinka", "top", "cena", "sleva", "jen", "pouze"}
+STOP_WORDS = {"neporazitelne", "mimoradne", "bez", "aplikace", "aplikaci", "akce", "novinka", "top", "cena", "sleva", "jen", "pouze", "kc", "bal", "ks", "cca", "vybrane", "druhy", "celku", "baleni"}
 
 
 def parse_albert(text, term, item):
@@ -374,16 +395,30 @@ def parse_albert(text, term, item):
         i = m.start()
         # product name: capitalised words before the term + text up to the first bullet
         words = text[max(0, i - 60):i].split()
+
+        def nameish(w):
+            wn = norm(w).strip(".,–-")
+            return w[:1].isalpha() and not any(ch.isdigit() for ch in w) and not (w.isupper() and len(w) > 2) \
+                and wn not in STOP_WORDS and len(wn) > 1
+
         prefix = []
-        for w in reversed(words):
-            wn = norm(w).strip(".,")
-            if not w[:1].isalpha() or any(ch.isdigit() for ch in w) or (w.isupper() and len(w) > 2) or wn in STOP_WORDS:
+        k = len(words) - 1
+        while k >= 0 and len(prefix) < 4:
+            w = words[k]
+            if not nameish(w):
                 break
-            prefix.insert(0, w)
-            if len(prefix) >= 4:
-                break
+            if w[:1].isupper():
+                prefix.insert(0, w)
+                k -= 1
+                continue
+            # lowercase word: keep only if a capitalised name word sits right before it (e.g. "Česká chuť")
+            if k - 1 >= 0 and nameish(words[k - 1]) and words[k - 1][:1].isupper():
+                prefix[0:0] = [words[k - 1], w]
+                k -= 2
+                continue
+            break
         end_name = text.find("•", i)
-        if end_name == -1 or end_name - i > 70:
+        if end_name == -1 or end_name - i > 45:
             continue
         name = (" ".join(prefix) + " " + text[i:end_name]).strip()
         window = text[i:i + 240]
@@ -436,6 +471,8 @@ def parse_albert(text, term, item):
         pack = convert(q[0], q[1], item["unit"]) if q else None
         if item["unit"] == "ks":
             if pack is None:
+                if item.get("count_required"):
+                    continue
                 pack = 1
             calc = price / pack
             if unit and abs(calc - unit) / unit > 0.25:
@@ -547,16 +584,18 @@ def main():
                 best = so[0]
                 normals = [o["normal_unit"] for o in so if o.get("normal_unit")] + \
                           [o["unit_price"] for o in so if not o["promo"]]
+                normals = [p25(normals)] if normals else []
                 rows = [r for r in ih.get(shop, []) if r[0] != TODAY]
                 rows.append([TODAY, best["unit_price"], round(statistics.median(normals), 2) if normals else None])
                 ih[shop] = rows[-150:]
             # usual (normal) unit price: median of normal observations today + last 60 days
             cutoff = (NOW.date() - dt.timedelta(days=60)).isoformat()
-            obs = [o["normal_unit"] for o in offs if o.get("normal_unit")]
-            obs += [o["unit_price"] for o in offs if not o["promo"]][:6]
+            # usual = everyday price of the cheaper acceptable products (25th percentile of regular prices)
+            obs = [o["normal_unit"] for o in offs if o.get("normal_unit") and o.get("conf") != "low"]
+            obs += [o["unit_price"] for o in offs if not o["promo"]]
             for rows in ih.values():
                 obs += [r[2] for r in rows if r[2] and r[0] >= cutoff]
-            usual = round(statistics.median(obs), 2) if obs else None
+            usual = round(p25(obs), 2) if obs else None
             per_shop = {}
             for o in offs:
                 per_shop.setdefault(o["shop"], [])
