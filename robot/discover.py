@@ -1,7 +1,8 @@
-"""Discovery run 2: terms of use, page structure of Kupi.cz results, Kupino.sk search format.
+"""Discovery run 3: find each chain's official offer pages and check whether prices are machine-readable.
 
-Personal, non-commercial use. One slow pass, identifies itself honestly, respects robots.txt.
+Personal, non-commercial use. One slow pass, identifies itself honestly, respects robots.txt and blocks.
 """
+import json
 import re
 import time
 import urllib.parse
@@ -9,13 +10,12 @@ import urllib.robotparser
 from collections import Counter
 
 import requests
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 UA = "saving-pricebot/0.1 (personal grocery price check; non-commercial; github.com/romankurty/saving)"
-DELAY_S = 3
+DELAY_S = 4
 session = requests.Session()
 session.headers.update({"User-Agent": UA, "Accept-Language": "cs-CZ,cs;q=0.9,sk;q=0.8,en;q=0.5"})
-q = urllib.parse.quote
 _robots = {}
 
 
@@ -24,104 +24,114 @@ def allowed(url):
     base = f"{p.scheme}://{p.netloc}"
     if base not in _robots:
         rp = urllib.robotparser.RobotFileParser()
+        status = None
         try:
             r = session.get(base + "/robots.txt", timeout=20)
+            status = r.status_code
             rp.parse(r.text.splitlines() if r.status_code == 200 else [])
         except Exception:  # noqa: BLE001
             rp.parse([])
-        _robots[base] = rp
-    return _robots[base].can_fetch(UA, url) and _robots[base].can_fetch("*", url)
+        _robots[base] = (rp, status)
+        time.sleep(DELAY_S)
+    rp, status = _robots[base]
+    if status in (401, 403):
+        return False  # site refuses robots entirely
+    return rp.can_fetch(UA, url) and rp.can_fetch("*", url)
 
 
 def get(url):
     if not allowed(url):
-        print(f"[SKIP robots] {url}")
+        print(f"[SKIP blocked/robots] {url}")
         return None
     time.sleep(DELAY_S)
-    r = session.get(url, timeout=30)
+    try:
+        r = session.get(url, timeout=30)
+    except Exception as e:  # noqa: BLE001
+        print(f"[ERR] {url}: {e}")
+        return None
     print(f"[{r.status_code}] {url} -> {r.url} ({len(r.content)} B)")
-    return r
+    return r if r.status_code == 200 else None
 
 
-KEYWORDS = ("automat", "robot", "stahov", "sťahov", "kopír", "kopirov", "vytěž", "vyťaž",
-            "databáz", "scrap", "crawl", "hromadn", "strojov", "softwar")
+def profile(r):
+    html = r.text
+    soup = BeautifulSoup(html, "html.parser")
+    kc = len(re.findall(r"\d+[,.]\d{2}\s*(?:Kč|€)", html))
+    ld = soup.find_all("script", type="application/ld+json")
+    ld_types = Counter()
+    for s in ld:
+        try:
+            data = json.loads(s.string or "{}")
+            items = data if isinstance(data, list) else [data]
+            for it in items:
+                if isinstance(it, dict):
+                    ld_types[str(it.get("@type"))] += 1
+        except Exception:  # noqa: BLE001
+            pass
+    embedded = [s.get("id") or (s.get("type") or "") for s in soup.find_all("script") if s.get("id") or s.get("type") in ("application/json",)]
+    big_json = sorted(((len(s.string or ""), s.get("id") or s.get("type") or "inline") for s in soup.find_all("script") if s.string and len(s.string) > 20000), reverse=True)[:4]
+    cls = Counter(c for el in soup.find_all(class_=True) for c in el.get("class", []))
+    price_cls = [c for c, _ in cls.most_common(400) if any(k in c.lower() for k in ("price", "cena", "product", "offer", "tile", "discount"))][:25]
+    print(f"    price strings: {kc} | JSON-LD types: {dict(ld_types)} | big inline JSON: {big_json} | script ids: {embedded[:8]}")
+    print(f"    price-ish classes: {price_cls}")
 
 
-def terms_check(url):
-    r = get(url)
-    if not r or r.status_code != 200:
-        return
-    text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    hits = [s for s in sentences if any(k in s.lower() for k in KEYWORDS)]
-    print(f"  terms sentences matching keywords: {len(hits)}")
-    for s in hits[:12]:
-        print("   >", s[:400])
-
-
-def dump(el, depth=0, lines=None, limit=90):
-    if lines is None:
-        lines = []
-    if len(lines) >= limit:
-        return lines
-    if isinstance(el, Tag):
-        cls = ".".join(el.get("class", []))
-        own = "".join(t for t in el.find_all(string=True, recursive=False)).strip()
-        own = " ".join(own.split())[:70]
-        attrs = {k: v for k, v in el.attrs.items() if k.startswith("data-") or k in ("title", "alt")}
-        attr_txt = (" " + str(attrs)[:120]) if attrs else ""
-        lines.append(f"{'  ' * depth}<{el.name}{'.' + cls if cls else ''}>{attr_txt} {own}")
-        for c in el.children:
-            if isinstance(c, Tag):
-                dump(c, depth + 1, lines, limit)
-    return lines
-
-
-print("=== 1. Kupi.cz terms ===")
-home = get("https://www.kupi.cz/")
-if home is not None:
-    soup = BeautifulSoup(home.text, "html.parser")
-    links = []
+def offer_links(r, extra_keys=()):
+    soup = BeautifulSoup(r.text, "html.parser")
+    keys = ("akc", "slev", "nabid", "letak", "leták", "zlav", "aktual", "tyden", "týden") + tuple(extra_keys)
+    out = []
+    host = urllib.parse.urlsplit(r.url).netloc
     for a in soup.find_all("a", href=True):
-        h = a["href"].lower()
-        if any(k in h for k in ("podmin", "pravidl", "obchodni", "terms", "gdpr", "ochrana")):
-            links.append(urllib.parse.urljoin(home.url, a["href"]))
-    links = list(dict.fromkeys(links))
-    print("  candidate terms links:", links[:8])
+        h = urllib.parse.urljoin(r.url, a["href"])
+        t = (a.get_text(" ", strip=True) or "").lower()
+        if urllib.parse.urlsplit(h).netloc.endswith(host.replace("www.", "")) and any(k in h.lower() or k in t for k in keys):
+            out.append(h.split("#")[0])
+    return list(dict.fromkeys(out))
+
+
+CHAINS = {
+    "lidl_cz": "https://www.lidl.cz/",
+    "billa_cz": "https://www.billa.cz/",
+    "albert_cz": "https://www.albert.cz/",
+    "teta_cz": "https://www.tetadrogerie.cz/",
+}
+
+for name, home_url in CHAINS.items():
+    print(f"=== {name} ===")
+    home = get(home_url)
+    if home is None:
+        continue
+    links = offer_links(home)
+    print("  offer-ish links:", links[:15])
     for link in links[:3]:
-        terms_check(link)
+        r = get(link)
+        if r is not None:
+            profile(r)
 
-print("=== 2. Kupino.sk terms ===")
-terms_check("https://www.kupino.sk/vseobecne-podmienky")
-
-print("=== 3. Kupi.cz result structure (butter search) ===")
-r = get(f"https://www.kupi.cz/hledej?f={q('máslo')}&vse=0")
+print("=== dm (app shell? look for API hosts) ===")
+r = get("https://www.dm.cz/")
 if r is not None:
-    soup = BeautifulSoup(r.text, "html.parser")
-    groups = soup.find_all("div", class_="group_discounts")
-    for i, g in enumerate(groups[:2]):
-        print(f"--- product block {i} ---")
-        print("\n".join(dump(g)))
-    shops = Counter(s.get_text(strip=True) for s in soup.find_all("span", class_="discounts_shop_name"))
-    print("  shops in butter results:", dict(shops))
-    print("  pagination links:", [a["href"] for a in soup.find_all("a", href=True) if "page=" in a["href"]][:5])
+    hosts = sorted(set(re.findall(r"https://[a-z0-9.-]+\.(?:dmtech|dm)\.[a-z]+", r.text)))
+    print("  hosts referenced:", hosts[:15])
 
-print("=== 4. Shop coverage (toilet paper + kefir) ===")
-for term in ("toaletní papír", "kefír"):
-    r = get(f"https://www.kupi.cz/hledej?f={q(term)}&vse=0")
+print("=== Kaufland / Tesco alternative official routes ===")
+for url in ("https://leaflets.kaufland.com/", "https://www.itesco.cz/", "https://www.itesco.cz/akce/", "https://www.tesco.cz/"):
+    r = get(url)
     if r is not None:
-        soup = BeautifulSoup(r.text, "html.parser")
-        shops = Counter(s.get_text(strip=True) for s in soup.find_all("span", class_="discounts_shop_name"))
-        print(f"  shops for {term}:", dict(shops))
+        profile(r)
+        print("  offer-ish links:", offer_links(r)[:10])
 
-print("=== 5. Kupino.sk search format ===")
-r = get("https://www.kupino.sk/")
-if r is not None:
-    soup = BeautifulSoup(r.text, "html.parser")
-    for f in soup.find_all("form"):
-        print("  form:", f.get("action"), f.get("method"), [i.get("name") for i in f.find_all("input")])
-    hrefs = [a["href"] for a in soup.find_all("a", href=True)]
-    interesting = [h for h in hrefs if any(k in h.lower() for k in ("hlad", "zlav", "akci", "lidl", "billa", "kaufland", "tesco", "sintra", "letak", "obchod"))]
-    print("  links:", list(dict.fromkeys(interesting))[:40])
-    classes = Counter(c for el in soup.find_all(class_=True) for c in el.get("class", []))
-    print("  common classes:", [c for c, _ in classes.most_common(40)])
+print("=== Other CZ aggregators (check if robots welcome) ===")
+for url in ("https://www.akcniceny.cz/", "https://www.letaky.cz/", "https://www.kompas-slev.cz/"):
+    r = get(url)
+    if r is not None:
+        profile(r)
+
+print("=== Kupino.sk offers (SK) ===")
+for url in ("https://www.kupino.sk/akcie", "https://www.kupino.sk/lidl", "https://www.kupino.sk/obchody"):
+    r = get(url)
+    if r is not None:
+        profile(r)
+        soup = BeautifulSoup(r.text, "html.parser")
+        hrefs = list(dict.fromkeys(a["href"] for a in soup.find_all("a", href=True)))
+        print("  sample links:", [h for h in hrefs if any(k in h for k in ("akci", "sintra", "kategor", "hlad", "produkt"))][:25])
