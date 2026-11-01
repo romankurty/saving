@@ -5,6 +5,7 @@
   "breakfast",
   "fruit",
   "pantry",
+  "extras",
   "drugstore"
  ],
  "eur_czk": 25.0,
@@ -838,6 +839,243 @@
    "bounds": [
     10,
     150
+   ]
+  },
+  {
+   "id": "sweet_potato",
+   "en": "Sweet potatoes",
+   "sk": "Batáty",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 1.0,
+   "cz": [
+    "batáty"
+   ],
+   "skt": [
+    "batáty"
+   ],
+   "bounds": [
+    25,
+    200
+   ]
+  },
+  {
+   "id": "salmon",
+   "en": "Salmon",
+   "sk": "Losos",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "freezable",
+   "quick": false,
+   "deal_qty": 0.5,
+   "cz": [
+    "losos"
+   ],
+   "skt": [
+    "losos"
+   ],
+   "bounds": [
+    200,
+    1200
+   ]
+  },
+  {
+   "id": "turkey",
+   "en": "Turkey breast",
+   "sk": "Morčacie prsia",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "freezable",
+   "quick": false,
+   "deal_qty": 0.75,
+   "cz": [
+    "krůtí prsa"
+   ],
+   "skt": [
+    "morčacie prsia"
+   ],
+   "bounds": [
+    120,
+    600
+   ]
+  },
+  {
+   "id": "blueberries",
+   "en": "Blueberries",
+   "sk": "Čučoriedky",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 0.25,
+   "cz": [
+    "borůvky"
+   ],
+   "skt": [
+    "čučoriedky"
+   ],
+   "bounds": [
+    150,
+    1200
+   ]
+  },
+  {
+   "id": "strawberries",
+   "en": "Strawberries / raspberries",
+   "sk": "Jahody / maliny",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 0.5,
+   "cz": [
+    "jahody",
+    "maliny"
+   ],
+   "skt": [
+    "jahody",
+    "maliny"
+   ],
+   "bounds": [
+    60,
+    900
+   ]
+  },
+  {
+   "id": "kiwi",
+   "en": "Kiwi",
+   "sk": "Kiwi",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 0.5,
+   "cz": [
+    "kiwi"
+   ],
+   "skt": [
+    "kiwi"
+   ],
+   "bounds": [
+    30,
+    300
+   ]
+  },
+  {
+   "id": "spinach",
+   "en": "Spinach (fresh)",
+   "sk": "Špenát (čerstvý)",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 0.25,
+   "cz": [
+    "špenát"
+   ],
+   "skt": [
+    "špenát"
+   ],
+   "bounds": [
+    60,
+    700
+   ]
+  },
+  {
+   "id": "mushrooms",
+   "en": "Mushrooms",
+   "sk": "Šampiňóny",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 0.5,
+   "cz": [
+    "žampiony"
+   ],
+   "skt": [
+    "šampiňóny"
+   ],
+   "bounds": [
+    40,
+    400
+   ]
+  },
+  {
+   "id": "cottage",
+   "en": "Cottage cheese",
+   "sk": "Cottage syr",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 0.4,
+   "cz": [
+    "cottage"
+   ],
+   "skt": [
+    "cottage"
+   ],
+   "bounds": [
+    80,
+    500
+   ]
+  },
+  {
+   "id": "tuna",
+   "en": "Tuna (can)",
+   "sk": "Tuniak (konzerva)",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "deal_qty": 0.5,
+   "cz": [
+    "tuňák"
+   ],
+   "skt": [
+    "tuniak"
+   ],
+   "bounds": [
+    150,
+    1200
+   ]
+  },
+  {
+   "id": "quinoa",
+   "en": "Quinoa / lentils / chickpeas",
+   "sk": "Quinoa / šošovica / cícer",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "deal_qty": 1.0,
+   "cz": [
+    "quinoa",
+    "čočka",
+    "cizrna"
+   ],
+   "skt": [
+    "quinoa",
+    "šošovica",
+    "cícer"
+   ],
+   "bounds": [
+    30,
+    600
    ]
   },
   {
