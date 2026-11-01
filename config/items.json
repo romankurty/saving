@@ -1,0 +1,966 @@
+{
+ "groups": [
+  "dinner",
+  "lunch",
+  "breakfast",
+  "fruit",
+  "pantry",
+  "drugstore"
+ ],
+ "eur_czk": 25.0,
+ "items": [
+  {
+   "id": "eggs",
+   "en": "Eggs",
+   "sk": "Vajcia",
+   "group": "dinner",
+   "unit": "ks",
+   "weekly": 28,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "vejce"
+   ],
+   "skt": [
+    "vajcia"
+   ],
+   "bounds": [
+    1.5,
+    15
+   ]
+  },
+  {
+   "id": "mozzarella",
+   "en": "Mozzarella",
+   "sk": "Mozzarella",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 0.875,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "mozzarella"
+   ],
+   "skt": [
+    "mozzarella"
+   ],
+   "bounds": [
+    80,
+    700
+   ]
+  },
+  {
+   "id": "balkan",
+   "en": "Balkan cheese",
+   "sk": "Balkánsky syr",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 0.5,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "balkánský sýr"
+   ],
+   "skt": [
+    "balkánsky syr"
+   ],
+   "bounds": [
+    80,
+    600
+   ]
+  },
+  {
+   "id": "eidam",
+   "en": "Eidam / Gouda",
+   "sk": "Eidam / Gouda",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 0.21,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "eidam",
+    "gouda"
+   ],
+   "skt": [
+    "eidam",
+    "gouda"
+   ],
+   "bounds": [
+    90,
+    600
+   ]
+  },
+  {
+   "id": "ham",
+   "en": "Ham 90%+ meat",
+   "sk": "Šunka 90%+ mäsa",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 0.455,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "šunka nejvyšší jakosti"
+   ],
+   "skt": [
+    "šunka najvyššej kvality"
+   ],
+   "bounds": [
+    150,
+    900
+   ]
+  },
+  {
+   "id": "avocado",
+   "en": "Avocado",
+   "sk": "Avokádo",
+   "group": "dinner",
+   "unit": "ks",
+   "weekly": 3.5,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "avokádo"
+   ],
+   "skt": [
+    "avokádo"
+   ],
+   "bounds": [
+    5,
+    60
+   ]
+  },
+  {
+   "id": "paprika",
+   "en": "Bell pepper",
+   "sk": "Paprika",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 0.5,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "paprika"
+   ],
+   "skt": [
+    "paprika"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "cucumber",
+   "en": "Cucumber",
+   "sk": "Uhorka",
+   "group": "dinner",
+   "unit": "ks",
+   "weekly": 2,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "okurka"
+   ],
+   "skt": [
+    "uhorka"
+   ],
+   "bounds": [
+    5,
+    60
+   ]
+  },
+  {
+   "id": "tomato",
+   "en": "Tomatoes",
+   "sk": "Paradajky",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 0.75,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "rajčata"
+   ],
+   "skt": [
+    "paradajky"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "bread",
+   "en": "Bread (Šumava / wholegrain)",
+   "sk": "Chlieb (Šumava / celozrnný)",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 2.2,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "chléb šumava",
+    "chléb"
+   ],
+   "skt": [
+    "chlieb"
+   ],
+   "bounds": [
+    25,
+    200
+   ]
+  },
+  {
+   "id": "chicken",
+   "en": "Chicken (fresh)",
+   "sk": "Kuracie mäso (čerstvé)",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 3.0,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "kuřecí prsa",
+    "kuřecí řízky",
+    "kuřecí stehna",
+    "kuře"
+   ],
+   "skt": [
+    "kuracie prsia",
+    "kuracie rezne",
+    "kuracie stehná",
+    "kurča"
+   ],
+   "bounds": [
+    50,
+    450
+   ]
+  },
+  {
+   "id": "chicken_frozen",
+   "en": "Chicken (frozen, stock-up)",
+   "sk": "Kuracie mäso (mrazené)",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "freezable",
+   "quick": false,
+   "cz": [
+    "kuřecí mražené"
+   ],
+   "skt": [
+    "kuracie mrazené"
+   ],
+   "bounds": [
+    50,
+    400
+   ]
+  },
+  {
+   "id": "pork",
+   "en": "Pork",
+   "sk": "Bravčové mäso",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 1.0,
+   "shelf": "freezable",
+   "quick": false,
+   "cz": [
+    "vepřové maso",
+    "vepřová krkovice",
+    "vepřová kýta",
+    "vepřová plec",
+    "vepřová pečeně"
+   ],
+   "skt": [
+    "bravčové mäso",
+    "bravčová krkovička",
+    "bravčové stehno",
+    "bravčové pliecko"
+   ],
+   "bounds": [
+    60,
+    450
+   ]
+  },
+  {
+   "id": "liver_chicken",
+   "en": "Chicken liver",
+   "sk": "Kuracia pečeň",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "kuřecí játra"
+   ],
+   "skt": [
+    "kuracia pečeň"
+   ],
+   "bounds": [
+    30,
+    300
+   ]
+  },
+  {
+   "id": "liver_pork",
+   "en": "Pork liver",
+   "sk": "Bravčová pečeň",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "vepřová játra"
+   ],
+   "skt": [
+    "bravčová pečeň"
+   ],
+   "bounds": [
+    30,
+    300
+   ]
+  },
+  {
+   "id": "beef",
+   "en": "Beef (only at a very good price)",
+   "sk": "Hovädzie (len vo veľmi dobrej cene)",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "freezable",
+   "quick": false,
+   "cz": [
+    "hovězí maso"
+   ],
+   "skt": [
+    "hovädzie mäso"
+   ],
+   "bounds": [
+    120,
+    900
+   ]
+  },
+  {
+   "id": "rice",
+   "en": "Rice",
+   "sk": "Ryža",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0.7,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "rýže"
+   ],
+   "skt": [
+    "ryža"
+   ],
+   "bounds": [
+    15,
+    200
+   ]
+  },
+  {
+   "id": "pasta",
+   "en": "Pasta",
+   "sk": "Cestoviny",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0.7,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "těstoviny",
+    "špagety"
+   ],
+   "skt": [
+    "cestoviny",
+    "špagety"
+   ],
+   "bounds": [
+    15,
+    250
+   ]
+  },
+  {
+   "id": "tomato_can",
+   "en": "Canned tomatoes / passata",
+   "sk": "Paradajky v konzerve / passata",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 1.4,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "drcená rajčata",
+    "passata",
+    "loupaná rajčata"
+   ],
+   "skt": [
+    "drvené paradajky",
+    "passata",
+    "lúpané paradajky"
+   ],
+   "bounds": [
+    20,
+    200
+   ]
+  },
+  {
+   "id": "broccoli",
+   "en": "Broccoli",
+   "sk": "Brokolica",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0.5,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "brokolice"
+   ],
+   "skt": [
+    "brokolica"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "carrot",
+   "en": "Carrots",
+   "sk": "Mrkva",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0.4,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "mrkev"
+   ],
+   "skt": [
+    "mrkva"
+   ],
+   "bounds": [
+    8,
+    120
+   ]
+  },
+  {
+   "id": "onion",
+   "en": "Onions",
+   "sk": "Cibuľa",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0.3,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "cibule"
+   ],
+   "skt": [
+    "cibuľa"
+   ],
+   "bounds": [
+    8,
+    120
+   ]
+  },
+  {
+   "id": "garlic",
+   "en": "Garlic",
+   "sk": "Cesnak",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0.05,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "česnek"
+   ],
+   "skt": [
+    "cesnak"
+   ],
+   "bounds": [
+    40,
+    600
+   ]
+  },
+  {
+   "id": "frozen_veg",
+   "en": "Frozen vegetables",
+   "sk": "Mrazená zelenina",
+   "group": "lunch",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "freezable",
+   "quick": false,
+   "cz": [
+    "mražená zelenina"
+   ],
+   "skt": [
+    "mrazená zelenina"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "beans",
+   "en": "Beans (can)",
+   "sk": "Fazuľa (konzerva)",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "fazole"
+   ],
+   "skt": [
+    "fazuľa"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "corn",
+   "en": "Sweet corn (can)",
+   "sk": "Kukurica (konzerva)",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "kukuřice"
+   ],
+   "skt": [
+    "kukurica"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "peas",
+   "en": "Peas (can)",
+   "sk": "Hrášok (konzerva)",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "hrášek"
+   ],
+   "skt": [
+    "hrášok"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "sauerkraut",
+   "en": "Sauerkraut",
+   "sk": "Kyslá kapusta",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "kysané zelí"
+   ],
+   "skt": [
+    "kyslá kapusta"
+   ],
+   "bounds": [
+    15,
+    200
+   ]
+  },
+  {
+   "id": "butter",
+   "en": "Butter 82%",
+   "sk": "Maslo 82%",
+   "group": "dinner",
+   "unit": "kg",
+   "weekly": 0.5,
+   "shelf": "freezable",
+   "quick": false,
+   "cz": [
+    "máslo"
+   ],
+   "skt": [
+    "maslo"
+   ],
+   "bounds": [
+    80,
+    600
+   ]
+  },
+  {
+   "id": "kefir",
+   "en": "Kefir (plain)",
+   "sk": "Kefír (biely)",
+   "group": "breakfast",
+   "unit": "l",
+   "weekly": 2.0,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "kefír"
+   ],
+   "skt": [
+    "kefír"
+   ],
+   "bounds": [
+    20,
+    200
+   ]
+  },
+  {
+   "id": "kefir_flav",
+   "en": "Kefir (flavoured, for her)",
+   "sk": "Kefír (ochutený)",
+   "group": "breakfast",
+   "unit": "l",
+   "weekly": 0.5,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "kefír"
+   ],
+   "skt": [
+    "kefír"
+   ],
+   "bounds": [
+    20,
+    250
+   ]
+  },
+  {
+   "id": "yoghurt",
+   "en": "Yoghurt (for her, bifido)",
+   "sk": "Jogurt (bifido)",
+   "group": "breakfast",
+   "unit": "kg",
+   "weekly": 1.05,
+   "shelf": "fresh",
+   "quick": true,
+   "cz": [
+    "jogurt",
+    "bifidus"
+   ],
+   "skt": [
+    "jogurt"
+   ],
+   "bounds": [
+    30,
+    400
+   ]
+  },
+  {
+   "id": "olive_oil",
+   "en": "Olive oil",
+   "sk": "Olivový olej",
+   "group": "pantry",
+   "unit": "l",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "olivový olej"
+   ],
+   "skt": [
+    "olivový olej"
+   ],
+   "bounds": [
+    100,
+    1200
+   ]
+  },
+  {
+   "id": "nuts",
+   "en": "Nuts (raw, unsalted)",
+   "sk": "Orechy (nesolené)",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0.3,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "vlašské ořechy",
+    "mandle",
+    "kešu",
+    "ořechy"
+   ],
+   "skt": [
+    "vlašské orechy",
+    "mandle",
+    "kešu",
+    "orechy"
+   ],
+   "bounds": [
+    120,
+    900
+   ]
+  },
+  {
+   "id": "salt",
+   "en": "Salt",
+   "sk": "Soľ",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "sůl"
+   ],
+   "skt": [
+    "soľ"
+   ],
+   "bounds": [
+    5,
+    300
+   ]
+  },
+  {
+   "id": "pepper",
+   "en": "Black pepper",
+   "sk": "Čierne korenie",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "pepř černý"
+   ],
+   "skt": [
+    "čierne korenie"
+   ],
+   "bounds": [
+    150,
+    3000
+   ]
+  },
+  {
+   "id": "turmeric",
+   "en": "Turmeric",
+   "sk": "Kurkuma",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "kurkuma"
+   ],
+   "skt": [
+    "kurkuma"
+   ],
+   "bounds": [
+    100,
+    3000
+   ]
+  },
+  {
+   "id": "oregano",
+   "en": "Oregano",
+   "sk": "Oregano",
+   "group": "pantry",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "oregano"
+   ],
+   "skt": [
+    "oregano"
+   ],
+   "bounds": [
+    150,
+    5000
+   ]
+  },
+  {
+   "id": "bananas",
+   "en": "Bananas",
+   "sk": "Banány",
+   "group": "fruit",
+   "unit": "kg",
+   "weekly": 1.0,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "banány"
+   ],
+   "skt": [
+    "banány"
+   ],
+   "bounds": [
+    15,
+    120
+   ]
+  },
+  {
+   "id": "apples",
+   "en": "Apples",
+   "sk": "Jablká",
+   "group": "fruit",
+   "unit": "kg",
+   "weekly": 1.0,
+   "shelf": "fresh",
+   "quick": false,
+   "cz": [
+    "jablka"
+   ],
+   "skt": [
+    "jablká"
+   ],
+   "bounds": [
+    10,
+    150
+   ]
+  },
+  {
+   "id": "toilet_paper",
+   "en": "Toilet paper",
+   "sk": "Toaletný papier",
+   "group": "drugstore",
+   "unit": "ks",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "toaletní papír"
+   ],
+   "skt": [
+    "toaletný papier"
+   ],
+   "bounds": [
+    1.5,
+    40
+   ]
+  },
+  {
+   "id": "wet_wipes",
+   "en": "Wet toilet paper / wipes",
+   "sk": "Vlhčený papier / obrúsky",
+   "group": "drugstore",
+   "unit": "ks",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "vlhčený toaletní papír",
+    "vlhčené ubrousky"
+   ],
+   "skt": [
+    "vlhčený toaletný papier",
+    "vlhčené obrúsky"
+   ],
+   "bounds": [
+    0.1,
+    5
+   ]
+  },
+  {
+   "id": "toothpaste",
+   "en": "Toothpaste",
+   "sk": "Zubná pasta",
+   "group": "drugstore",
+   "unit": "l",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "zubní pasta"
+   ],
+   "skt": [
+    "zubná pasta"
+   ],
+   "bounds": [
+    100,
+    4000
+   ]
+  },
+  {
+   "id": "shampoo",
+   "en": "Shampoo",
+   "sk": "Šampón",
+   "group": "drugstore",
+   "unit": "l",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "šampon"
+   ],
+   "skt": [
+    "šampón"
+   ],
+   "bounds": [
+    40,
+    2000
+   ]
+  },
+  {
+   "id": "shower_gel",
+   "en": "Shower gel",
+   "sk": "Sprchový gél",
+   "group": "drugstore",
+   "unit": "l",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "sprchový gel"
+   ],
+   "skt": [
+    "sprchový gél"
+   ],
+   "bounds": [
+    40,
+    2000
+   ]
+  },
+  {
+   "id": "dish_soap",
+   "en": "Dish soap",
+   "sk": "Prostriedok na riad",
+   "group": "drugstore",
+   "unit": "l",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "cz": [
+    "prostředek na nádobí",
+    "jar"
+   ],
+   "skt": [
+    "prostriedok na riad",
+    "jar"
+   ],
+   "bounds": [
+    15,
+    400
+   ]
+  }
+ ]
+}
