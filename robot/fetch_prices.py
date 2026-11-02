@@ -734,13 +734,18 @@ def main():
                 so = [o for o in offs if o["shop"] == shop]
                 if not so:
                     continue
-                best = so[0]
+                good = [o for o in so if o.get("conf") != "low"] or so
+                live = [o for o in good if not o.get("valid_from") or o["valid_from"][:10] <= TODAY]
+                best = min(live or good, key=lambda o: o["unit_price"])
                 normals = [o["normal_unit"] for o in so if o.get("normal_unit")] + \
                           [o["unit_price"] for o in so if not o["promo"]]
                 normals = [p25(normals)] if normals else []
+                promos = [o["unit_price"] for o in (live or good) if o["promo"]]
                 rows = [r for r in ih.get(shop, []) if r[0] != TODAY]
-                rows.append([TODAY, best["unit_price"], round(statistics.median(normals), 2) if normals else None])
-                ih[shop] = rows[-150:]
+                # [date, best unit price, everyday price, best promo unit price]
+                rows.append([TODAY, best["unit_price"], round(statistics.median(normals), 2) if normals else None,
+                             round(min(promos), 2) if promos else None])
+                ih[shop] = rows[-400:]
             # usual (normal) unit price: median of normal observations today + last 60 days
             cutoff = (NOW.date() - dt.timedelta(days=60)).isoformat()
             # usual = everyday price of the cheaper acceptable products (25th percentile of regular prices)
