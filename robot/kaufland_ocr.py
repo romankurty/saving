@@ -14,7 +14,7 @@ UNIT_RE = re.compile(r"=\s*(1\s*kg|100\s*g|1\s*l|100\s*ml|1\s*ks)\s*[:=]?\s*(\d{
 UNIT_RE2 = re.compile(r"(1\s*kg|100\s*g|1\s*l|100\s*ml)\s*=\s*(\d{1,4})\s*[,.]\s*(\d{2})")
 MONEY_RE = re.compile(r"(?<![\d,.=])(\d{1,4})\s*[,.]\s*(\d{2})(?![\d%])")
 INT_PRICE_RE = re.compile(r"(?<![\d,.])(\d{3,5})(?![\d%,.])")
-VERSION = 2  # bump when the reading rules change, so cached results are re-read
+VERSION = 3  # bump when the reading rules change, so cached results are re-read
 FACTOR = {"1kg": 1.0, "100g": 10.0, "1l": 1.0, "100ml": 10.0, "1ks": 1.0}
 
 
@@ -74,6 +74,17 @@ def _price_candidates(block):
 
 
 GENERIC = {"nuts"}  # a more specific item (e.g. Brazil nuts) wins over the generic one
+
+
+def clean_name(text):
+    """'uk 2,7 % pouze bílý jogurt 9,90 250g Frýdek' -> 'bílý jogurt 250g Frýdek' (readable product line for the app)."""
+    t = MONEY_RE.sub(" ", text)
+    t = re.sub(r"\d+[,.]?\d*\s*%|[-–—*|'\"“”„!?;:©®=\[\]{}()]+", " ", t)
+    t = re.sub(r"\b(pouze|jen|akce|cena za|různé druhy|ruzne druhy)\b", " ", t, flags=re.I)
+    t = re.sub(r"(\d+)\s*(g|kg|ml|l|ks)\b", r"\1\2", t, flags=re.I)
+    words = [w for w in t.split() if re.fullmatch(r"\d+(g|kg|ml|l|ks)(/\d+(g|kg|ml|l|ks))?", w, flags=re.I)
+             or (len(w) > 2 and not re.search(r"\d", w))]
+    return " ".join(words)[:70] or text[:70]
 
 
 def page_passes(img, pytesseract, Image):
@@ -200,7 +211,7 @@ def kaufland_offers(session_get, store_id, today, items_terms, deps, max_pages=4
                         got.append(x)
             debug_all += [(pg.get("number"),) + d for d in dbg]
             for iid, name, price, unit, pack, card in got:
-                o = deps["offer"](iid, "kaufland", "brno", "CZK", name, price, unit, pack, card=card, promo=True,
+                o = deps["offer"](iid, "kaufland", "brno", "CZK", clean_name(name), price, unit, pack, card=card, promo=True,
                                   valid_from=vf + "T00:00:00+01:00" if vf else None, valid_to=vt + "T23:59:59+01:00" if vt else None,
                                   source=f"Kaufland leaflet p.{pg.get('number')} (scan, verified)", conf="med", url=f.get("flyerUrlAbsolute"))
                 if o:
