@@ -1079,6 +1079,111 @@
    ]
   },
   {
+   "id": "sardines",
+   "en": "Sardines (can)",
+   "sk": "Sardinky (konzerva)",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "deal_qty": 0.5,
+   "cz": [
+    "sardinky"
+   ],
+   "skt": [
+    "sardinky"
+   ],
+   "bounds": [
+    120,
+    1000
+   ]
+  },
+  {
+   "id": "mackerel",
+   "en": "Mackerel",
+   "sk": "Makrela",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "deal_qty": 0.5,
+   "cz": [
+    "makrela"
+   ],
+   "skt": [
+    "makrela"
+   ],
+   "bounds": [
+    100,
+    900
+   ]
+  },
+  {
+   "id": "pumpkin_seeds",
+   "en": "Pumpkin seeds",
+   "sk": "Tekvicové semienka",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "deal_qty": 0.2,
+   "cz": [
+    "dýňová semínka"
+   ],
+   "skt": [
+    "tekvicové semienka"
+   ],
+   "bounds": [
+    120,
+    1000
+   ]
+  },
+  {
+   "id": "brazil_nuts",
+   "en": "Brazil nuts",
+   "sk": "Para orechy",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "long",
+   "quick": false,
+   "deal_qty": 0.2,
+   "cz": [
+    "para ořechy"
+   ],
+   "skt": [
+    "para orechy"
+   ],
+   "bounds": [
+    250,
+    1500
+   ]
+  },
+  {
+   "id": "oranges",
+   "en": "Oranges",
+   "sk": "Pomaranče",
+   "group": "extras",
+   "unit": "kg",
+   "weekly": 0,
+   "shelf": "fresh",
+   "quick": false,
+   "deal_qty": 1.0,
+   "cz": [
+    "pomeranče"
+   ],
+   "skt": [
+    "pomaranče"
+   ],
+   "bounds": [
+    15,
+    150
+   ]
+  },
+  {
    "id": "toilet_paper",
    "en": "Toilet paper",
    "sk": "Toaletný papier",

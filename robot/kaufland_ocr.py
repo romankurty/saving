@@ -106,13 +106,13 @@ def kaufland_offers(session_get, store_id, today, items_terms, deps, max_pages=4
             for f in sub.get("flyers", []):
                 if (f.get("offerEndDate") or "9999") >= today:
                     flyers.append((sub.get("name"), f))
-    # one flyer per date range, prefer the hypermarket edition
+    # main food leaflet (KDZ) + hypermarket supplement (Hyper1), each once
     chosen = {}
-    for sub, f in sorted(flyers, key=lambda x: 0 if x[0] == "Hyper1" else 1):
-        chosen.setdefault((f.get("offerStartDate"), f.get("offerEndDate")), f)
+    for sub, f in flyers:
+        chosen.setdefault((sub, f.get("offerStartDate"), f.get("offerEndDate")), f)
     offers, leaflets, debug_all = [], [], []
     stems = sorted({deps["norm"](t).split()[0][:6] for terms in items_terms for t in terms if t})
-    for (vf, vt), f in sorted(chosen.items()):
+    for (sub, vf, vt), f in sorted(chosen.items(), key=lambda x: (x[0][1] or "", x[0][0])):
         leaflets.append({"title": f.get("title"), "from": vf, "to": vt, "url": f.get("flyerUrlAbsolute")})
         fr = session_get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={urllib.parse.quote(f['id'])}&store_id={store_id}")
         if fr is None:
@@ -127,6 +127,7 @@ def kaufland_offers(session_get, store_id, today, items_terms, deps, max_pages=4
                 continue
             img = Image.open(io.BytesIO(ir.content)).convert("L")
             got, dbg = read_page(img, pytesseract, deps["match_items"], deps["parse_qty"], deps["convert"], deps["norm"], deps["ITEM"], img.size[0])
+            log(f"  p.{pg.get('number')}: unit-price lines {len([d for d in dbg])}, verified {len(got)}")
             debug_all += [(pg.get("number"),) + d for d in dbg]
             for iid, name, price, unit, pack, card in got:
                 o = deps["offer"](iid, "kaufland", "brno", "CZK", name, price, unit, pack, card=card, promo=True,

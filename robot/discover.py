@@ -19,7 +19,7 @@ def sget(url, raw=False):
 deps = dict(pytesseract=pytesseract, Image=Image, match_items=F.match_items, parse_qty=F.parse_qty, convert=F.convert,
             norm=F.norm, ITEM=F.ITEM, offer=F.offer)
 terms = [it["cz"] for it in ITEMS]
-offers, leaflets, dbg = K.kaufland_offers(sget, 4310, F.TODAY, terms, deps, max_pages=12, delay=0.5)
+offers, leaflets, dbg = K.kaufland_offers(sget, 4310, F.TODAY, terms, deps, max_pages=30, delay=0.5)
 print("leaflets:", leaflets)
 print("debug status counts:", Counter(d[1] for d in dbg))
 print("=== VERIFIED OFFERS ===")
