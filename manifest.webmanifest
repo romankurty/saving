@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Saving",
-  "short_name": "Saving",
+  "name": "Grocery",
+  "short_name": "Grocery",
   "description": "Where to shop today, what is cheap and what to stock up on.",
   "start_url": "./",
   "scope": "./",
@@ -10,8 +10,23 @@
   "background_color": "#f3f5f4",
   "theme_color": "#0f766e",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
