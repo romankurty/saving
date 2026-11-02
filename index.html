@@ -367,9 +367,15 @@ function bestPurchase(id, shop, need) {
   }
   return best;
 }
+function valueOf(p, need) { return p.qty ? p.cost / p.qty * need : p.cost; }
+// compare shops by price per unit for the amount needed (a bigger pack at a lower unit price wins)
 function bestAnywhere(id, need, shops) {
   let best = null;
-  for (const s of shops) { const p = bestPurchase(id, s, need); if (p && (!best || p.cost < best.cost)) best = { ...p, shop: s }; }
+  for (const s of shops) {
+    const p = bestPurchase(id, s, need); if (!p) continue;
+    const v = valueOf(p, need);
+    if (!best || v < best.value - 1e-9 || (Math.abs(v - best.value) < 1e-9 && p.cost < best.cost)) best = { ...p, shop: s, value: v };
+  }
   return best;
 }
 function groceryShops() { return (cityData()?.covered || []).slice(); }
@@ -400,6 +406,7 @@ function cleanStock() {
 }
 
 // ============================================================ deals
+function boughtToday(id) { return state.log.some((e) => e.k === `${today}|${state.city}|${id}|stock`); }
 function deals() {
   const res = [];
   for (const it of ITEMS) {
@@ -411,7 +418,7 @@ function deals() {
     if (!best) continue;
     const o = best.o;
     let qty = kind === "extra" ? (it.deal_qty || 0.5) : kind === "stock" ? (weeklyOf(it) > 0 ? weeklyOf(it) * 4 : (o.pack || 1) * 2) : (weeklyOf(it) || o.pack || 1);
-    if (kind === "stock") qty = Math.max(0, qty - stockRem(it.id));
+    if (kind === "stock" && !boughtToday(it.id)) qty = Math.max(0, qty - stockRem(it.id));
     if (qty <= 1e-6) continue;
     let packs = null;
     if (!byWeight(o)) { packs = Math.min(12, Math.max(o.min_qty || 1, Math.ceil(qty / o.pack - 1e-6))); qty = packs * o.pack; } else qty = Math.min(qty, 5);
@@ -449,7 +456,7 @@ function basket() {
 }
 
 function evaluate(shops, bask, ds) {
-  const lines = []; let total = 0, est = 0, normal = 0;
+  const lines = []; let total = 0, est = 0, normal = 0, vtotal = 0;
   for (const b of bask) {
     let best = bestAnywhere(b.it.id, b.need, shops);
     if (!best) {
@@ -462,12 +469,12 @@ function evaluate(shops, bask, ds) {
       }
       est++;
     }
-    lines.push({ b, ...best }); total += best.cost;
+    lines.push({ b, ...best }); total += best.cost; vtotal += best.value ?? valueOf(best, b.need);
     const u = usual(b.it.id); normal += (u && best.o ? Math.max(u, best.o.unit_price) * best.qty : best.cost);
   }
   let bonus = 0;
   if (state.mode === "big") for (const d of ds) if (d.kind === "stock" && shops.includes(d.o.shop) && !bask.find((b) => b.it.id === d.it.id)) bonus += d.saving;
-  return { shops, lines, total, est, normal, bonus, score: total - bonus };
+  return { shops, lines, total, est, normal, bonus, score: vtotal - bonus };
 }
 
 const TRIP = ["kaufland", "tesco"];
@@ -546,7 +553,7 @@ function swapsFor(rec) {
     for (const alt of g) {
       if (alt === l.b.it.id || !BYID[alt] || BYID[alt].unit !== l.b.it.unit) continue;
       const p = bestAnywhere(alt, l.b.need, rec.shops); if (!p) continue;
-      const sv = l.cost - p.cost, uA = l.cost / l.qty, uB = p.cost / p.qty;
+      const uA = l.cost / l.qty, uB = p.cost / p.qty, sv = (uA - uB) * l.b.need;
       if (sv >= minSave() * 1.5 && uB <= uA * 0.7 && (!out[l.b.it.id] || sv > out[l.b.it.id].sv)) out[l.b.it.id] = { from: l.b.it.id, to: alt, need: l.b.need, sv, p, uA, uB };
     }
   }
@@ -779,18 +786,19 @@ function renderInShop(out) {
   for (const b of list) {
     const here = bestPurchase(b.it.id, at, b.need), alt = bestAnywhere(b.it.id, b.need, others);
     if (here) {
-      if (alt && here.cost - alt.cost >= minSave() && alt.cost <= here.cost * 0.85) skip.push({ b, here, alt });
+      const hv = valueOf(here, b.need), av = alt ? alt.value : Infinity;
+      if (alt && hv - av >= minSave() && av <= hv * 0.85) skip.push({ b, here, alt, sv: hv - av });
       else buy.push({ b, ...here, shop: at });
     } else check.push({ b, alt });
   }
   LAST = { rec: { shops: [at], lines: buy, total: buy.reduce((a, l) => a + l.cost, 0) }, bask: list };
-  const sumBuy = LAST.rec.total, sumSkip = skip.reduce((a, x) => a + (x.here.cost - x.alt.cost), 0);
+  const sumBuy = LAST.rec.total, sumSkip = skip.reduce((a, x) => a + x.sv, 0);
   let html = `<div class="card hero"><div class="row"><div class="go" style="margin:0">${t("atShop", { s: SHOP[at] })}</div><button class="x" data-at="${at}">${t("back")}</button></div>
     <div class="pills"><span class="pill">✅ ${buy.length} · ${money(sumBuy)}</span>${skip.length ? `<span class="pill">⛔ ${skip.length} · ${t("save")} ${money(sumSkip)}</span>` : ""}${check.length ? `<span class="pill">🔍 ${check.length}</span>` : ""}<span class="pill">🎟 ${APP[at] || SHOP[at]}</span></div></div>`;
   html += `<div class="card">`;
   if (buy.length) html += `<div class="sec">${t("buyHere")}</div>` + buy.map(lineHtml).join("");
-  if (skip.length) html += `<div class="sec" style="color:var(--bad)">${t("dontBuy")}</div>` + skip.map((x) => `<div class="li"><div class="ico">⛔</div><div><div class="nm">${esc(iname(x.b.it))}<span class="qty">${money(x.here.cost)}</span></div>
-      <div class="sub">→ ${t("betterAt", { s: SHOP[x.alt.shop], p: money(x.alt.cost), v: money(x.here.cost - x.alt.cost) })}</div></div><div class="pr" style="color:var(--bad)">−${money(x.here.cost - x.alt.cost)}</div></div>`).join("");
+  if (skip.length) html += `<div class="sec" style="color:var(--bad)">${t("dontBuy")}</div>` + skip.map((x) => `<div class="li"><div class="ico">⛔</div><div><div class="nm">${esc(iname(x.b.it))}<span class="qty">${money(x.here.cost / x.here.qty)}/${uName(x.b.it.unit)}</span></div>
+      <div class="sub">→ ${t("betterAt", { s: SHOP[x.alt.shop], p: money(x.alt.cost / x.alt.qty) + "/" + uName(x.b.it.unit), v: money(x.sv) })}</div></div><div class="pr" style="color:var(--bad)">−${money(x.sv)}</div></div>`).join("");
   if (check.length) html += `<div class="sec">${t("checkShelf")}</div>` + check.map((x) => {
     const done = D.done.includes(x.b.it.id);
     if (x.alt) LINES[x.b.it.id] = { shop: at, qty: x.alt.qty, cost: x.alt.cost, est: true, base: x.alt.cost, needBase: x.b.base || 0 };

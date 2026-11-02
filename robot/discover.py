@@ -22,10 +22,22 @@ q = """[out:json][timeout:25];
 (nwr["brand"="Kaufland"](around:2500,49.2154,16.6041);
  nwr["brand"="Kaufland"](around:4000,49.1372,20.4300););
 out tags center;"""
-r = session.post("https://overpass-api.de/api/interpreter", data={"data": q}, timeout=60)
-print("[overpass]", r.status_code)
+els = None
+for ep in ("https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://lz4.overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"):
+    for attempt in range(2):
+        try:
+            r = session.post(ep, data={"data": q}, timeout=90)
+            print("[overpass]", ep, r.status_code)
+            if r.status_code == 200:
+                els = r.json().get("elements", [])
+                break
+        except Exception as e:  # noqa: BLE001
+            print("[overpass err]", ep, e)
+        time.sleep(10)
+    if els is not None:
+        break
 stores = []
-for el in r.json().get("elements", []):
+for el in els or []:
     tg = el.get("tags", {})
     stores.append((tg.get("ref"), tg.get("addr:city"), tg.get("addr:street"), tg.get("website"), tg.get("name")))
     print("  store:", tg.get("ref"), tg.get("addr:city"), tg.get("addr:street"), tg.get("addr:housenumber"), tg.get("website"))
