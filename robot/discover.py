@@ -1,34 +1,33 @@
-"""Discovery run 19: can Kaufland leaflet page images be read reliably with OCR? (feasibility only)
+"""Discovery run 20: accuracy test of the verified Kaufland leaflet reader (store 4310)."""
+import os
+import sys
+from collections import Counter
 
-Personal, non-commercial use. A few requests, identifies itself honestly.
-"""
-import io
-import re
-import time
+sys.path.insert(0, os.path.dirname(__file__))
+import pytesseract  # noqa: E402
+from PIL import Image  # noqa: E402
 
-import pytesseract
-import requests
-from PIL import Image
+import fetch_prices as F  # noqa: E402
+import kaufland_ocr as K  # noqa: E402
+from items_def import ITEMS  # noqa: E402
 
-UA = "saving-pricebot/1.0 (personal grocery price check; non-commercial; github.com/romankurty/saving)"
-session = requests.Session()
-session.headers.update({"User-Agent": UA})
 
-o = session.get("https://endpoints.leaflets.schwarz/v4/overview?client_locale=kaufland%2Fcs-CZ&store_id=4310", timeout=40).json()
-fl = [f for cat in o.get("categories", []) for sub in cat.get("subcategories", []) if sub.get("name") in ("KDZ", "Hyper1") for f in sub.get("flyers", [])]
-ident = fl[0]["id"]
-f = session.get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={ident}&store_id=4310", timeout=40).json()["flyer"]
-pages = f.get("pages") or []
-want = ("máslo", "maslo", "vejce", "kuřecí", "vepřov", "eidam", "mozzarell", "šunka", "kefír", "rajčat", "okurk", "paprik", "banán", "jablk", "rýže", "těstovin")
-picked = [pg for pg in pages if any(w in (pg.get("keyWords") or "").lower() for w in want)][:3]
-print("pages with our items:", [pg.get("number") for pg in picked])
-for pg in picked:
-    time.sleep(3)
-    img = Image.open(io.BytesIO(session.get(pg["zoom"], timeout=60).content)).convert("L")
-    print(f"--- page {pg['number']} size {img.size}")
-    txt = pytesseract.image_to_string(img, lang="ces", config="--psm 11")
-    lines = [l.strip() for l in txt.splitlines() if l.strip()]
-    hits = [l for l in lines if re.search(r"\d+[,.]\d{2}|kg|Kč|=", l)]
-    print("   lines:", len(lines), "| price-ish:", len(hits))
-    for l in lines[:70]:
-        print("    ", l[:110])
+def sget(url, raw=False):
+    return F.get(url, as_json=not raw)
+
+
+deps = dict(pytesseract=pytesseract, Image=Image, match_items=F.match_items, parse_qty=F.parse_qty, convert=F.convert,
+            norm=F.norm, ITEM=F.ITEM, offer=F.offer)
+terms = [it["cz"] for it in ITEMS]
+offers, leaflets, dbg = K.kaufland_offers(sget, 4310, F.TODAY, terms, deps, max_pages=12, delay=0.5)
+print("leaflets:", leaflets)
+print("debug status counts:", Counter(d[1] for d in dbg))
+print("=== VERIFIED OFFERS ===")
+for o in offers:
+    print(f"  {o['item']:<14} {o['unit_price']:>8} Kč/{F.ITEM[o['item']]['unit']}  price {o['price']} pack {o['pack']}  card={o['card']}  | {o['name'][:70]}")
+print("=== sample unverified ===")
+for d in [d for d in dbg if d[1] == "unverified"][:15]:
+    print("  ", d)
+print("=== sample nomatch ===")
+for d in [d for d in dbg if d[1] == "nomatch"][:10]:
+    print("  ", d)

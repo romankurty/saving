@@ -70,6 +70,8 @@ def allowed(url):
 
 
 def get(url, as_json=False):
+    if not url:
+        return None
     if not allowed(url):
         log(f"[SKIP robots/blocked] {url}")
         return None
