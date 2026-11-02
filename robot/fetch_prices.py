@@ -3,7 +3,8 @@
 Sources (personal, non-commercial use; one slow pass; honest User-Agent; robots.txt and blocks respected):
   Brno:     Lidl (lidl.cz offer pages), Billa (billa.cz product catalogue), Albert (leaflet text search)
   Kezmarok: Lidl (lidl.sk offer pages), Billa (billa.sk product catalogue)
-Not covered (they block robots): Kaufland, Tesco, dm.
+  Kaufland Brno (Královo Pole): leaflet page images read with OCR, only self-verified prices kept (kaufland_ocr.py)
+Not covered (they block robots): Tesco, dm.
 """
 import datetime as dt
 import html as htmlmod
@@ -708,19 +709,53 @@ def kaufland_leaflets():
                         continue
                     for f in sub.get("flyers", []):
                         if (f.get("offerEndDate") or "9999") >= TODAY:
-                            out.append({"title": f.get("title"), "from": f.get("offerStartDate"), "to": f.get("offerEndDate"), "url": f.get("flyerUrlAbsolute")})
+                            out.append({"id": f.get("id"), "sub": sub.get("name"), "title": f.get("title"), "from": f.get("offerStartDate"),
+                                        "to": f.get("offerEndDate"), "url": f.get("flyerUrlAbsolute")})
         except Exception as e:  # noqa: BLE001
             log(f"Kaufland leaflets error: {e}")
+    ids = sorted(f["id"] for f in out if f["sub"] in ("KDZ", "Hyper1") and f["id"])
     seen, uniq = set(), []
-    for f in sorted(out, key=lambda x: (x["from"] or "", x["to"] or "")):
+    for f in sorted(out, key=lambda x: (x["from"] or "", x["to"] or "", x["sub"] != "KDZ")):
         k = (f["from"], f["to"])
         if k not in seen and f["url"]:
             seen.add(k)
-            uniq.append(f)
+            uniq.append({k2: f[k2] for k2 in ("title", "from", "to", "url")})
     STATUS["kaufland_brno"] = {"status": "leaflet" if uniq else "not covered", "offers": 0, "checked": NOW.isoformat(),
                                "note": "leaflet for Královo Pole store found; prices only inside images, not compared"}
     log(f"Kaufland leaflets: {uniq}")
-    return uniq
+    return uniq, ids
+
+
+def kaufland_scan(ids, prev):
+    """Read verified prices from the Kaufland leaflet images (OCR). Reuses the last result while the leaflets are unchanged."""
+    cache = (prev or {}).get("kaufland_scan") or {}
+    if ids and cache.get("ids") == ids and cache.get("offers") is not None:
+        offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY]
+        log(f"Kaufland scan: leaflets unchanged, reusing {len(offs)} verified offers")
+        return offs, {"ids": ids, "offers": offs, "scanned": cache.get("scanned")}
+    if not ids:
+        return [], None
+    try:
+        import pytesseract
+        from PIL import Image
+
+        import kaufland_ocr as K
+    except Exception as e:  # noqa: BLE001
+        log(f"Kaufland scan skipped (OCR not installed): {e}")
+        return [], None
+    deps = dict(pytesseract=pytesseract, Image=Image, match_items=match_items, parse_qty=parse_qty, convert=convert,
+                norm=norm, ITEM=ITEM, offer=offer)
+    try:
+        offs, _, dbg = K.kaufland_offers(lambda url, raw=False: get(url, as_json=not raw), 4310, TODAY, [it["cz"] for it in ITEMS],
+                                         deps, max_pages=40, delay=0.3, log=log)
+    except Exception as e:  # noqa: BLE001
+        log(f"Kaufland scan error: {e}")
+        return [], None
+    for o in offs:
+        if o["pack"] and abs(o["pack"] - 1) < 1e-6 and ITEM[o["item"]]["unit"] == "kg":
+            o["weighted"] = True
+    log(f"Kaufland scan: {len(offs)} verified offers ({sum(1 for d in dbg if d[1] == 'unverified')} unverified dropped)")
+    return offs, {"ids": ids, "offers": offs, "scanned": NOW.isoformat()}
 
 
 # ---------------------------------------------------------------- history, usual prices, output
@@ -741,7 +776,14 @@ def main():
     all_offers += lidl("kezmarok", "https://www.lidl.sk", "EUR")
     all_offers += billa("kezmarok", "https://www.billa.sk", "skt", "EUR")
     all_offers += teta()
-    kl = kaufland_leaflets()
+    kl, k_ids = kaufland_leaflets()
+    prev = load(os.path.join(ROOT, "data", "prices.json"), {})
+    k_offers, k_cache = kaufland_scan(k_ids, prev)
+    all_offers += k_offers
+    if k_offers:
+        live = [o for o in k_offers if (o.get("valid_from") or "")[:10] <= TODAY]
+        STATUS["kaufland_brno"] = {"status": "ok", "offers": len(k_offers), "checked": (k_cache or {}).get("scanned") or NOW.isoformat(),
+                                   "note": f"leaflet deals read from the leaflet images, only self-checked prices ({len(live)} valid today)"}
     notes = {"kaufland": "blocks robots on its website; leaflet only as images",
              "tesco": "blocks robots on all its websites",
              "dm": "its robots rules forbid reading product data",
@@ -752,7 +794,8 @@ def main():
     hist_path = os.path.join(ROOT, "data", "history.json")
     history = load(hist_path, {})
     cities = {}
-    for city, currency, shops in (("brno", "CZK", ["lidl", "billa", "albert"]), ("kezmarok", "EUR", ["lidl", "billa"])):
+    brno_shops = ["lidl", "billa", "albert"] + (["kaufland"] if k_offers else [])
+    for city, currency, shops in (("brno", "CZK", brno_shops), ("kezmarok", "EUR", ["lidl", "billa"])):
         items_out = {}
         ch = history.setdefault(city, {})
         for it in ITEMS:
@@ -793,7 +836,8 @@ def main():
         cities[city] = {
             "currency": currency,
             "covered": shops,
-            "uncovered": ["kaufland", "tesco"] if city == "brno" else ["kaufland", "tesco", "sintra"],
+            "uncovered": [s for s in ["kaufland", "tesco"] if s not in shops] if city == "brno" else ["kaufland", "tesco", "sintra"],
+            "partial": ["albert"] + (["kaufland"] if "kaufland" in shops else []) if city == "brno" else [],
             "drug_covered": ["lidl", "billa", "albert", "teta"] if city == "brno" else ["lidl", "billa"],
             "drug_uncovered": ["dm"] if city == "brno" else [],
             "items": items_out,
@@ -805,6 +849,7 @@ def main():
         "sources": STATUS,
         "albert_leaflets": leaflets,
         "kaufland_leaflets": kl,
+        "kaufland_scan": k_cache,
         "cities": cities,
     }
     os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)

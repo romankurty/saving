@@ -9,6 +9,7 @@ on:
     paths:
       - "robot/fetch_prices.py"
       - "robot/items_def.py"
+      - "robot/kaufland_ocr.py"
       - ".github/workflows/robot.yml"
 
 permissions:
@@ -27,7 +28,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests
+      - name: Install OCR (Kaufland leaflet reader)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-ces > /dev/null || echo "OCR install failed - Kaufland scan will be skipped"
+      - run: pip install requests pytesseract pillow
       - run: python robot/fetch_prices.py
       - name: Save new prices
         run: |

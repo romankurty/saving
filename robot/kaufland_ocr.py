@@ -17,14 +17,17 @@ INT_PRICE_RE = re.compile(r"(?<![\d,.])(\d{3,5})(?![\d%,.])")
 FACTOR = {"1kg": 1.0, "100g": 10.0, "1l": 1.0, "100ml": 10.0, "1ks": 1.0}
 
 
-def ocr_lines(img, pytesseract):
+def ocr_lines(img, pytesseract, min_conf=30, digit_conf=30, scale=1.0, tag=0):
     d = pytesseract.image_to_data(img, lang="ces", config="--psm 11", output_type=pytesseract.Output.DICT)
     lines = {}
     for i, w in enumerate(d["text"]):
         w = (w or "").strip()
-        if not w or int(float(d["conf"][i])) < 30:
+        c = int(float(d["conf"][i]))
+        if not w or c < (digit_conf if re.fullmatch(r"[\d,.]+", w) else min_conf):
             continue
-        key = (d["block_num"][i], d["par_num"][i], d["line_num"][i])
+        for k in ("left", "top", "width", "height"):
+            d[k][i] = int(d[k][i] / scale)
+        key = (tag, d["block_num"][i], d["par_num"][i], d["line_num"][i])
         x, y, ww, hh = d["left"][i], d["top"][i], d["width"][i], d["height"][i]
         L = lines.setdefault(key, {"words": [], "x0": x, "y0": y, "x1": x + ww, "y1": y + hh})
         L["words"].append(w)
@@ -69,13 +72,26 @@ def _price_candidates(block):
     return out
 
 
-def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W):
+GENERIC = {"nuts"}  # a more specific item (e.g. Brazil nuts) wins over the generic one
+
+
+def page_lines(img, pytesseract, mode="best"):
+    """OCR passes: normal + inverted (white digits on red/yellow price boxes) + low-confidence digits."""
+    from PIL import ImageOps
+    if mode == "base":
+        return ocr_lines(img, pytesseract)
+    lines = ocr_lines(img, pytesseract, digit_conf=0, tag=0)
+    lines += [L for L in ocr_lines(ImageOps.invert(img), pytesseract, digit_conf=0, tag=1)]
+    return lines
+
+
+def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, lines=None):
     """Return verified offers [(item_id, name, price, unit_price, pack, card)] and a debug list.
 
     Rules (precision first): the item name must be in the 6 lines nearest to the printed unit price, exactly one of our
     items may match, the block must not contain "flavoured / processed" words, and price / pack size must reproduce the
     printed unit price within 3 %."""
-    lines = ocr_lines(img, pytesseract)
+    lines = lines if lines is not None else ocr_lines(img, pytesseract)
     found, debug = [], []
     for U in lines:
         t = norm(U["text"]).replace("\u00a0", " ")
@@ -91,6 +107,8 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W):
         name_text = " ".join(L["text"] for L in order(near[:6]))
         text = " ".join(L["text"] for L in order(block))
         ids = match_items(name_text)
+        if len(ids) > 1:
+            ids = [i for i in ids if i not in GENERIC] or ids
         if not ids:
             debug.append(("nomatch", unit, name_text[:100]))
             continue

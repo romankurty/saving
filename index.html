@@ -233,7 +233,7 @@ const T = {
     mealsAim: "🎯 Health & fertility first, then price. Aim: fish 2×/week, liver max 1×/week.", healthHow: "ℹ What the % means",
     healthTxt: "% = how much of the daily key fertility nutrients one portion covers (average, each capped at 100 %). ♂: zinc, selenium, omega-3, vitamin D, folate, vitamin C. ♀: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches are ranked by price per portion adjusted for this score. Values are approximate.",
     extrasTitle: "🥗 Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
-    covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland Královo Pole leaflet", open: "Open", kNote: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
+    covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland Královo Pole leaflet", open: "Open", kNote: "📷 Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "📷 read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
   },
   sk: {
     quick: "Rýchly", big: "Veľký nákup", lunchMode: "Len obed", gym: "Idem z posilňovne (cez Albert)", imAt: "📍 Som v:",
@@ -270,7 +270,7 @@ const T = {
     mealsAim: "🎯 Najprv zdravie a plodnosť, potom cena. Cieľ: ryba 2× týždenne, pečeň max 1× týždenne.", healthHow: "ℹ Čo znamenajú %",
     healthTxt: "% = koľko denných kľúčových živín pre plodnosť pokryje jedna porcia (priemer, každá max 100 %). ♂: zinok, selén, omega-3, vitamín D, folát, vitamín C. ♀: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy sú zoradené podľa ceny za porciu upravenej o toto skóre. Hodnoty sú približné.",
     extrasTitle: "🥗 Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
-    covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland Kráľovo Pole", open: "Otvoriť", kNote: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
+    covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland Kráľovo Pole", open: "Otvoriť", kNote: "📷 Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "📷 prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
   },
 };
 const SHOP = { lidl: "Lidl", billa: "Billa", albert: "Albert", kaufland: "Kaufland", tesco: "Tesco", sintra: "Sintra", dm: "dm", teta: "Teta" };
@@ -498,10 +498,12 @@ function combos() {
   for (let i = 0; i < cov.length; i++) for (let j = i + 1; j < cov.length; j++) out.push([cov[i], cov[j]]);
   return out;
 }
-function tripCombos() {
+// separate trip to Královo Pole: the trip shop alone, or the trip shop for its deals + the usual centre shops for the rest
+function tripCombos(base = []) {
   if (state.city !== "brno") return [];
   const cov = groceryShops().filter((s) => TRIP.includes(s));
   const out = cov.map((s) => [s]); if (cov.length > 1) out.push(cov.slice());
+  for (const s of cov) if (base.length && !base.includes(s)) out.push([...base, s]);
   return out;
 }
 function pickRoute(opts) {
@@ -528,7 +530,7 @@ function decide() {
   if (!opts.length) return { bask, home, ds, opts, rec: null, steps: [] };
   const pr = pickRoute(opts);
   let rec = pr.rec, trip = null;
-  const tOpts = state.mode === "big" ? tripCombos().map((c) => evaluate(c, bask, ds)) : [];
+  const tOpts = state.mode === "big" ? tripCombos(rec.shops).map((c) => evaluate(c, bask, ds)) : [];
   if (tOpts.length) {
     const bt = tOpts.slice().sort((a, b) => a.score - b.score)[0], gain = rec.score - bt.score;
     trip = { ok: gain >= thresholds().trip, gain };
@@ -647,10 +649,12 @@ function mealIdeas(n = 5) {
       const h = mealHealth(pp), forHer = pid !== "pork" && pid !== "liver_pork";
       const hs = forHer ? (h.m + h.f) / 2 : h.m;
       const per = rec.total / 4;
-      cands.push({ key: parts.map((x) => x[0]).join("+"), fam, parts: pp, rec, total: rec.total, per, h, hs, forHer, rank: per / (0.35 + hs) });
+      cands.push({ key: parts.map((x) => x[0]).join("+"), fam, parts: pp, rec, total: rec.total, per, h, hs, forHer, rank: per / Math.pow(0.2 + hs, 1.5) });
     }
   }
-  cands.sort((a, b) => a.rank - b.rank);
+  // health first: meals covering < 35 % of the fertility nutrients only fill empty places
+  const HFLOOR = 0.35;
+  cands.sort((a, b) => (b.hs >= HFLOOR) - (a.hs >= HFLOOR) || a.rank - b.rank);
   const out = [], fams = new Set(), keys = new Set(), used = {};
   const side = (c) => c.parts.slice(1, -1).map((p) => p.id).join("+"), veg = (c) => c.parts[c.parts.length - 1].id;
   const ok = (c, cap) => (used["s:" + side(c)] || 0) < cap && (used["v:" + veg(c)] || 0) < cap;
@@ -662,7 +666,8 @@ function mealIdeas(n = 5) {
   // always at least one fish lunch (omega-3, vit D)
   if (!out.some((c) => FISH.includes(c.fam))) { const f = shared.find((c) => FISH.includes(c.fam)); if (f) { if (out.length >= 4) out.pop(); out.push(f); } }
   out.sort((a, b) => a.rank - b.rank);
-  if (his[0]) out.push(his[0]);
+  const hisPick = his.find((c) => !fams.has(c.fam) && c.hs >= HFLOOR); // liver max 1x a week -> never two liver lunches
+  if (hisPick) take(hisPick);
   for (const c of shared) { if (out.length >= 5) break; if (!keys.has(c.key) && !out.includes(c)) take(c); }
   MEAL_CACHE = { key, v: out };
   return out.slice(0, n);
@@ -739,7 +744,7 @@ function lineHtml(l) {
     const unitRow = o ? `${t("unitPrice")}: <b>${money(o.unit_price)}/${uName(l.b.it.unit)}</b>${usual(id) ? ` · ${t("usual")} ${money(usual(id))}` : ""}` : `${t("est")}: ${money(l.paid)}/${uName(l.b.it.unit)}`;
     const calc = l.packs ? `${l.packs} × ${money(l.paid)} = ${money(l.cost)}` : `${(+l.qty.toFixed(3))} ${uName(l.b.it.unit)} × ${money(l.paid)} = ${money(l.cost)}`;
     const rt = rhythmTxt(id);
-    more = `<div class="more"><div>${unitRow}</div><div>${calc}</div>${o ? `<div class="muted">${esc(o.name)} · ${validTxt(o)}${o.card ? " · " + esc(o.card) : ""}${o.url ? ` · <a href="${esc(o.url)}" target="_blank" rel="noopener">${t("check")}</a>` : ""}</div>` : ""}
+    more = `<div class="more"><div>${unitRow}</div><div>${calc}</div>${o ? `<div class="muted">${esc(o.name)} · ${validTxt(o)}${o.card ? " · " + esc(o.card) : ""}${o.url ? ` · <a href="${esc(o.url)}" target="_blank" rel="noopener">${t("check")}</a>` : ""}</div>${o.conf === "med" ? `<div class="muted">${t("scanned")}</div>` : ""}` : ""}
       ${w ? `<div style="margin-top:4px"><b>${t("waitTxt", { d: dayTxt(w.o.valid_from), s: SHOP[w.o.shop], p: money(w.o.price) })}</b></div>` : ""}${rt ? `<div class="muted">${rt}</div>` : ""}
       <div class="acts"><button class="btn" data-q="-" data-id="${id}">−</button><button class="btn" data-q="+" data-id="${id}">+</button>
       ${w ? `<button class="btn primary" data-skip="${id}">${t("waitBtn")}</button>` : `<button class="btn" data-skip="${id}">${t("skip")}</button>`}
@@ -839,7 +844,7 @@ function renderPlan() {
   const cd = cityData(), why = [];
   why.push(t("bestSingle", { s: SHOP[r.bestSingle.shops[0]], v: money(r.bestSingle.total) }));
   r.steps.forEach((s) => why.push(t(s.ok ? "addWorth" : "addNot", { s: SHOP[s.added], v: money(s.gain), th: money(th.stop) })));
-  if (r.trip) why.push(t(r.trip.ok ? "tripWorth" : "tripNot", { v: money(r.trip.gain), th: money(th.trip) }));
+  if (r.trip) why.push(t(r.trip.ok ? "tripWorth" : "tripNot", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) }));
   if (cd.uncovered?.length) why.push(t("notCompared", { s: cd.uncovered.map((s) => SHOP[s]).join(", ") }));
   if (rec.est) why.push(t("estNote", { n: rec.est }));
   html += `<details class="card"><summary>${t("why")}</summary><ul class="why">${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>`;
