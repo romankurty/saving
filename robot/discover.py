@@ -44,9 +44,12 @@ for el in els or []:
 
 for ref, city, street, web, name in stores:
     if not ref:
+        m = re.search(r"-(\d{3,5})\.html", web or "")
+        ref = m.group(1) if m else None
+    if not ref:
         continue
     locale = "kaufland/sk-SK" if (city or "").lower().startswith("ke") or "kaufland.sk" in (web or "") else "kaufland/cs-CZ"
-    for sid in (ref, ref.lstrip("0")):
+    for sid in (ref, "CZ" + ref, "cz" + ref):
         time.sleep(3)
         u = f"https://endpoints.leaflets.schwarz/v4/overview?client_locale={urllib.parse.quote(locale)}&store_id={sid}"
         o = session.get(u, timeout=40)
