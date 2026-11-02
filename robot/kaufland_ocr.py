@@ -75,14 +75,12 @@ def _price_candidates(block):
 GENERIC = {"nuts"}  # a more specific item (e.g. Brazil nuts) wins over the generic one
 
 
-def page_lines(img, pytesseract, mode="best"):
-    """OCR passes: normal + inverted (white digits on red/yellow price boxes) + low-confidence digits."""
-    from PIL import ImageOps
-    if mode == "base":
-        return ocr_lines(img, pytesseract)
-    lines = ocr_lines(img, pytesseract, digit_conf=0, tag=0)
-    lines += [L for L in ocr_lines(ImageOps.invert(img), pytesseract, digit_conf=0, tag=1)]
-    return lines
+def page_passes(img, pytesseract, Image):
+    """Two OCR passes per page (tested on real leaflets: each finds prices the other misses):
+    the page as published, and a 2x enlarged copy where small print is easier to read."""
+    W, H = img.size
+    yield ocr_lines(img, pytesseract)
+    yield ocr_lines(img.resize((W * 2, H * 2), Image.LANCZOS), pytesseract, digit_conf=0, scale=2.0)
 
 
 def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, lines=None):
@@ -189,7 +187,15 @@ def kaufland_offers(session_get, store_id, today, items_terms, deps, max_pages=4
             if ir is None:
                 continue
             img = Image.open(io.BytesIO(ir.content)).convert("L")
-            got, dbg = read_page(img, pytesseract, deps["match_items"], deps["parse_qty"], deps["convert"], deps["norm"], deps["ITEM"], img.size[0])
+            got, dbg, seen_pg = [], [], set()
+            for lines in page_passes(img, pytesseract, Image):
+                g, d = read_page(img, pytesseract, deps["match_items"], deps["parse_qty"], deps["convert"], deps["norm"], deps["ITEM"],
+                                 img.size[0], lines=lines)
+                dbg += d
+                for x in g:
+                    if (x[0], x[3]) not in seen_pg:
+                        seen_pg.add((x[0], x[3]))
+                        got.append(x)
             debug_all += [(pg.get("number"),) + d for d in dbg]
             for iid, name, price, unit, pack, card in got:
                 o = deps["offer"](iid, "kaufland", "brno", "CZK", name, price, unit, pack, card=card, promo=True,
