@@ -694,6 +694,33 @@ def teta():
     return found
 
 
+# ---------------------------------------------------------------- Kaufland (Brno Královo Pole, store 4310): leaflet list only
+def kaufland_leaflets():
+    out = []
+    r = get("https://endpoints.leaflets.schwarz/v4/overview?client_locale=kaufland%2Fcs-CZ&store_id=4310", as_json=True)
+    if r is not None:
+        try:
+            for cat in r.json().get("categories", []):
+                for sub in cat.get("subcategories", []):
+                    if sub.get("name") not in ("KDZ", "Hyper1", "Hyper2"):
+                        continue
+                    for f in sub.get("flyers", []):
+                        if (f.get("offerEndDate") or "9999") >= TODAY:
+                            out.append({"title": f.get("title"), "from": f.get("offerStartDate"), "to": f.get("offerEndDate"), "url": f.get("flyerUrlAbsolute")})
+        except Exception as e:  # noqa: BLE001
+            log(f"Kaufland leaflets error: {e}")
+    seen, uniq = set(), []
+    for f in sorted(out, key=lambda x: (x["from"] or "", x["to"] or "")):
+        k = (f["from"], f["to"])
+        if k not in seen and f["url"]:
+            seen.add(k)
+            uniq.append(f)
+    STATUS["kaufland_brno"] = {"status": "leaflet" if uniq else "not covered", "offers": 0, "checked": NOW.isoformat(),
+                               "note": "leaflet for Královo Pole store found; prices only inside images, not compared"}
+    log(f"Kaufland leaflets: {uniq}")
+    return uniq
+
+
 # ---------------------------------------------------------------- history, usual prices, output
 def load(path, default):
     try:
@@ -712,6 +739,7 @@ def main():
     all_offers += lidl("kezmarok", "https://www.lidl.sk", "EUR")
     all_offers += billa("kezmarok", "https://www.billa.sk", "skt", "EUR")
     all_offers += teta()
+    kl = kaufland_leaflets()
     notes = {"kaufland": "blocks robots on its website; leaflet only as images",
              "tesco": "blocks robots on all its websites",
              "dm": "its robots rules forbid reading product data",
@@ -774,6 +802,7 @@ def main():
         "eur_czk": EUR_CZK,
         "sources": STATUS,
         "albert_leaflets": leaflets,
+        "kaufland_leaflets": kl,
         "cities": cities,
     }
     os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)

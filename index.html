@@ -229,7 +229,7 @@ const T = {
     stopTh: "Extra stop must save", tripTh: "Separate trip must save", stockPct: "Stock up from % off", alertPct: "Healthy extras / alert from % off",
     weekly: "My weekly amounts", reset: "Reset", data: "Data", checkedAt: "Prices checked {d}", howWorks: "How it works",
     howText: "A robot reads public prices every morning (+ Wed/Thu evening). The app always takes the cheapest brand per kg / l / piece and compares shop combinations on your route.",
-    covered: "covered", notCovered: "not covered", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
+    covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland Královo Pole leaflet", open: "Open", kNote: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
   },
   sk: {
     quick: "Rýchly", big: "Veľký nákup", lunchMode: "Len obed", gym: "Idem z posilňovne (cez Albert)", imAt: "📍 Som v:",
@@ -262,7 +262,7 @@ const T = {
     stopTh: "Ďalšia zastávka musí ušetriť", tripTh: "Samostatná cesta musí ušetriť", stockPct: "Zásoby od % zľavy", alertPct: "Zdravé extra / upozornenie od % zľavy",
     weekly: "Moja týždenná spotreba", reset: "Obnoviť", data: "Dáta", checkedAt: "Ceny overené {d}", howWorks: "Ako to funguje",
     howText: "Robot každé ráno (+ st/št večer) číta verejné ceny. Aplikácia vždy berie najlacnejšiu značku za kg / l / kus a porovná kombinácie obchodov na tvojej trase.",
-    covered: "pokryté", notCovered: "nepokryté", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
+    covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland Kráľovo Pole", open: "Otvoriť", kNote: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
   },
 };
 const SHOP = { lidl: "Lidl", billa: "Billa", albert: "Albert", kaufland: "Kaufland", tesco: "Tesco", sintra: "Sintra", dm: "dm", teta: "Teta" };
@@ -826,6 +826,8 @@ function renderDeals() {
   rows.sort((a, b) => a.v - b.v);
   const top = rows.slice(0, 8), max = top.length ? top[top.length - 1].v : 1;
   if (top.length) html += `<div class="card"><h2>${t("protein")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("proteinUnit")}</div>${top.map((r, i) => `<div class="prow"><div class="row"><span><b>${esc(iname(r.it))}</b> <span class="tiny muted">${SHOP[r.o.shop]}</span></span><b style="${i === 0 ? "color:var(--good)" : ""}">${money(r.v)}</b></div><div class="bar"><i style="width:${Math.max(6, r.v / max * 100)}%;${i === 0 ? "" : "opacity:.55"}"></i></div></div>`).join("")}</div>`;
+  const kl = state.city === "brno" ? (PRICES.kaufland_leaflets || []) : [];
+  if (kl.length) html += `<div class="card"><h2>${t("kLeaf")}</h2>${kl.map((f) => `<div class="row" style="padding:6px 0"><span>${dateTxt(f.from)}–${dateTxt(f.to)}</span><a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>`).join("")}<div class="note">${t("kNote")}</div></div>`;
   const up = [];
   for (const it of ITEMS) for (const o of (cityData().items[it.id]?.offers || [])) if (upcoming(o, 5) && discount(o) >= 0.2 && it.group !== "drugstore" && !state.hide.includes(hideKey(o))) up.push({ it, o });
   up.sort((a, b) => Date.parse(a.o.valid_from) - Date.parse(b.o.valid_from));
@@ -899,8 +901,8 @@ function renderDrug() {
 function renderSettings() {
   const s = state.set, src = PRICES?.sources || {};
   const rows = Object.entries(src).filter(([k]) => k.endsWith("_" + state.city)).map(([k, v]) => {
-    const shop = k.split("_")[0], ok = v.status === "ok";
-    return `<div class="setrow"><div><b>${SHOP[shop] || shop}</b><div class="tiny muted">${esc(v.note || "")}${v.checked ? " · " + dtTxt(v.checked) : ""}</div></div><span class="badge ${ok ? "b-good" : "b-warn"}">${ok ? t("covered") + " · " + v.offers : t("notCovered")}</span></div>`;
+    const shop = k.split("_")[0], ok = v.status === "ok", leaf = v.status === "leaflet";
+    return `<div class="setrow"><div><b>${SHOP[shop] || shop}</b><div class="tiny muted">${esc(v.note || "")}${v.checked ? " · " + dtTxt(v.checked) : ""}</div></div><span class="badge ${ok ? "b-good" : leaf ? "b-info" : "b-warn"}">${ok ? t("covered") + " · " + v.offers : leaf ? t("leafOnly") : t("notCovered")}</span></div>`;
   }).join("");
   const wk = ITEMS.filter((it) => it.group !== "drugstore" && it.group !== "extras").map((it) => `<div class="setrow"><span>${esc(iname(it))} <span class="tiny muted">${uName(it.unit)} ${t("perWeek")}</span></span><input type="number" step="0.05" min="0" data-wk="${it.id}" value="${weeklyOf(it)}"></div>`).join("");
   $("setOut").innerHTML = `<div class="card"><h2>${t("settings")}</h2>
