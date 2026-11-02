@@ -578,7 +578,7 @@ const NUTR = {
   liver_chicken: { zn: 2.7, se: 55, o3: 50, fol: 590, vc: 18, fe: 9, ch: 290, b12: 17 }, liver_pork: { zn: 5.8, se: 52, o3: 30, vd: 1, fol: 210, vc: 24, fe: 23, ch: 300, b12: 26 },
   salmon: { zn: 0.4, se: 24, o3: 1800, vd: 10, fol: 26, fe: 0.3, ch: 80, b12: 3.2 }, tuna: { zn: 0.8, se: 80, o3: 230, vd: 1.2, fol: 4, fe: 1.3, ch: 30, b12: 2.5 },
   sardines: { zn: 1.3, se: 53, o3: 1000, vd: 4.8, fol: 10, fe: 2.9, ch: 75, b12: 9 }, mackerel: { zn: 0.6, se: 44, o3: 1500, vd: 8, fol: 1, fe: 1.6, ch: 65, b12: 8.7 },
-  eggs: { zn: 0.7, se: 17, o3: 20, vd: 1.1, fol: 26, fe: 1.0, ch: 160, b12: 0.5 }, quinoa: { zn: 3.3, se: 8, fol: 479, vc: 4, fe: 6.5, ch: 96 },
+  eggs: { zn: 0.7, se: 17, o3: 20, vd: 1.1, fol: 26, fe: 1.0, ch: 160, b12: 0.5 }, quinoa: { zn: 1.3, se: 3, fol: 181, vc: 1.5, fe: 3.3, ch: 33 },
   rice: { zn: 1.1, se: 15, fol: 8, fe: 0.8, ch: 6 }, pasta: { zn: 1.3, se: 63, fol: 18, fe: 1.3, ch: 15 }, sweet_potato: { zn: 0.3, fol: 11, vc: 2.4, fe: 0.6, ch: 12 },
   tomato_can: { zn: 0.2, fol: 8, vc: 9, fe: 1.0, ch: 7 }, broccoli: { zn: 0.4, se: 2.5, fol: 63, vc: 89, fe: 0.7, ch: 19 }, spinach: { zn: 0.5, se: 1, fol: 194, vc: 28, fe: 2.7, ch: 19 },
   carrot: { zn: 0.2, fol: 19, vc: 6, fe: 0.3, ch: 9 }, paprika: { zn: 0.25, fol: 46, vc: 128, fe: 0.4, ch: 6 }, mushrooms: { zn: 0.5, se: 9, vd: 0.2, fol: 17, fe: 0.5, ch: 17 },
@@ -655,11 +655,15 @@ function mealIdeas(n = 5) {
   const side = (c) => c.parts.slice(1, -1).map((p) => p.id).join("+"), veg = (c) => c.parts[c.parts.length - 1].id;
   const ok = (c, cap) => (used["s:" + side(c)] || 0) < cap && (used["v:" + veg(c)] || 0) < cap;
   const take = (c) => { fams.add(c.fam); keys.add(c.key); out.push(c); used["s:" + side(c)] = (used["s:" + side(c)] || 0) + 1; used["v:" + veg(c)] = (used["v:" + veg(c)] || 0) + 1; };
-  for (const cap of [2, 3, 99]) for (const c of cands) { if (out.length >= 5) break; if (!fams.has(c.fam) && !keys.has(c.key) && ok(c, cap)) take(c); }
-  for (const c of cands) { if (out.length >= 5) break; if (!keys.has(c.key)) take(c); }
+  // 4 shared lunches (for both) with variety, then the best "him only" lunch
+  const shared = cands.filter((c) => c.forHer), his = cands.filter((c) => !c.forHer);
+  for (const cap of [2, 3, 99]) for (const c of shared) { if (out.length >= 4) break; if (!fams.has(c.fam) && !keys.has(c.key) && ok(c, cap)) take(c); }
+  for (const c of shared) { if (out.length >= 4) break; if (!keys.has(c.key)) take(c); }
   // always at least one fish lunch (omega-3, vit D)
-  if (!out.some((c) => FISH.includes(c.fam))) { const f = cands.find((c) => FISH.includes(c.fam)); if (f) { out.pop(); out.push(f); } }
+  if (!out.some((c) => FISH.includes(c.fam))) { const f = shared.find((c) => FISH.includes(c.fam)); if (f) { if (out.length >= 4) out.pop(); out.push(f); } }
   out.sort((a, b) => a.rank - b.rank);
+  if (his[0]) out.push(his[0]);
+  for (const c of shared) { if (out.length >= 5) break; if (!keys.has(c.key) && !out.includes(c)) take(c); }
   MEAL_CACHE = { key, v: out };
   return out.slice(0, n);
 }
@@ -764,7 +768,7 @@ function mealsHtml(list, picker) {
     const lines = m.rec.lines.map((l) => `<div class="row"><span>${amountTxt(l)} ${esc(shortName(l.b.it.id).toLowerCase())} · <b>${SHOP[l.shop]}</b>${l.o ? ` <span class="muted">${esc(l.o.name.slice(0, 30))}</span>` : ` <span class="muted">${t("est")}</span>`}</span><span>${money(l.cost)}</span></div>`).join("");
     const chosen = sel.has(m.key);
     const liver = m.parts.some((p) => p.id.startsWith("liver"));
-    const hl = `💪 <b>♂ ${Math.round(m.h.m * 100)}%</b>${m.forHer ? ` · <b>♀ ${Math.round(m.h.f * 100)}%</b>` : ` · <span class="badge b-info">♂ ${t("onlyHim")}</span>`}${m.h.top.length ? ` <span class="muted">${m.h.top.join(" · ")}</span>` : ""}`;
+    const hl = `💪 <b>♂ ${Math.round(m.h.m * 100)}%</b>${m.forHer ? ` · <b>♀ ${Math.round(m.h.f * 100)}%</b>` : ` · <span class="badge b-info">${t("onlyHim")}</span>`}${m.h.top.length ? ` <span class="muted">${m.h.top.join(" · ")}</span>` : ""}`;
     return `<div class="meal" ${picker ? `data-mealpick="${k}" style="cursor:pointer"` : ""}><div class="row"><div class="t">${picker ? (chosen ? "✅ " : "⬜ ") : k + 1 + ". "}${esc(mealName(m))}</div><span class="per">${money(m.per)} <span class="tiny" style="font-weight:600">${t("perPortion")}</span></span></div>
       <div class="small" style="margin-top:4px">${hl}</div>${liver ? `<div class="small" style="color:var(--warn);font-weight:650">⚠ ${t("liverWarn")}</div>` : ""}
       <div class="small" style="margin-top:2px">📍 ${mealWhere(m)} · ${money(m.total)} ${t("forPortions")}</div>

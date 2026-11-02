@@ -1,4 +1,4 @@
-"""Discovery run 20: accuracy test of the verified Kaufland leaflet reader (store 4310)."""
+"""Discovery run 21: accuracy test of the stricter Kaufland leaflet reader (store 4310)."""
 import os
 import sys
 from collections import Counter
@@ -25,9 +25,7 @@ print("debug status counts:", Counter(d[1] for d in dbg))
 print("=== VERIFIED OFFERS ===")
 for o in offers:
     print(f"  {o['item']:<14} {o['unit_price']:>8} Kč/{F.ITEM[o['item']]['unit']}  price {o['price']} pack {o['pack']}  card={o['card']}  | {o['name'][:70]}")
-print("=== sample unverified ===")
-for d in [d for d in dbg if d[1] == "unverified"][:15]:
-    print("  ", d)
-print("=== sample nomatch ===")
-for d in [d for d in dbg if d[1] == "nomatch"][:10]:
-    print("  ", d)
+for st, n in (("excluded", 12), ("ambiguous", 8), ("unverified", 25)):
+    print(f"=== sample {st} ===")
+    for d in [d for d in dbg if d[1] == st][:n]:
+        print("  ", str(d)[:300])
