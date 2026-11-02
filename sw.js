@@ -1,6 +1,6 @@
 // Service worker: lets the app open without internet (shows the last saved prices).
 // Network first: when online you always get the newest prices and app version.
-var CACHE = 'grocery-v1';
+var CACHE = 'grocery-v2';
 
 var CORE_FILES = [
   './',
@@ -10,7 +10,8 @@ var CORE_FILES = [
   './icon-512.png',
   './apple-touch-icon.png',
   './config/items.json',
-  './data/prices.json'
+  './data/prices.json',
+  './data/history.json'
 ];
 
 self.addEventListener('install', function (event) {
