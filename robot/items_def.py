@@ -149,7 +149,7 @@ ITEMS = [
     dict(id="yoghurt", en="Yoghurt (for her, bifido)", sk="Jogurt (bifido)", group="breakfast", unit="kg", weekly=1.05, shelf="fresh", quick=True,
          cz=["jogurt", "bifidus"], skt=["jogurt"],
          inc=r"jogurt|jogurt|bifid|activia", exc=r"napoj|drink|tycink|cokol|musli|muesli|zmrzl|mrazen|zmrazen|cereal|dresink|omack|krem na|plet|telov|kosmet|susenk|oplat|polev|rozinky v|krekr",
-         bounds=(30, 400)),
+         bounds=(30, 250)),
     dict(id="olive_oil", en="Olive oil", sk="Olivový olej", group="pantry", unit="l", weekly=0, shelf="long", quick=False,
          cz=["olivový olej"], skt=["olivový olej"],
          inc=r"oliv\w* olej|olej oliv", exc=r"tunak|sardin|v olivov|mydl|kosmet|plet|telov|sprej|spray|olivy|makrel|losos|sardink|s extra|s olivov|susenk|taralli|krekr|tycink|chips|pecivo|chleb|pesto|omack",

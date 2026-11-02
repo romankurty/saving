@@ -729,10 +729,15 @@ def kaufland_leaflets():
 def kaufland_scan(ids, prev):
     """Read verified prices from the Kaufland leaflet images (OCR). Reuses the last result while the leaflets are unchanged."""
     cache = (prev or {}).get("kaufland_scan") or {}
-    if ids and cache.get("ids") == ids and cache.get("offers") is not None:
+    try:
+        import kaufland_ocr as K0
+        ver = K0.VERSION
+    except Exception:  # noqa: BLE001
+        ver = None
+    if ids and cache.get("ids") == ids and cache.get("v") == ver and cache.get("offers") is not None:
         offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY]
         log(f"Kaufland scan: leaflets unchanged, reusing {len(offs)} verified offers")
-        return offs, {"ids": ids, "offers": offs, "scanned": cache.get("scanned")}
+        return offs, {"ids": ids, "v": ver, "offers": offs, "scanned": cache.get("scanned")}
     if not ids:
         return [], None
     try:
@@ -755,7 +760,7 @@ def kaufland_scan(ids, prev):
         if o["pack"] and abs(o["pack"] - 1) < 1e-6 and ITEM[o["item"]]["unit"] == "kg":
             o["weighted"] = True
     log(f"Kaufland scan: {len(offs)} verified offers ({sum(1 for d in dbg if d[1] == 'unverified')} unverified dropped)")
-    return offs, {"ids": ids, "offers": offs, "scanned": NOW.isoformat()}
+    return offs, {"ids": ids, "v": ver, "offers": offs, "scanned": NOW.isoformat()}
 
 
 # ---------------------------------------------------------------- history, usual prices, output
