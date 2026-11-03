@@ -523,18 +523,24 @@ function basket() {
   return { list, home };
 }
 
+// items without a price in this route are listed under the route shop with the widest range (most items priced)
+const COVN = {};
+function mainShop(shops) {
+  const n = (sh) => (COVN[state.city + sh] ??= ITEMS.reduce((a, it) => a + (offersFor(it.id, sh).length ? 1 : 0), 0));
+  return shops.length < 2 ? shops[0] : shops.slice().sort((a, b) => n(b) - n(a))[0];
+}
 function evaluate(shops, bask, ds) {
   const lines = []; let total = 0, est = 0, normal = 0, vtotal = 0;
   for (const b of bask) {
     let best = bestAnywhere(b.it.id, b.need, shops);
     if (!best) {
       const ref = groceryShops().includes("billa") ? bestPurchase(b.it.id, "billa", b.need) : null;
-      if (ref) best = { shop: shops[0], est: true, cost: ref.cost * 1.05, qty: ref.qty, packs: ref.packs, paid: ref.paid * 1.05, refO: ref.o };
+      if (ref) best = { shop: mainShop(shops), est: true, cost: ref.cost * 1.05, qty: ref.qty, packs: ref.packs, paid: ref.paid * 1.05, refO: ref.o };
       else {
         const u = (usual(b.it.id) ?? Math.min(...offersFor(b.it.id).map((o) => o.unit_price), Infinity)) * 1.1;
         if (!isFinite(u)) { lines.push({ b, missing: true }); continue; }
         const q = roundQty(b.it, b.need);
-        best = { shop: shops[0], est: true, cost: u * q, qty: q, packs: null, paid: u };
+        best = { shop: mainShop(shops), est: true, cost: u * q, qty: q, packs: null, paid: u };
       }
       est++;
     }
