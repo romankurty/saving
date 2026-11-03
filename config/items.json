@@ -656,8 +656,8 @@
   },
   {
    "id": "yoghurt",
-   "en": "Yoghurt (for her, bifido)",
-   "sk": "Jogurt (bifido)",
+   "en": "Yoghurt (plain, for her)",
+   "sk": "Jogurt (biely, pre ňu)",
    "group": "breakfast",
    "unit": "kg",
    "weekly": 1.05,
