@@ -14,7 +14,7 @@ UNIT_RE = re.compile(r"=\s*(1\s*kg|100\s*g|1\s*l|100\s*ml|1\s*ks)\s*[:=]?\s*(\d{
 UNIT_RE2 = re.compile(r"(1\s*kg|100\s*g|1\s*l|100\s*ml)\s*=\s*(\d{1,4})\s*[,.]\s*(\d{2})")
 MONEY_RE = re.compile(r"(?<![\d,.=])(\d{1,4})\s*[,.]\s*(\d{2})(?![\d%])")
 INT_PRICE_RE = re.compile(r"(?<![\d,.])(\d{3,5})(?![\d%,.])")
-VERSION = 9  # bump when the reading rules change, so cached results are re-read
+VERSION = 10  # bump when the reading rules change, so cached results are re-read
 FACTOR = {"1kg": 1.0, "100g": 10.0, "1l": 1.0, "100ml": 10.0, "1ks": 1.0}
 
 
@@ -98,6 +98,10 @@ def page_passes(img, pytesseract, Image):
 def _verify(packs, prices, text, unit, it, convert, own=()):
     """price / pack must reproduce the printed unit price (3 %), or unit x pack must be a real shop price whose
     whole-crown part is printed (big '29' + small '90')."""
+    if own:  # the product names its own pack size ("180 g"): never verify against another pack (e.g. the "1 kg" of the unit line)
+        o0 = convert(own[0][0], own[0][1], it["unit"])
+        if o0:
+            packs = [q for q in packs if abs((convert(q[0], q[1], it["unit"]) or 0) - o0) <= 0.1 * o0] or [own[0]]
     for pq in packs:
         pk = convert(pq[0], pq[1], it["unit"])
         if not pk:
