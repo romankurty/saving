@@ -1,22 +1,37 @@
-"""Discovery run 24: did Billa / Lidl change their robots rules? (status + rules for the paths we use)."""
+"""Discovery run 25: why does Lidl give so few offers? tiles per page, sample names, match + validity reasons."""
+import html as htmlmod
+import json
 import os
+import re
 import sys
-import urllib.robotparser
+from collections import Counter
 
 sys.path.insert(0, os.path.dirname(__file__))
 import fetch_prices as F  # noqa: E402
 
-for base, paths in (("https://www.billa.cz", ["/api/product-discovery/products?page=0&pageSize=1&term=vejce"]),
-                    ("https://www.billa.sk", ["/api/product-discovery/products?page=0&pageSize=1&term=vajcia"]),
-                    ("https://www.lidl.cz", ["/c/akcni-nabidka/s10008", "/"]), ("https://www.lidl.sk", ["/"])):
-    try:
-        r = F.session.get(base + "/robots.txt", timeout=20)
-        print("==", base, "robots.txt status", r.status_code, "len", len(r.text))
-        lines = [ln for ln in r.text.splitlines() if ln.strip() and not ln.startswith("#")]
-        print("\n".join(lines[:40]))
-        rp = urllib.robotparser.RobotFileParser()
-        rp.parse(r.text.splitlines() if r.status_code == 200 else [])
-        for pth in paths:
-            print("  can_fetch", pth, rp.can_fetch(F.UA, base + pth))
-    except Exception as e:  # noqa: BLE001
-        print("ERR", base, e)
+for base in ("https://www.lidl.cz", "https://www.lidl.sk"):
+    home = F.get(base + "/")
+    pages = list(dict.fromkeys(re.findall(r'href="(/c/[a-z0-9-]+/a\d+)"', home.text))) if home else []
+    other = sorted(set(re.findall(r'href="(/[a-z]/[a-z0-9-]+/[a-z]\d+)"', home.text)))[:30] if home else []
+    print("==", base, "offer pages", len(pages), pages[:20])
+    print("   other link shapes:", other)
+    tot, why = 0, Counter()
+    for path in pages[:20]:
+        r = F.get(base + path)
+        if r is None:
+            print("  ", path, "fetch failed"); continue
+        tiles = re.findall(r'data-grid-data="([^"]+)"', r.text)
+        names = []
+        for raw in tiles:
+            try:
+                d = json.loads(htmlmod.unescape(raw))
+            except Exception:
+                why["json"] += 1; continue
+            d = d[0] if isinstance(d, list) and d else d
+            name = (d.get("fullTitle") or d.get("title") or "") if isinstance(d, dict) else ""
+            names.append(name)
+            ids = F.match_items(name)
+            why["match" if ids else "nomatch"] += 1
+        tot += len(tiles)
+        print(f"   {path}: {len(tiles)} tiles, html {len(r.text)//1000} kB, sample: {names[:6]}")
+    print("   total tiles", tot, dict(why))
