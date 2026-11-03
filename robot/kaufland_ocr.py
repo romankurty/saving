@@ -14,7 +14,7 @@ UNIT_RE = re.compile(r"=\s*(1\s*kg|100\s*g|1\s*l|100\s*ml|1\s*ks)\s*[:=]?\s*(\d{
 UNIT_RE2 = re.compile(r"(1\s*kg|100\s*g|1\s*l|100\s*ml)\s*=\s*(\d{1,4})\s*[,.]\s*(\d{2})")
 MONEY_RE = re.compile(r"(?<![\d,.=])(\d{1,4})\s*[,.]\s*(\d{2})(?![\d%])")
 INT_PRICE_RE = re.compile(r"(?<![\d,.])(\d{3,5})(?![\d%,.])")
-VERSION = 4  # bump when the reading rules change, so cached results are re-read
+VERSION = 5  # bump when the reading rules change, so cached results are re-read
 FACTOR = {"1kg": 1.0, "100g": 10.0, "1l": 1.0, "100ml": 10.0, "1ks": 1.0}
 
 
@@ -95,7 +95,7 @@ def page_passes(img, pytesseract, Image):
     yield ocr_lines(img.resize((W * 2, H * 2), Image.LANCZOS), pytesseract, digit_conf=0, scale=2.0)
 
 
-def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, lines=None):
+def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, lines=None, card_re=r"kaufland\s*card|s\s*kartou", card_name="Kaufland Card"):
     """Return verified offers [(item_id, name, price, unit_price, pack, card)] and a debug list.
 
     Rules (precision first): the item name must be in the 6 lines nearest to the printed unit price, exactly one of our
@@ -146,7 +146,7 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, 
                 if len(packs) >= 3:
                     break
         prices = _price_candidates(block)
-        card = "Kaufland Card" if re.search(r"kaufland\s*card|s\s*kartou", norm(text)) else None
+        card = card_name if re.search(card_re, norm(text)) else None
         verified = None
         for pq in packs:
             pk = convert(pq[0], pq[1], it["unit"])
@@ -173,62 +173,68 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, 
     return found, debug
 
 
-def kaufland_offers(session_get, store_id, today, items_terms, deps, max_pages=40, delay=1.0, log=print):
-    """deps: dict with pytesseract, Image, match_items, parse_qty, convert, norm, ITEM, offer."""
-    pytesseract, Image = deps["pytesseract"], deps["Image"]
-    r = session_get(f"https://endpoints.leaflets.schwarz/v4/overview?client_locale=kaufland%2Fcs-CZ&store_id={store_id}")
+LEAFLET_API = "https://endpoints.leaflets.schwarz/v4"
+
+
+def list_flyers(session_get, client_locale, subs, today, store_id=None):
+    """Current leaflets of one shop on the Schwarz leaflet platform (Kaufland, Lidl): one per (type, from, to)."""
+    q = f"&store_id={store_id}" if store_id else ""
+    r = session_get(f"{LEAFLET_API}/overview?client_locale={urllib.parse.quote(client_locale, safe='')}{q}")
     if r is None:
-        return [], [], []
-    flyers = []
+        return []
+    chosen = {}
     for cat in r.json().get("categories", []):
         for sub in cat.get("subcategories", []):
-            if sub.get("name") not in ("Hyper1", "KDZ"):
+            if sub.get("name") not in subs:
                 continue
             for f in sub.get("flyers", []):
-                if (f.get("offerEndDate") or "9999") >= today:
-                    flyers.append((sub.get("name"), f))
-    # main food leaflet (KDZ) + hypermarket supplement (Hyper1), each once
-    chosen = {}
-    for sub, f in flyers:
-        chosen.setdefault((sub, f.get("offerStartDate"), f.get("offerEndDate")), f)
-    offers, leaflets, debug_all = [], [], []
+                if (f.get("offerEndDate") or "9999") >= today and f.get("id"):
+                    chosen.setdefault((sub.get("name"), f.get("offerStartDate"), f.get("offerEndDate")), f)
+    return [(k[0], f) for k, f in sorted(chosen.items(), key=lambda x: (x[0][1] or "", x[0][0]))]
+
+
+def scan_flyers(session_get, flyers, shop, city, currency, items_terms, deps, store_id=None, max_pages=40, delay=1.0, log=print,
+                card_re=r"kaufland\s*card|s\s*kartou", card_name="Kaufland Card", label="Kaufland"):
+    """OCR the pages of the given leaflets that mention our items; keep only self-verified prices."""
+    pytesseract, Image = deps["pytesseract"], deps["Image"]
+    q = f"&store_id={store_id}" if store_id else ""
+    offers, debug_all = [], []
     stems = sorted({deps["norm"](t).split()[0][:6] for terms in items_terms for t in terms if t})
-    for (sub, vf, vt), f in sorted(chosen.items(), key=lambda x: (x[0][1] or "", x[0][0])):
-        leaflets.append({"id": f.get("id"), "title": f.get("title"), "from": vf, "to": vt, "url": f.get("flyerUrlAbsolute")})
-        fr = session_get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={urllib.parse.quote(f['id'])}&store_id={store_id}")
+    for sub, f in flyers:
+        vf, vt = f.get("offerStartDate"), f.get("offerEndDate")
+        fr = session_get(f"{LEAFLET_API}/flyer?flyer_identifier={urllib.parse.quote(f['id'])}{q}")
         if fr is None:
             continue
         pages = fr.json().get("flyer", {}).get("pages") or []
         pick = [pg for pg in pages if any(s in deps["norm"](pg.get("keyWords") or "") for s in stems)][:max_pages]
-        log(f"Kaufland {sub} {vf}–{vt}: reading {len(pick)} of {len(pages)} pages")
+        log(f"{label} {sub} {vf}–{vt}: reading {len(pick)} of {len(pages)} pages")
         for pg in pick:
             time.sleep(delay)
             ir = session_get(pg.get("zoom") or pg.get("image"), raw=True)
             if ir is None:
                 continue
             img = Image.open(io.BytesIO(ir.content)).convert("L")
-            got, dbg, seen_pg = [], [], set()
+            got, seen_pg = [], set()
             for lines in page_passes(img, pytesseract, Image):
                 g, d = read_page(img, pytesseract, deps["match_items"], deps["parse_qty"], deps["convert"], deps["norm"], deps["ITEM"],
-                                 img.size[0], lines=lines)
-                dbg += d
+                                 img.size[0], lines=lines, card_re=card_re, card_name=card_name)
+                debug_all += [(pg.get("number"),) + x for x in d]
                 for x in g:
                     if (x[0], x[3]) not in seen_pg:
                         seen_pg.add((x[0], x[3]))
                         got.append(x)
-            debug_all += [(pg.get("number"),) + d for d in dbg]
             for iid, name, price, unit, pack, card, disc in got:
-                o = deps["offer"](iid, "kaufland", "brno", "CZK", clean_name(name), price, unit, pack, card=card, promo=True,
+                tz = "+01:00"
+                o = deps["offer"](iid, shop, city, currency, clean_name(name), price, unit, pack, card=card, promo=True,
                                   normal_price=round(price / (1 - disc), 2) if disc else None, normal_unit=round(unit / (1 - disc), 2) if disc else None,
-                                  valid_from=vf + "T00:00:00+01:00" if vf else None, valid_to=vt + "T23:59:59+01:00" if vt else None,
-                                  source=f"Kaufland leaflet p.{pg.get('number')} (scan, verified)", conf="med", url=f.get("flyerUrlAbsolute"))
+                                  valid_from=vf + "T00:00:00" + tz if vf else None, valid_to=vt + "T23:59:59" + tz if vt else None,
+                                  source=f"{label} leaflet p.{pg.get('number')} (scan, verified)", conf="med", url=f.get("flyerUrlAbsolute"))
                 if o:
                     offers.append(o)
-    # de-duplicate (same item + unit price)
     seen, uniq = set(), []
     for o in offers:
         k = (o["item"], o["unit_price"], o["valid_from"])
         if k not in seen:
             seen.add(k)
             uniq.append(o)
-    return uniq, leaflets, debug_all
+    return uniq, debug_all

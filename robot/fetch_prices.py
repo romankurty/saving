@@ -735,41 +735,43 @@ def kaufland_leaflets():
     return uniq, ids
 
 
-def kaufland_scan(ids, prev):
-    """Read verified prices from the Kaufland leaflet images (OCR). Reuses the last result while the leaflets are unchanged."""
-    cache = (prev or {}).get("kaufland_scan") or {}
-    try:
-        import kaufland_ocr as K0
-        ver = K0.VERSION
-    except Exception:  # noqa: BLE001
-        ver = None
-    if ids and cache.get("ids") == ids and cache.get("v") == ver and cache.get("offers") is not None:
-        offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY]
-        log(f"Kaufland scan: leaflets unchanged, reusing {len(offs)} verified offers")
-        return offs, {"ids": ids, "v": ver, "offers": offs, "scanned": cache.get("scanned")}
-    if not ids:
-        return [], None
+def leaflet_scan(key, client_locale, subs, store_id, shop, city, currency, terms_key, card_re, card_name, label, prev, max_pages=30):
+    """Read verified prices from a shop's leaflet images (OCR). Reuses the last result while the leaflets are unchanged."""
     try:
         import pytesseract
         from PIL import Image
 
         import kaufland_ocr as K
     except Exception as e:  # noqa: BLE001
-        log(f"Kaufland scan skipped (OCR not installed): {e}")
+        log(f"{label} scan skipped (OCR not installed): {e}")
+        return [], None
+    getter = lambda url, raw=False: get(url, as_json=not raw)  # noqa: E731
+    try:
+        flyers = K.list_flyers(getter, client_locale, subs, TODAY, store_id)
+    except Exception as e:  # noqa: BLE001
+        log(f"{label} leaflet list error: {e}")
+        return [], None
+    ids = sorted(f["id"] for _, f in flyers)
+    cache = ((prev or {}).get("scans") or {}).get(key) or {}
+    if ids and cache.get("ids") == ids and cache.get("v") == K.VERSION and cache.get("offers") is not None:
+        offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY]
+        log(f"{label} scan: leaflets unchanged, reusing {len(offs)} verified offers")
+        return offs, {**cache, "offers": offs}
+    if not ids:
         return [], None
     deps = dict(pytesseract=pytesseract, Image=Image, match_items=match_items, parse_qty=parse_qty, convert=convert,
                 norm=norm, ITEM=ITEM, offer=offer)
     try:
-        offs, _, dbg = K.kaufland_offers(lambda url, raw=False: get(url, as_json=not raw), 4310, TODAY, [it["cz"] for it in ITEMS],
-                                         deps, max_pages=40, delay=0.3, log=log)
+        offs, dbg = K.scan_flyers(getter, flyers, shop, city, currency, [it[terms_key] for it in ITEMS], deps, store_id=store_id,
+                                  max_pages=max_pages, delay=0.3, log=log, card_re=card_re, card_name=card_name, label=label)
     except Exception as e:  # noqa: BLE001
-        log(f"Kaufland scan error: {e}")
+        log(f"{label} scan error: {e}")
         return [], None
     for o in offs:
         if o["pack"] and abs(o["pack"] - 1) < 1e-6 and ITEM[o["item"]]["unit"] == "kg":
             o["weighted"] = True
-    log(f"Kaufland scan: {len(offs)} verified offers ({sum(1 for d in dbg if d[1] == 'unverified')} unverified dropped)")
-    return offs, {"ids": ids, "v": ver, "offers": offs, "scanned": NOW.isoformat()}
+    log(f"{label} scan: {len(offs)} verified offers ({sum(1 for d in dbg if d[1] == 'unverified')} unverified dropped)")
+    return offs, {"ids": ids, "v": K.VERSION, "offers": offs, "scanned": NOW.isoformat()}
 
 
 # ---------------------------------------------------------------- history, usual prices, output
@@ -790,14 +792,27 @@ def main():
     all_offers += lidl("kezmarok", "https://www.lidl.sk", "EUR")
     all_offers += billa("kezmarok", "https://www.billa.sk", "skt", "EUR")
     all_offers += teta()
-    kl, k_ids = kaufland_leaflets()
+    kl, _ = kaufland_leaflets()
     prev = load(os.path.join(ROOT, "data", "prices.json"), {})
-    k_offers, k_cache = kaufland_scan(k_ids, prev)
+    scans = {}
+    k_offers, scans["kaufland_brno"] = leaflet_scan("kaufland_brno", "kaufland/cs-CZ", ("KDZ", "Hyper1"), 4310, "kaufland", "brno", "CZK", "cz",
+                                                     r"kaufland\s*card|s\s*kartou", "Kaufland Card", "Kaufland", prev, max_pages=40)
     all_offers += k_offers
     if k_offers:
         live = [o for o in k_offers if (o.get("valid_from") or "")[:10] <= TODAY]
-        STATUS["kaufland_brno"] = {"status": "ok", "offers": len(k_offers), "checked": (k_cache or {}).get("scanned") or NOW.isoformat(),
+        STATUS["kaufland_brno"] = {"status": "ok", "offers": len(k_offers), "checked": (scans["kaufland_brno"] or {}).get("scanned") or NOW.isoformat(),
                                    "note": f"leaflet deals read from the leaflet images, only self-checked prices ({len(live)} valid today)"}
+    # Lidl: the website shows only a few food offers -> also read the weekly food leaflet (same platform as Kaufland)
+    for city, loc, subs, cur, tk in (("brno", "lidl/cs-CZ", ("Akční letáky",), "CZK", "cz"), ("kezmarok", "lidl/sk-SK", ("Letáky",), "EUR", "skt")):
+        lo, scans[f"lidl_{city}"] = leaflet_scan(f"lidl_{city}", loc, subs, None, "lidl", city, cur, tk, r"lidl\s*plus", "Lidl Plus",
+                                                 "Lidl " + city, prev, max_pages=30)
+        web = [o for o in all_offers if o["shop"] == "lidl" and o["city"] == city]
+        lo = [o for o in lo if not any(w["item"] == o["item"] and abs(w["unit_price"] - o["unit_price"]) <= 0.02 * o["unit_price"] for w in web)]
+        all_offers += lo
+        st = STATUS.get(f"lidl_{city}") or {}
+        if lo:
+            STATUS[f"lidl_{city}"] = {**st, "status": "ok", "offers": (st.get("offers") or 0) + len(lo), "checked": st.get("checked") or NOW.isoformat(),
+                                      "note": f"web offers + {len(lo)} leaflet prices (read from pictures, self-checked)"}
     # safety net: when a shop's check fails today, keep its last good prices (max 3 days old), clearly dated
     for key, st in list(STATUS.items()):
         shop, city = key.split("_", 1)
@@ -905,7 +920,7 @@ def main():
         "sources": STATUS,
         "albert_leaflets": leaflets,
         "kaufland_leaflets": kl,
-        "kaufland_scan": k_cache,
+        "scans": scans,
         "cities": cities,
     }
     os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)
