@@ -1,32 +1,29 @@
-"""Discovery run 26: where are Lidl's FOOD offer pages linked? (leaflet page, sitemap)."""
+"""Discovery run 27: Lidl leaflets on the Schwarz leaflet platform (same as Kaufland) - CZ and SK."""
 import os
-import re
 import sys
+import urllib.parse
 
 sys.path.insert(0, os.path.dirname(__file__))
 import fetch_prices as F  # noqa: E402
 
-FOOD = re.compile(r"nabidk|ponuk|potravin|maso|maso|ovoce|zelenin|ovocie|mlec|mliec|pecivo|napoj|napoje|ryb|syr|lahud|trvanl|mrazen|pondel|ctvrt|stvrt|vikend|tyzd|tyden|cerstv|cerstve|xxl|super|akcn|akcia|farm|bio|vegan|zdrav|cukrov|sladk|kava|caj|grill|svaci|snidan|ranajk|piekar|cesk|slovensk")
-for base in ("https://www.lidl.cz", "https://www.lidl.sk"):
-    home = F.get(base + "/")
-    s_links = sorted(set(re.findall(r'href="(/c/[a-z0-9-]+/s\d+)"', home.text))) if home else []
-    print("==", base, "s-links with letak/leaflet/nabidk:", [x for x in s_links if re.search(r"letak|nabidk|ponuk|akc", x)])
-    for sl in [x for x in s_links if re.search(r"letak|nabidk|ponuk|akc", x)][:3]:
-        r = F.get(base + sl)
+for loc in ("lidl%2Fcs-CZ", "lidl%2Fsk-SK"):
+    for extra in ("", "&store_id=1"):
+        r = F.get(f"https://endpoints.leaflets.schwarz/v4/overview?client_locale={loc}{extra}", as_json=True)
+        print("==", loc, extra or "(no store)", "status", r.status_code if r is not None else None)
         if r is None:
             continue
-        a = list(dict.fromkeys(re.findall(r'href="(/c/[a-z0-9-]+/a\d+)"', r.text)))
-        print("  ", sl, "-> a-links:", a[:40])
-    sm = F.get(base + "/static/sitemap.xml")
-    if sm is not None:
-        locs = re.findall(r"<loc>([^<]+)</loc>", sm.text)
-        print("   sitemap entries:", len(locs), locs[:8])
-        sub = [u for u in locs if "sitemap" in u][:10]
-        for u in sub[:6]:
-            r = F.get(u)
-            if r is None:
-                continue
-            ll = re.findall(r"<loc>([^<]+)</loc>", r.text)
-            cpages = [x for x in ll if re.search(r"/c/[a-z0-9-]+/a\d+", x)]
-            food = [x for x in cpages if FOOD.search(x)]
-            print("   ", u, "entries", len(ll), "c/a pages", len(cpages), "food-like:", food[:30])
+        j = r.json()
+        print("   keys:", list(j.keys())[:10])
+        for cat in j.get("categories", [])[:8]:
+            for sub in cat.get("subcategories", [])[:10]:
+                fl = sub.get("flyers", [])
+                print("   cat", cat.get("name"), "| sub", sub.get("name"), "| flyers", [(f.get("title"), f.get("offerStartDate"), f.get("offerEndDate"), f.get("id")) for f in fl[:4]])
+        # first flyer pages + keywords sample
+        for cat in j.get("categories", [])[:1]:
+            for sub in cat.get("subcategories", [])[:1]:
+                for f in sub.get("flyers", [])[:1]:
+                    fr = F.get(f"https://endpoints.leaflets.schwarz/v4/flyer?flyer_identifier={urllib.parse.quote(f['id'])}", as_json=True)
+                    if fr is not None:
+                        pages = fr.json().get("flyer", {}).get("pages") or []
+                        print("   first flyer pages", len(pages), "kw sample:", [(p.get("number"), (p.get("keyWords") or "")[:80]) for p in pages[:5]])
+        break
