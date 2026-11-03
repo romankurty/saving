@@ -8,193 +8,250 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#f3f5f4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c1311" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eceeec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1211" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grocery">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
+  /* One colour = one meaning: ink = action/selected, green = money saved, amber = check this. Everything else is neutral. */
   :root {
-    --bg: #f3f5f4; --card: #ffffff; --text: #13201c; --muted: #5d6c67; --line: #e3e8e6; --soft: #eef2f0;
-    --accent: #0f766e; --accent-ink: #ffffff; --accent-soft: #dff1ee;
-    --good: #166534; --good-soft: #dcf2e3; --warn: #92400e; --warn-soft: #fbefdc; --bad: #9f1239; --bad-soft: #fbe4ea;
-    --info: #1e4e8c; --info-soft: #e2ecf8;
+    --bg: #eceeec; --card: #ffffff; --text: #1a1f1c; --muted: #646d69; --line: #e0e4e1; --soft: #f2f4f2;
+    --save: #1b7546; --save-soft: #e1f2e8; --warn: #9a5200; --warn-soft: #fbefdc;
+    --btn: #1a1f1c; --btn-ink: #ffffff; --focus: #2a6fdb; --seg-on: #ffffff;
+    --good: var(--save); --bad: var(--warn); --accent: var(--text);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0c1311; --card: #141e1b; --text: #e5eeea; --muted: #94a49f; --line: #23302c; --soft: #1a2622;
-      --accent: #2dd4bf; --accent-ink: #062a26; --accent-soft: #123430;
-      --good: #86efac; --good-soft: #13301f; --warn: #fcd34d; --warn-soft: #33270e; --bad: #fda4af; --bad-soft: #3a1720;
-      --info: #9cc3f5; --info-soft: #172a42;
+      --bg: #0f1211; --card: #181c1a; --text: #e8ece9; --muted: #9aa39e; --line: #2a302d; --soft: #202523;
+      --save: #72d29e; --save-soft: #16301f; --warn: #f0b35a; --warn-soft: #33270e;
+      --btn: #e8ece9; --btn-ink: #121514; --focus: #7fb0ff; --seg-on: #3a423e;
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; }
-  body { background: var(--bg); color: var(--text); font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-text-size-adjust: 100%; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-variant-numeric: tabular-nums; -webkit-text-size-adjust: 100%; }
   button { font: inherit; color: inherit; }
   a { color: inherit; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: calc(10px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom)); }
-  header.top { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; }
-  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-  .brand img { width: 34px; height: 34px; border-radius: 9px; flex: none; }
-  .brand h1 { font-size: 1.2rem; margin: 0; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  .wrap { max-width: 640px; margin: 0 auto; padding: calc(10px + env(safe-area-inset-top)) 16px calc(100px + env(safe-area-inset-bottom)); }
+
+  /* header: name + when prices were checked · city · settings */
+  header.top { display: flex; align-items: center; gap: 10px; margin: 2px 0 14px; }
+  .brand { min-width: 0; flex: 1; }
+  .brand h1 { font-size: 1.15rem; margin: 0; font-weight: 800; letter-spacing: -0.01em; }
   .brand small { display: block; color: var(--muted); font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .iconbtn { border: 1px solid var(--line); background: var(--soft); border-radius: 999px; width: 38px; height: 38px; display: grid; place-items: center; cursor: pointer; padding: 0; flex: none; }
-  .iconbtn svg { width: 20px; height: 20px; }
-  .iconbtn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-  .seg { display: inline-flex; background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
-  .seg button { border: 0; background: transparent; color: var(--muted); font-size: 0.88rem; font-weight: 600; padding: 7px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
-  .seg button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .iconbtn { border: 0; background: transparent; border-radius: 12px; width: 42px; height: 42px; display: grid; place-items: center; cursor: pointer; padding: 0; flex: none; color: var(--muted); }
+  .iconbtn svg { width: 22px; height: 22px; }
+  .iconbtn.on { color: var(--text); background: color-mix(in srgb, var(--text) 9%, transparent); }
+
+  /* segmented controls */
+  .seg { display: inline-flex; background: color-mix(in srgb, var(--text) 7%, transparent); border-radius: 12px; padding: 3px; gap: 2px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font-size: 0.88rem; font-weight: 650; padding: 7px 12px; border-radius: 9px; cursor: pointer; white-space: nowrap; min-height: 36px; }
+  .seg button.on { background: var(--seg-on); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
   .seg.full { display: flex; width: 100%; }
   .seg.full button { flex: 1; padding: 7px 4px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; margin-bottom: 12px; }
-  .card h2 { font-size: 1.02rem; margin: 0 0 8px; }
+  .seg.mode button { display: flex; flex-direction: column; align-items: center; line-height: 1.15; padding: 7px 4px 6px; font-size: 0.94rem; }
+  .seg.mode small { font-size: 0.72rem; font-weight: 500; color: var(--muted); margin-top: 1px; }
+  .controls { margin-bottom: 14px; }
+  .optrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 2px 0; font-size: 0.92rem; font-weight: 600; }
+  .optrow .seg button { font-size: 0.82rem; padding: 6px 10px; min-height: 32px; }
+
+  /* cards */
+  .card { background: var(--card); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 2px; font-weight: 750; letter-spacing: -0.005em; }
+  .card .lead-in { color: var(--muted); font-size: 0.82rem; margin: 0 0 6px; }
   .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .muted { color: var(--muted); }
+  .row > b:last-child, .row > .per { white-space: nowrap; flex: none; }
   .small { font-size: 0.86rem; }
   .tiny { font-size: 0.76rem; }
-  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; }
+  .save-t { color: var(--save); }
+  .warn-t { color: var(--warn); }
   .switch { position: relative; width: 48px; height: 29px; flex: none; }
   .switch input { opacity: 0; width: 0; height: 0; }
-  .switch span { position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: .15s; cursor: pointer; }
-  .switch span::after { content: ""; position: absolute; width: 23px; height: 23px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
-  .switch input:checked + span { background: var(--accent); }
-  .switch input:checked + span::after { transform: translateX(19px); }
-  .atrow { display: flex; align-items: center; gap: 6px; padding-top: 12px; flex-wrap: wrap; }
-  .atrow b { margin-right: 2px; }
-  details > summary { cursor: pointer; list-style: none; font-weight: 600; }
+  .switch span { position: absolute; inset: 0; background: color-mix(in srgb, var(--text) 18%, transparent); border-radius: 999px; transition: .15s; cursor: pointer; }
+  .switch span::after { content: ""; position: absolute; width: 23px; height: 23px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .switch input:checked + span { background: var(--btn); }
+  .switch input:checked + span::after { transform: translateX(19px); background: var(--btn-ink); }
+  .switch input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+  details > summary { cursor: pointer; list-style: none; font-weight: 650; }
   details > summary::-webkit-details-marker { display: none; }
-  details > summary::before { content: "▸ "; color: var(--muted); }
-  details[open] > summary::before { content: "▾ "; }
-  details.card > summary { font-size: 1rem; }
-  details.card[open] > summary { margin-bottom: 8px; }
+  details > summary::after { content: ""; display: inline-block; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin: 0 0 3px 8px; transition: transform .15s; }
+  details[open] > summary::after { transform: rotate(-135deg); margin-bottom: -1px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .chip { border: 1px solid var(--line); background: var(--soft); font-size: 0.86rem; padding: 6px 11px; border-radius: 999px; cursor: pointer; font-weight: 600; }
-  .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-  .hero { border: 0; background: linear-gradient(160deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 70%, #000) 100%); color: var(--accent-ink); padding: 16px; }
-  .hero .label { font-size: 0.76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
-  .hero .go { font-size: 1.7rem; font-weight: 800; margin: 2px 0 10px; letter-spacing: -0.01em; line-height: 1.15; }
-  .hero .big { display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
-  .hero .big b { font-size: 1.45rem; }
-  .hero .big span { font-size: 0.84rem; opacity: .9; }
-  .hero .x { border: 0; background: rgba(255,255,255,.2); color: inherit; border-radius: 999px; padding: 5px 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
-  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .pill { background: rgba(255,255,255,.18); border-radius: 999px; padding: 5px 10px; font-size: 0.82rem; font-weight: 700; }
-  .badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; vertical-align: 1px; }
-  .b-good { background: var(--good-soft); color: var(--good); }
-  .b-warn { background: var(--warn-soft); color: var(--warn); }
-  .b-bad { background: var(--bad-soft); color: var(--bad); }
-  .b-info { background: var(--info-soft); color: var(--info); }
-  .b-accent { background: var(--accent-soft); color: var(--accent); }
-  .shop { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.05rem; margin: 12px 0 2px; }
-  .shop .sum { margin-left: auto; font-size: 0.95rem; }
-  .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; display: inline-block; }
-  .li { display: grid; grid-template-columns: 30px 1fr auto; gap: 0 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+  .chip { border: 1px solid var(--line); background: var(--card); font-size: 0.88rem; padding: 7px 12px; border-radius: 999px; cursor: pointer; font-weight: 650; min-height: 36px; }
+  .chip.on { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+
+  /* the shopping slip: the one answer — where to go, what you pay, what you save */
+  .slip { position: relative; background: var(--card); border-radius: 16px 16px 0 0; padding: 14px 16px 14px; margin-bottom: 24px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.06)); }
+  .slip::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 8px; background: conic-gradient(from -45deg at bottom, var(--card) 90deg, transparent 0) 50% / 16px 100%; }
+  .slip .lbl { font-size: 0.84rem; color: var(--muted); font-weight: 600; }
+  .slip .go { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.12; margin: 0 0 10px; }
+  .slip .go .via { color: var(--muted); font-weight: 600; }
+  .lead { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
+  .lead > span { color: var(--muted); font-weight: 600; font-size: 0.95rem; }
+  .lead > i { flex: 1; border-bottom: 2px dotted color-mix(in srgb, var(--text) 22%, transparent); transform: translateY(-4px); min-width: 12px; }
+  .lead > b { font-size: 1.12rem; font-weight: 750; white-space: nowrap; }
+  .lead.pay > b { font-size: 1.4rem; font-weight: 800; }
+  .lead.saved > b { color: var(--save); }
+  .slip .foot { border-top: 1.5px dashed color-mix(in srgb, var(--text) 20%, transparent); margin-top: 10px; padding-top: 9px; display: grid; gap: 5px; font-size: 0.86rem; }
+  .slip .foot .m { color: var(--muted); }
+  .slip .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .tip { font-weight: 600; }
+  .tip b { font-weight: 750; }
+
+  /* flags: at most one per line, two colours only */
+  .flag { display: inline-block; font-size: 0.74rem; font-weight: 750; padding: 1px 6px; border-radius: 6px; white-space: nowrap; vertical-align: 1px; }
+  .flag.s { color: var(--save); background: var(--save-soft); }
+  .flag.w { color: var(--warn); background: var(--warn-soft); }
+  .flag.n { color: var(--muted); background: var(--soft); }
+  .badge { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--soft); color: var(--muted); white-space: nowrap; vertical-align: 1px; }
+
+  /* shopping list */
+  .listhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .atline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 2px; }
+  .atline > span { font-size: 0.84rem; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .atline .chip { padding: 5px 11px; min-height: 32px; font-size: 0.84rem; }
+  .shop { position: sticky; top: 0; z-index: 2; background: var(--card); display: flex; align-items: baseline; gap: 8px; font-weight: 800; font-size: 1.02rem; margin: 10px -16px 0; padding: 10px 16px 6px; }
+  .shop .sum { margin-left: auto; font-size: 0.95rem; font-weight: 750; }
+  .li { display: grid; grid-template-columns: 34px 1fr auto; gap: 0 8px; align-items: start; padding: 11px 0; border-top: 1px solid var(--line); }
   .li > div { min-width: 0; }
-  .li.done .nm, .li.done .sub, .li.done .pr { text-decoration: line-through; opacity: .45; }
-  .ck { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line); background: transparent; cursor: pointer; display: grid; place-items: center; padding: 0; margin-top: 1px; }
-  .li.done .ck { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  .ico { width: 26px; text-align: center; font-size: 1.1rem; margin-top: 1px; }
-  .nm { font-weight: 650; cursor: pointer; }
-  .sub { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .li.done .nm, .li.done .sub, .li.done .pr { opacity: .4; }
+  .li.done .nm { text-decoration: line-through; }
+  .ck { width: 44px; height: 44px; margin: -10px 0 -10px -10px; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .ck > span { width: 24px; height: 24px; border-radius: 7px; border: 2px solid color-mix(in srgb, var(--text) 28%, transparent); display: grid; place-items: center; font-size: 0.9rem; font-weight: 800; line-height: 1; }
+  .li.done .ck > span { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+  .ico { width: 24px; }
+  .nm { font-weight: 650; cursor: pointer; line-height: 1.3; }
+  .sub { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; margin-top: 1px; }
+  .sub .tag { color: var(--text); font-weight: 600; }
   .pr { text-align: right; font-weight: 700; white-space: nowrap; }
-  .qty { font-weight: 600; color: var(--muted); font-size: 0.86rem; margin-left: 4px; }
-  .more { grid-column: 2 / 4; margin-top: 8px; background: var(--soft); border-radius: 12px; padding: 10px; font-size: 0.84rem; }
-  .more .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .btn { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 6px 10px; font-size: 0.84rem; font-weight: 650; cursor: pointer; white-space: nowrap; }
-  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .btn.done { background: var(--good-soft); color: var(--good); border-color: transparent; }
-  .btn.ghost { background: transparent; }
-  .linkrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; cursor: pointer; font-weight: 650; }
-  .linkrow span.arrow { color: var(--muted); font-size: 1.2rem; }
-  .addrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .pr .est { color: var(--warn); font-weight: 800; margin-right: 3px; }
+  .qty { font-weight: 500; color: var(--muted); font-size: 0.86rem; margin-left: 5px; }
+  .more { grid-column: 2 / 4; margin-top: 8px; background: var(--soft); border-radius: 12px; padding: 10px 12px; font-size: 0.84rem; display: grid; gap: 3px; }
+  .more .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .legend { font-size: 0.76rem; color: var(--muted); margin: 10px 0 0; }
+  .sec { font-weight: 750; font-size: 0.92rem; margin: 16px 0 2px; }
+  .sec:first-child { margin-top: 0; }
+  .sec .muted { font-weight: 500; }
+
+  /* buttons: one filled button per screen at most */
+  .btn { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 7px 12px; font-size: 0.86rem; font-weight: 650; cursor: pointer; white-space: nowrap; min-height: 36px; color: var(--text); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+  .btn.primary { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+  .btn.wide { width: 100%; min-height: 46px; font-size: 0.98rem; margin-top: 12px; }
+  .btn.done { background: transparent; color: var(--save); border-color: transparent; }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+  .btn.quiet { border-color: transparent; background: var(--soft); }
+  .acts { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* grouped link rows (secondary destinations) */
+  .group { padding: 0; overflow: hidden; }
+  button.linkrow { width: 100%; border: 0; background: transparent; text-align: left; color: inherit; font: inherit; }
+  .card.group > * + * { border-top: 1px solid var(--line); }
+  .linkrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; cursor: pointer; font-weight: 600; font-size: 0.94rem; }
+  .linkrow .m { display: block; font-weight: 500; font-size: 0.8rem; color: var(--muted); margin-top: 1px; }
+  .linkrow span.arrow { color: var(--muted); font-size: 1.3rem; line-height: 1; }
+  .group details > summary { padding: 13px 16px; font-weight: 600; font-size: 0.94rem; }
+  .group details > div { padding: 0 16px 14px; }
+
+  /* rows with an action on the right */
+  .addrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
   .addrow:first-of-type { border-top: 0; }
+  .lead-in + .addrow { border-top: 0; }
   .addrow .t { font-weight: 650; }
   .addrow .m { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
-  .addrow .acts { display: flex; flex-direction: column; gap: 6px; }
-  .meal { padding: 10px 0; border-top: 1px solid var(--line); }
-  .meal:first-of-type { border-top: 0; }
-  .meal .t { font-weight: 700; }
-  .meal .per { font-weight: 800; color: var(--warn); white-space: nowrap; }
-  .calc { margin-top: 6px; font-size: 0.82rem; }
-  .calc .row { padding: 2px 0; }
-  .idea { background: var(--warn-soft); border-color: transparent; }
+  .addrow .acts { flex-direction: column; align-items: stretch; }
+
+  /* meals */
+  .meal { padding: 12px 0; border-top: 1px solid var(--line); }
+  .meal:first-of-type, .lead-in + .meal { border-top: 0; }
+  .meal.day { display: grid; grid-template-columns: 42px 1fr; gap: 0 6px; }
+  .meal .d { font-weight: 750; font-size: 0.86rem; color: var(--muted); padding-top: 1px; }
+  .meal .t { font-weight: 700; line-height: 1.3; }
+  .meal .per { font-weight: 750; white-space: nowrap; text-align: right; }
+  .meal .per small { display: block; font-weight: 500; font-size: 0.72rem; color: var(--muted); }
+  .meal .hl { font-size: 0.84rem; margin-top: 3px; }
+  .meal .hl b { font-weight: 700; }
+  .meal details { margin-top: 6px; }
+  .meal details > summary { font-size: 0.84rem; color: var(--muted); }
+  .meal details > div { margin-top: 6px; font-size: 0.84rem; display: grid; gap: 4px; }
+  .meal.pick { cursor: pointer; display: grid; grid-template-columns: 34px 1fr; gap: 0 8px; }
+  .meal.pick .ck { margin: -10px 0 -10px -10px; }
+  .meal.pick.on .ck > span { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+  .calc { display: grid; gap: 3px; }
+  .calc .row { align-items: flex-start; }
+  .total { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
+
+  /* nutrients */
+  .who { padding: 10px 0; border-top: 1px solid var(--line); }
+  .who:first-of-type, .lead-in + .who { border-top: 0; }
+  .who .row b { font-weight: 750; }
+  .fix { font-size: 0.86rem; padding: 3px 0; }
+  .nrow { display: grid; grid-template-columns: 74px 1fr 44px; gap: 8px; align-items: center; font-size: 0.82rem; padding: 2px 0; }
+  .nrow b { text-align: right; font-weight: 650; }
+  .bar { height: 6px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 99px; background: color-mix(in srgb, var(--text) 55%, transparent); }
+  .bar > i.low { background: var(--warn); }
+
   .empty { color: var(--muted); font-size: 0.9rem; padding: 4px 0; }
   .note { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
-  .bar { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; margin-top: 4px; }
-  .bar > i { display: block; height: 100%; border-radius: 99px; background: var(--accent); }
-  .nrow { display: grid; grid-template-columns: 74px 1fr 52px; gap: 8px; align-items: center; font-size: 0.82rem; padding: 2px 0; }
-  .nrow .bar { margin: 0; display: flex; }
-  .nrow .bar > i { border-radius: 0; flex: none; }
-  .nrow b { text-align: right; }
-  .bar > i.x, .key.x { background: color-mix(in srgb, var(--accent) 40%, transparent); }
-  .key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--accent); vertical-align: -1px; }
-  .prow { padding: 8px 0; border-top: 1px solid var(--line); }
-  .prow:first-of-type { border-top: 0; }
-  .sec { font-weight: 800; font-size: 0.95rem; margin: 12px 0 2px; }
-  .sec:first-child { margin-top: 0; }
+  .prow { padding: 10px 0; border-top: 1px solid var(--line); }
+  .prow:first-of-type, .lead-in + .prow { border-top: 0; }
   table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
   .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   th, td { text-align: left; padding: 7px 5px; border-top: 1px solid var(--line); vertical-align: top; }
   th { color: var(--muted); font-weight: 600; font-size: 0.74rem; border-top: 0; }
   td.num, th.num { text-align: right; white-space: nowrap; }
-  tr.best td { font-weight: 700; }
+  tr.best td { font-weight: 750; }
   .why { margin: 0; padding-left: 18px; }
   .why li { margin: 4px 0; font-size: 0.88rem; }
   .deal { padding: 10px 0; border-top: 1px solid var(--line); }
-  .deal:first-of-type { border-top: 0; }
-  .deal .t { font-weight: 700; }
+  .deal:first-of-type, .lead-in + .deal { border-top: 0; }
+  .deal .t { font-weight: 650; }
   .deal .m { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-  input[type=search], input[type=number] { font: inherit; color: var(--text); background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  input[type=search], input[type=number] { font: inherit; color: var(--text); background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; min-height: 40px; }
   input[type=search] { width: 100%; }
   input[type=number] { width: 92px; text-align: right; }
-  .setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
-  .setrow:first-of-type { border-top: 0; }
-  nav.tabs { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--card) 94%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
-  nav.tabs .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; }
-  nav.tabs button { border: 0; background: transparent; color: var(--muted); font-size: 0.7rem; font-weight: 600; padding: 4px 2px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  nav.tabs button svg { width: 22px; height: 22px; }
-  nav.tabs button.on { color: var(--accent); }
+  .setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .setrow:first-of-type, h2 + .setrow { border-top: 0; }
+
+  /* bottom navigation: 5 places */
+  nav.tabs { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--card) 96%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+  nav.tabs .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+  nav.tabs button { border: 0; background: transparent; color: var(--muted); font-size: 0.72rem; font-weight: 650; padding: 2px 2px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 48px; }
+  nav.tabs button svg { width: 22px; height: 22px; padding: 4px 16px; box-sizing: content-box; border-radius: 999px; }
+  nav.tabs button.on { color: var(--text); }
+  nav.tabs button.on svg { background: color-mix(in srgb, var(--text) 10%, transparent); }
   .page { display: none; }
   .page.on { display: block; }
   .loading { text-align: center; padding: 40px 0; color: var(--muted); }
-  .cf { font-size: 0.78rem; margin-right: 4px; font-weight: 700; }
-  .cf.est { color: var(--warn); }
-  .tip { margin-top: 10px; background: rgba(255,255,255,.18); border-radius: 12px; padding: 8px 10px; font-size: 0.86rem; font-weight: 650; }
-  .legend { font-size: 0.74rem; color: var(--muted); margin: 4px 0 0; }
-  .toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 0.88rem; z-index: 60; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-weight: 700; font-size: 0.88rem; z-index: 60; opacity: 0; transition: opacity .2s; pointer-events: none; }
   .toast.on { opacity: 1; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">
-      <img src="icon-192.png" alt="">
-      <div style="min-width:0"><h1>Grocery</h1><small id="updated">…</small></div>
-    </div>
-    <div class="seg" id="lang"><button data-v="en">EN</button><button data-v="sk">SK</button></div>
+    <div class="brand"><h1>Grocery</h1><small id="updated">…</small></div>
+    <div class="seg" id="city"><button data-v="brno">Brno</button><button data-v="kezmarok">Kežmarok</button></div>
     <button class="iconbtn" id="gear" aria-label="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </header>
 
-  <div class="seg full" id="city" style="margin-bottom:10px"><button data-v="brno">Brno</button><button data-v="kezmarok">Kežmarok</button></div>
-
   <section class="page" id="p-plan">
-    <div class="card">
-      <div class="tiny muted" id="modeHint" style="margin-bottom:6px" data-t="modeHint"></div>
-      <div class="seg full" id="mode"><button data-v="quick" data-t="quick"></button><button data-v="big" data-t="big"></button><button data-v="lunch" data-t="lunchMode"></button></div>
-      <div class="toggle" id="lpRow"><b data-t="lpLabel"></b><div class="seg" id="lpSeg"><button data-lp="health" data-t="lpHealth"></button><button data-lp="usual" data-t="lpUsual"></button></div></div>
-      <div class="toggle" id="gymRow"><b data-t="gym"></b><label class="switch"><input type="checkbox" id="gym"><span></span></label></div>
-      <div class="atrow" id="atRow"></div>
+    <div class="controls" id="controls">
+      <div class="seg full mode" id="mode"><button data-v="quick"><span data-t="quick"></span><small data-t="quickSub"></small></button><button data-v="big"><span data-t="big"></span><small data-t="bigSub"></small></button><button data-v="lunch"><span data-t="lunchMode"></span><small data-t="lunchSub"></small></button></div>
+      <label class="optrow" id="gymRow"><span data-t="gym"></span><span class="switch"><input type="checkbox" id="gym"><span></span></span></label>
+      <div class="optrow" id="lpRow"><span data-t="lpLabel"></span><div class="seg" id="lpSeg"><button data-lp="health" data-t="lpHealth"></button><button data-lp="usual" data-t="lpUsual"></button></div></div>
     </div>
     <div id="planOut"><div class="loading">…</div></div>
   </section>
   <section class="page" id="p-health"><div id="healthOut"></div></section>
   <section class="page" id="p-deals"><div id="dealsOut"></div></section>
   <section class="page" id="p-stock"><div id="stockOut"></div></section>
-  <section class="page" id="p-prices"><div class="card"><input type="search" id="q"></div><div id="pricesOut"></div></section>
-  <section class="page" id="p-drug"><div id="drugOut"></div></section>
+  <section class="page" id="p-prices"><div class="seg full" id="pview" style="margin-bottom:12px"><button data-pv="food" data-t="food"></button><button data-pv="drug" data-t="tDrug"></button></div><div id="foodView"><div class="card"><input type="search" id="q"></div><div id="pricesOut"></div></div><div id="drugOut"></div></section>
   <section class="page" id="p-set"><div id="setOut"></div></section>
 </div>
 <div class="toast" id="toast"></div>
@@ -205,7 +262,6 @@
   <button data-p="deals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span data-t="tDeals"></span></button>
   <button data-p="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span data-t="tStock"></span></button>
   <button data-p="prices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span data-t="tPrices"></span></button>
-  <button data-p="drug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v4l2 3v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10l2-3z"/><path d="M9 13h6"/></svg><span data-t="tDrug"></span></button>
 </div></nav>
 
 <script>
@@ -213,111 +269,179 @@
 // ============================================================ texts
 const T = {
   en: {
-    quick: "Quick", big: "Big shop", lunchMode: "Lunch only", gym: "Coming from the gym (via Albert)", imAt: "📍 I'm at:",
+    pricesAt: "Prices {d}",
+    from: "from",
+    buyIfShort: "buy if the price is at most",
+    mealsLinkM: "week plan, nutrients, her breakfast",
+    stockLineM: "{n} deal(s) · pay {p} → save {v}",
+    legendEst: "≈ estimate: check the shelf price.",
+    legendTap: "Tap a line for details.",
+    restL: "The rest at",
+    inShopL: "You're at",
+    herL: "Her",
+    youL: "You",
+    allNutr: "All nutrients",
+    nutrLow: "low",
+    nutrOk: "all covered",
+    nutrSub: "with this week's lunches + your weekly list",
+    nutrTitle: "Key nutrients a day",
+    tickL: "Tick when in the basket",
+    offL: "Off",
+    onL: "On",
+    language: "Language",
+    food: "Food",
+    cheaperOn: "cheaper {d}",
+    leafletTag: "leaflet",
+    bone: "on the bone",
+    can: "canned",
+    forYou: "for you",
+    tipL: "Tip",
+    activate: "Activate coupons: {a}",
+    portionL: "Per portion",
+    savedL: "You save",
+    payL: "Pay",
+    lunchSub: "ingredients only",
+    bigSub: "3–4 days",
+    quickSub: "1 day",
+    quick: "Quick", big: "Big shop", lunchMode: "Lunch", gym: "From the gym (via Albert)", imAt: "I'm at",
     tPlan: "Plan", tDeals: "Deals", tStock: "Stock-up", tPrices: "Prices", tDrug: "Drugstore", settings: "Settings",
     goTo: "Go to", pay: "you pay", save: "save", coupons: "open the app & activate coupons",
-    list: "Shopping list", share: "⤴ Share", copied: "List copied ✓", addItem: "+ Add item", pickItem: "Tap to add",
+    list: "Shopping list", share: "Share", copied: "List copied ✓", addItem: "+ Add item", pickItem: "Tap to add",
     add: "+ List", added: "✓ On list", bought: "✓ Bought", inStockBtn: "✓ In stock",
-    meals: "🍽 5 best lunches for health & fertility", perPortion: "/ portion", addMeal: "+ Add to list", calc: "Ingredients & prices",
+    meals: "Best lunches for health & fertility", perPortion: "/ portion", addMeal: "+ Add to list", calc: "Amounts & where to buy",
     goMeal: "Shop just for this", pickMeals: "Which lunch? (tap to choose)", forPortions: "for 4 portions",
-    why: "ℹ Why this plan · all options", options: "All options", option: "Option", basket: "Basket", stockup: "Stock-up", effective: "Effective",
+    why: "Why this route", options: "All options", option: "Option", basket: "Basket", stockup: "Stock-up", effective: "Effective",
     bestSingle: "Best single shop: {s} — {v}.", addWorth: "Adding {s} saves {v} (≥ {th}) → go.", addNot: "Adding {s} saves only {v} (< {th}) → skip.",
     tripWorth: "Kaufland trip saves {v} (≥ {th}) → go.", tripNot: "Kaufland trip saves only {v} (< {th}) → skip it.",
     notCompared: "Not compared: {s} (no open price data).", estNote: "{n} items with estimated price.",
     nothing: "Nothing to buy.", est: "estimate", estLike: "no price here — estimated like Billa +5 %",
     unitPrice: "Unit price", usual: "regular", valid: "valid", priceOn: "price on", check: "check offer ↗",
     skip: "Not today", wrong: "Wrong product", restore: "Show hidden products again", hiddenN: "{n} hidden products", healthy: "healthy deal",
-    waitBadge: "⏳ {d} {s} −{v}", waitTxt: "Cheaper from {d} · {s}: {p}", waitBtn: "Wait", waitPill: "⏳ {n} cheaper in a few days",
-    swaps: "🔁 Cheaper swaps", swapBtn: "Swap", atHome: "🏠 At home, skipped:",
-    stockTitle: "📦 Stock up now", myStock: "🏠 My stock", addStock: "+ Add to stock", usedUp: "Used up", daysLeft: "≈ {n} days left",
-    inStock: "in stock", noStock: "Nothing in stock yet. Tap ✓ Bought when you stock up.", stockRoute: "📦 {n} stock-up deals on your route · save {v}",
-    mealsLink: "🍽 5 lunches for health & fertility", protein: "💪 Cheapest protein", proteinUnit: "price per 10 g protein · ≈, as sold",
-    soon: "⏳ Starting soon", none: "No big deals right now.", freshTitle: "🥬 Fresh deals this week",
+    waitBadge: "{d} {s} −{v}", waitTxt: "Cheaper from {d} · {s}: {p}", waitBtn: "Wait", waitPill: "{n} cheaper in a few days",
+    swaps: "Cheaper swaps", swapBtn: "Swap", atHome: "At home, skipped:",
+    stockTitle: "Stock up now", myStock: "My stock", addStock: "+ Add to stock", usedUp: "Used up", daysLeft: "≈ {n} days left",
+    inStock: "in stock", noStock: "Nothing in stock yet. Tap ✓ Bought when you stock up.", stockRoute: "{n} stock-up deals on your route · save {v}",
+    mealsLink: "Lunches for health & fertility", protein: "Cheapest protein", proteinUnit: "price per 10 g protein · ≈, as sold",
+    soon: "Starting soon", none: "No big deals right now.", freshTitle: "Fresh deals this week",
     spent: "spent", saved: "saved", monthNote: "Saved = vs everyday cheapest price. Estimates count 0. From your ticks.",
-    atShop: "📍 At {s}", back: "← Plan", buyHere: "✅ Buy here", dontBuy: "⛔ Don't buy here", checkShelf: "🔍 No online price here — check the shelf",
-    buyIf: "buy if ≤ {p}", betterAt: "{s}: {p} · save {v}", stockHere: "📦 Stock up here",
-    rhythmLearn: "📈 Learning price rhythm · day {n} of 21", rhythmEvery: "promo every ~{n} days", rhythmNext: "next in ~{n} days",
+    atShop: "At {s}", back: "← Plan", buyHere: "Buy here", dontBuy: "Don't buy here", checkShelf: "Check the shelf",
+    buyIf: "buy if ≤ {p}", betterAt: "{s}: {p} · save {v}", stockHere: "Stock up here",
+    rhythmLearn: "Learning price rhythm · day {n} of 21", rhythmEvery: "promo every ~{n} days", rhythmNext: "next in ~{n} days",
     rhythmNow: "promo now", rhythmTypical: "typical promo {p}",
-    pricesHint: "Cheapest price per unit in each shop. ★ promotion.", search: "Search",
+    pricesHint: "Cheapest price per unit in each shop. ★ = on deal.", search: "Search",
     drugHint: "Buy drugstore items only when cheap.", needNow: "Need now",
     stopTh: "Extra stop must save", tripTh: "Separate trip must save", stockPct: "Stock up from % off", alertPct: "Healthy extras / alert from % off",
     weekly: "My weekly amounts", reset: "Reset", data: "Data", checkedAt: "Prices checked {d}", howWorks: "How it works",
     howText: "A robot reads public prices every morning (+ Wed/Thu evening). The app always takes the cheapest brand per kg / l / piece and compares shop combinations on your route.",
     onlyHim: "only you", liverWarn: "Liver: only for you, max 1×/week (vitamin A) — not for her while trying for a baby.",
-    mealsAim: "% = share of the day's fertility nutrients in 1 lunch. Fish 2 days a week.", healthHow: "ℹ What the % means",
-    healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (you eat ~56 %, she ~44 % of a cook; each nutrient max 100 %). ♂: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. ♀: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. 🍽 = raw weight per lunch. Approximate values.",
-    extrasTitle: "🥗 Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
-    covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "📷 Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "📷 read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
-    tHealth: "Health", meatEq: "per kg of meat, without bones", pantryLeft: "(~{v} stays in the pantry)", freezeP: "🧊 freeze in portions (keeps ~3 months)", fewPrices: "Few online prices for {s} — check the limits below.", stopGain: "{s} stop saves {v}",
+    mealsAim: "% = share of the day's fertility nutrients in 1 lunch. Fish 2 days a week.", healthHow: "What the % means",
+    healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (you eat ~56 %, she ~44 % of a cook; each nutrient max 100 %). You: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. Her: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. Amounts = raw weight per lunch. Approximate values.",
+    extrasTitle: "Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
+    covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "Kaufland leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done ✓",
+    tHealth: "Health", meatEq: "per kg of meat, without bones", pantryLeft: "(~{v} stays in the pantry)", freezeP: "freeze in portions (keeps ~3 months)", fewPrices: "Few online prices for {s} — check the limits below.", stopGain: "{s} stop saves {v}",
     tripNoData: "Kaufland: no prices yet → not compared", restAt: "Buy {n} here → the rest at {s}", modeHint: "Quick = top-up for 1 day · Big = 3–4 days · Lunch = only lunch ingredients", shopFor: "buy", leftover: "some left over", todayPlan: "today's plan", payKeep: "pay {p} → save {v}", lasts: "lasts ~{n} wk",
-    stockLine: "📦 {n} stock-up deal(s): pay {p} → save {v}", chipBuy: "Buy {n} · {v}", chipCheck: "{n} check shelf", chipThere: "{n} elsewhere", buyLater: "⏳ Buy later (cheaper soon)",
-    elseAt: "else at {s}", estPill: "{n} of {m} estimated", endsToday: "ends today", add7bf: "+ List (7 breakfasts)", liverShort: "max 1×/wk",
-    folic: "♀ Trying for a baby? Folic acid 400 µg a day (NHS).", low30: "30-day low", lastSeen: "≈ everyday price last seen {d}", learnedTag: "learned from your ticks", learnSet: "🧠 Learn amounts from my ticks", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "📷📰 leaflet price · ≈ estimate — check the shelf · tap a line for details",
-    tipWait: "Wait till {d}: {i} · {s} −{v}", tipStock: "Stock up: {i} −{p}% · {s} · save {v}", tipExtra: "Healthy deal: {i} −{p}% · {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving → skip it", lunchIncl: "🍽 Lunch plan in this shop: {a}{b}", lunchNext: " · {b} → next shop", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
+    stockLine: "Stock up on your route", chipBuy: "Buy {n} · {v}", chipCheck: "{n} items have no online price here: buy if the shelf price is at most the limit", chipThere: "{n} elsewhere", buyLater: "Buy later (cheaper soon)",
+    elseAt: "else at {s}", estPill: "≈ {n} of {m} prices estimated", endsToday: "ends today", add7bf: "+ List (7 breakfasts)", liverShort: "max 1×/wk",
+    folic: "Her: trying for a baby? Folic acid 400 µg a day (NHS).", low30: "30-day low", lastSeen: "≈ everyday price last seen {d}", learnedTag: "learned from your ticks", learnSet: "Learn amounts from my ticks", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "leaflet price · ≈ estimate — check the shelf · tap a line for details",
+    tipWait: "Wait till {d}: {i} · {s} −{v}", tipStock: "Stock up: {i} −{p}% · {s} · save {v}", tipExtra: "Healthy deal: {i} −{p}% · {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving → skip it", lunchIncl: "Includes lunches for {a}{b}", lunchNext: " · {b}: next shop", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
     tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip saves only {v} (needs {th}) → skip",
-    lpLabel: "🍽 Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "➡ Cheaper in your other shop",
-    noShopData: "No online prices for {s} — check the limits below.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
-    boostTitle: "🌰 Food boosters", boostSub: "small daily amounts with a big effect",
-    b_brazil: "1 nut a day (max 2) · selenium ♂♀", b_pumpkin: "♂ 30 g · ♀ 20 g a day · zinc, iron", b_fruit: "1 a day for each of you · vit C, folate",
-    bfTitle: "🥣 Breakfast for her", bfSub: "her usual first · price per breakfast",
-    weekTitle: "🗓 Lunches for the week", weekSub: "Cook {n}× · each lasts 2 days for both · fish 2 days · legumes 1×",
-    weekGo: "🛒 Shop for the whole week", portions: "portions", freeze: "🧊 freeze till then", lwToday: "Today", lwWeek: "Whole week", cooksSet: "Lunch cooks per week",
-    barsTitle: "💪 Key nutrients a day — this week's plan", barsLunch: "lunch plan", barsExtra: "rest of the day, from your weekly list (dinner, fruit, nuts, dairy, boosters)", barsHim: "♂ You", barsHer: "♀ Her", gapsTitle: "What's missing → how to add it",
+    lpLabel: "Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "Cheaper in your other shop",
+    noShopData: "No online prices for {s}.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
+    boostTitle: "Food boosters", boostSub: "small daily amounts with a big effect",
+    b_brazil: "1 nut a day (max 2) · selenium", b_pumpkin: "you 30 g, her 20 g a day · zinc, iron", b_fruit: "1 a day for each of you · vit C, folate",
+    bfTitle: "Breakfast for her", bfSub: "her usual first · price per breakfast",
+    weekTitle: "Lunches for the week", weekSub: "Cook {n}× · each lasts 2 days for both · fish 2 days · legumes 1×",
+    weekGo: "Shop for the whole week", portions: "portions", freeze: "freeze", lwToday: "Today", lwWeek: "Whole week", cooksSet: "Lunch cooks per week",
+    barsTitle: "Key nutrients a day — this week's plan", barsLunch: "lunch plan", barsExtra: "rest of the day, from your weekly list (dinner, fruit, nuts, dairy, boosters)", barsHim: "You", barsHer: "Her", gapsTitle: "What's missing → how to add it",
     fix_o3: "a 2nd fish cook (sardines, mackerel) or sardines on bread", fix_vd: "food can't cover it in winter → vitamin D 10 µg a day, Oct–Mar (NHS); ask your doctor",
     fix_fol: "spinach or broccoli as the veg, avocado", fix_fol_f: "spinach, lentils, avocado · trying for a baby: 400 µg folic acid a day (NHS)",
     fix_fe: "beef + spinach once more a week, with vit C (peppers, kiwi)", fix_zn: "beef instead of eggs or chicken once a week", fix_se: "1 Brazil nut a day", fix_ch: "eggs (2 a day for her)", fix_b12: "fish, eggs, yoghurt", fix_vc: "peppers, kiwi, broccoli",
   },
   sk: {
-    quick: "Rýchly", big: "Veľký nákup", lunchMode: "Len obed", gym: "Idem z posilňovne (cez Albert)", imAt: "📍 Som v:",
+    pricesAt: "Ceny {d}",
+    from: "od",
+    buyIfShort: "kúp, ak cena je najviac",
+    mealsLinkM: "plán na týždeň, živiny, jej raňajky",
+    stockLineM: "{n} akcie · zaplatíš {p} → ušetríš {v}",
+    legendEst: "≈ odhad: over cenu na regáli.",
+    legendTap: "Ťukni na riadok pre detail.",
+    restL: "Zvyšok v",
+    inShopL: "Si v",
+    herL: "Ona",
+    youL: "Ty",
+    allNutr: "Všetky živiny",
+    nutrLow: "málo",
+    nutrOk: "všetko pokryté",
+    nutrSub: "s obedmi tohto týždňa + týždenným zoznamom",
+    nutrTitle: "Kľúčové živiny za deň",
+    tickL: "Odškrtni, keď je v košíku",
+    offL: "Nie",
+    onL: "Áno",
+    language: "Jazyk",
+    food: "Potraviny",
+    cheaperOn: "lacnejšie {d}",
+    leafletTag: "leták",
+    bone: "s kosťou",
+    can: "konzerva",
+    forYou: "pre teba",
+    tipL: "Tip",
+    activate: "Aktivuj kupóny: {a}",
+    portionL: "Na porciu",
+    savedL: "Ušetríš",
+    payL: "Zaplatíš",
+    lunchSub: "len suroviny",
+    bigSub: "3–4 dni",
+    quickSub: "1 deň",
+    quick: "Rýchly", big: "Veľký nákup", lunchMode: "Obed", gym: "Z posilňovne (cez Albert)", imAt: "Som v",
     tPlan: "Plán", tDeals: "Akcie", tStock: "Zásoby", tPrices: "Ceny", tDrug: "Drogéria", settings: "Nastavenia",
-    goTo: "Nakúp v:", pay: "zaplatíš", save: "ušetríš", coupons: "otvor aplikáciu a aktivuj kupóny",
-    list: "Nákupný zoznam", share: "⤴ Zdieľať", copied: "Zoznam skopírovaný ✓", addItem: "+ Pridať položku", pickItem: "Ťukni a pridaj",
+    goTo: "Nakúp v", pay: "zaplatíš", save: "ušetríš", coupons: "otvor aplikáciu a aktivuj kupóny",
+    list: "Nákupný zoznam", share: "Zdieľať", copied: "Zoznam skopírovaný ✓", addItem: "+ Pridať položku", pickItem: "Ťukni a pridaj",
     add: "+ Zoznam", added: "✓ V zozname", bought: "✓ Kúpené", inStockBtn: "✓ V zásobe",
-    meals: "🍽 5 najlepších obedov pre zdravie a plodnosť", perPortion: "/ porcia", addMeal: "+ Do zoznamu", calc: "Suroviny a ceny",
+    meals: "Najlepšie obedy pre zdravie a plodnosť", perPortion: "/ porcia", addMeal: "+ Do zoznamu", calc: "Množstvá a kde kúpiť",
     goMeal: "Nakúpiť len na tento obed", pickMeals: "Ktorý obed? (ťukni a vyber)", forPortions: "za 4 porcie",
-    why: "ℹ Prečo tento plán · všetky možnosti", options: "Všetky možnosti", option: "Možnosť", basket: "Košík", stockup: "Zásoby", effective: "Efektívne",
+    why: "Prečo táto trasa", options: "Všetky možnosti", option: "Možnosť", basket: "Košík", stockup: "Zásoby", effective: "Efektívne",
     bestSingle: "Najlepší 1 obchod: {s} — {v}.", addWorth: "Pridanie {s} ušetrí {v} (≥ {th}) → choď.", addNot: "Pridanie {s} ušetrí iba {v} (< {th}) → vynechaj.",
     tripWorth: "Cesta do Kauflandu ušetrí {v} (≥ {th}) → choď.", tripNot: "Cesta do Kauflandu ušetrí iba {v} (< {th}) → vynechaj.",
     notCompared: "Neporovnané: {s} (žiadne otvorené dáta).", estNote: "{n} položiek s odhadovanou cenou.",
     nothing: "Netreba nič kupovať.", est: "odhad", estLike: "tu bez ceny — odhad ako Billa +5 %",
     unitPrice: "Cena za jednotku", usual: "bežne", valid: "platí", priceOn: "cena z", check: "overiť akciu ↗",
     skip: "Dnes nie", wrong: "Zlý produkt", restore: "Znova zobraziť skryté produkty", hiddenN: "{n} skrytých produktov", healthy: "zdravá akcia",
-    waitBadge: "⏳ {d} {s} −{v}", waitTxt: "Lacnejšie od {d} · {s}: {p}", waitBtn: "Počkať", waitPill: "⏳ {n}× lacnejšie o pár dní",
-    swaps: "🔁 Lacnejšie náhrady", swapBtn: "Vymeniť", atHome: "🏠 Doma, vynechané:",
-    stockTitle: "📦 Teraz do zásoby", myStock: "🏠 Moje zásoby", addStock: "+ Pridať do zásob", usedUp: "Minuté", daysLeft: "≈ {n} dní",
-    inStock: "v zásobe", noStock: "Zatiaľ nič v zásobe. Ťukni ✓ Kúpené, keď nakúpiš do zásoby.", stockRoute: "📦 Do zásoby na trase: {n} · ušetríš {v}",
-    mealsLink: "🍽 5 obedov pre zdravie a plodnosť", protein: "💪 Najlacnejšie bielkoviny", proteinUnit: "cena za 10 g bielkovín · ≈, ako sa predáva",
-    soon: "⏳ Čoskoro", none: "Teraz žiadne veľké akcie.", freshTitle: "🥬 Čerstvé akcie tento týždeň",
+    waitBadge: "{d} {s} −{v}", waitTxt: "Lacnejšie od {d} · {s}: {p}", waitBtn: "Počkať", waitPill: "{n}× lacnejšie o pár dní",
+    swaps: "Lacnejšie náhrady", swapBtn: "Vymeniť", atHome: "Doma, vynechané:",
+    stockTitle: "Teraz do zásoby", myStock: "Moje zásoby", addStock: "+ Pridať do zásob", usedUp: "Minuté", daysLeft: "≈ {n} dní",
+    inStock: "v zásobe", noStock: "Zatiaľ nič v zásobe. Ťukni ✓ Kúpené, keď nakúpiš do zásoby.", stockRoute: "Do zásoby na trase: {n} · ušetríš {v}",
+    mealsLink: "Obedy pre zdravie a plodnosť", protein: "Najlacnejšie bielkoviny", proteinUnit: "cena za 10 g bielkovín · ≈, ako sa predáva",
+    soon: "Čoskoro", none: "Teraz žiadne veľké akcie.", freshTitle: "Čerstvé akcie tento týždeň",
     spent: "výdavky", saved: "úspora", monthNote: "Ušetrené = oproti bežnej najlacnejšej cene. Odhady sa nerátajú. Z tvojich odškrtnutí.",
-    atShop: "📍 Obchod: {s}", back: "← Plán", buyHere: "✅ Kúp tu", dontBuy: "⛔ Tu nekupuj", checkShelf: "🔍 Tu bez online ceny — pozri regál",
-    buyIf: "kúp, ak ≤ {p}", betterAt: "{s}: {p} · ušetríš {v}", stockHere: "📦 Do zásoby tu",
-    rhythmLearn: "📈 Učím sa rytmus cien · deň {n} z 21", rhythmEvery: "akcia každých ~{n} dní", rhythmNext: "ďalšia o ~{n} dní",
+    atShop: "Obchod: {s}", back: "← Plán", buyHere: "Kúp tu", dontBuy: "Tu nekupuj", checkShelf: "Pozri regál",
+    buyIf: "kúp, ak ≤ {p}", betterAt: "{s}: {p} · ušetríš {v}", stockHere: "Do zásoby tu",
+    rhythmLearn: "Učím sa rytmus cien · deň {n} z 21", rhythmEvery: "akcia každých ~{n} dní", rhythmNext: "ďalšia o ~{n} dní",
     rhythmNow: "akcia teraz", rhythmTypical: "bežná akcia {p}",
-    pricesHint: "Najlacnejšia cena za jednotku v každom obchode. ★ akcia.", search: "Hľadať",
+    pricesHint: "Najlacnejšia cena za jednotku v každom obchode. ★ = v akcii.", search: "Hľadať",
     drugHint: "Drogériu kupuj len keď je lacná.", needNow: "Treba teraz",
     stopTh: "Ďalšia zastávka musí ušetriť", tripTh: "Samostatná cesta musí ušetriť", stockPct: "Zásoby od % zľavy", alertPct: "Zdravé extra / upozornenie od % zľavy",
     weekly: "Moja týždenná spotreba", reset: "Obnoviť", data: "Dáta", checkedAt: "Ceny overené {d}", howWorks: "Ako to funguje",
     howText: "Robot každé ráno (+ st/št večer) číta verejné ceny. Aplikácia vždy berie najlacnejšiu značku za kg / l / kus a porovná kombinácie obchodov na tvojej trase.",
     onlyHim: "len ty", liverWarn: "Pečeň: len pre teba, max 1× týždenne (vitamín A) — nie pre ňu, kým sa snažíte o bábätko.",
-    mealsAim: "% = podiel denných živín pre plodnosť v 1 obede. Ryba 2 dni v týždni.", healthHow: "ℹ Čo znamenajú %",
-    healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (ty zješ ~56 %, ona ~44 % varenia; každá živina max 100 %). ♂: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. ♀: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. 🍽 = surová váha na obed. Približné hodnoty.",
-    extrasTitle: "🥗 Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
-    covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "📷 Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "📷 prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
-    tHealth: "Zdravie", meatEq: "za kg mäsa bez kostí", pantryLeft: "(~{v} zostane v špajze)", freezeP: "🧊 zamraz po porciách (vydrží ~3 mesiace)", fewPrices: "Pre {s} málo online cien — riaď sa limitmi nižšie.", stopGain: "Zastávka {s} ušetrí {v}",
+    mealsAim: "% = podiel denných živín pre plodnosť v 1 obede. Ryba 2 dni v týždni.", healthHow: "Čo znamenajú %",
+    healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (ty zješ ~56 %, ona ~44 % varenia; každá živina max 100 %). Ty: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. Ona: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. Množstvá = surová váha na obed. Približné hodnoty.",
+    extrasTitle: "Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
+    covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "Leták Kaufland", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo ✓",
+    tHealth: "Zdravie", meatEq: "za kg mäsa bez kostí", pantryLeft: "(~{v} zostane v špajze)", freezeP: "zamraz po porciách (vydrží ~3 mesiace)", fewPrices: "Pre {s} málo online cien — riaď sa limitmi nižšie.", stopGain: "Zastávka {s} ušetrí {v}",
     tripNoData: "Kaufland: zatiaľ bez cien → neporovnané", restAt: "Tu kúp {n} → zvyšok: {s}", modeHint: "Rýchly = na 1 deň · Veľký = na 3–4 dni · Obed = len suroviny na obed", shopFor: "nákup", leftover: "niečo zostane", todayPlan: "dnešný plán", payKeep: "zaplatíš {p} → ušetríš {v}", lasts: "vydrží ~{n} týž.",
-    stockLine: "📦 Do zásoby: {n} · zaplatíš {p} → ušetríš {v}", chipBuy: "Kúp {n} · {v}", chipCheck: "{n} pozri regál", chipThere: "{n} inde", buyLater: "⏳ Kúp neskôr (čoskoro lacnejšie)",
-    elseAt: "inak v: {s}", estPill: "{n} z {m} odhad", endsToday: "končí dnes", add7bf: "+ Zoznam (7 raňajok)", liverShort: "max 1×/týž.",
-    folic: "♀ Snažíte sa o bábätko? Kyselina listová 400 µg denne (NHS).", low30: "najnižšia za 30 dní", lastSeen: "≈ bežná cena naposledy {d}", learnedTag: "naučené z odškrtnutí", learnSet: "🧠 Učiť sa množstvá z odškrtnutí", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "📷📰 cena z letáku · ≈ odhad — over na regáli · ťukni na riadok pre detail",
-    tipWait: "Počkaj do {d}: {i} · {s} −{v}", tipStock: "Do zásoby: {i} −{p}% · {s} · ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% · {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "📦 Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory → vynechaj", lunchIncl: "🍽 Obedy v tomto nákupe: {a}{b}", lunchNext: " · {b} → ďalší nákup", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
+    stockLine: "Do zásoby na trase", chipBuy: "Kúp {n} · {v}", chipCheck: "{n} položiek tu nemá online cenu: kúp, ak cena na regáli nie je vyššia ako limit", chipThere: "{n} inde", buyLater: "Kúp neskôr (čoskoro lacnejšie)",
+    elseAt: "inak v: {s}", estPill: "≈ {n} z {m} cien je odhad", endsToday: "končí dnes", add7bf: "+ Zoznam (7 raňajok)", liverShort: "max 1×/týž.",
+    folic: "Ona: snažíte sa o bábätko? Kyselina listová 400 µg denne (NHS).", low30: "najnižšia za 30 dní", lastSeen: "≈ bežná cena naposledy {d}", learnedTag: "naučené z odškrtnutí", learnSet: "Učiť sa množstvá z odškrtnutí", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "cena z letáku · ≈ odhad — over na regáli · ťukni na riadok pre detail",
+    tipWait: "Počkaj do {d}: {i} · {s} −{v}", tipStock: "Do zásoby: {i} −{p}% · {s} · ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% · {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory → vynechaj", lunchIncl: "Obsahuje obedy na {a}{b}", lunchNext: " · {b}: ďalší nákup", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
     tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu ušetrí len {v} (treba {th}) → vynechaj",
-    lpLabel: "🍽 Obedy", lpHealth: "Zdravý plán", lpUsual: "Môj bežný", buyThere: "➡ Lacnejšie v druhom obchode",
-    noShopData: "Pre {s} nie sú online ceny — riaď sa limitmi nižšie.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko je v týždennom zozname",
-    boostTitle: "🌰 Malé denné doplnky", boostSub: "malé denné množstvá, veľký účinok",
-    b_brazil: "1 orech denne (max 2) · selén ♂♀", b_pumpkin: "♂ 30 g · ♀ 20 g denne · zinok, železo", b_fruit: "1 denne pre každého · vit C, folát",
-    bfTitle: "🥣 Raňajky pre ňu", bfSub: "najprv jej obvyklé · cena za raňajky",
-    weekTitle: "🗓 Obedy na týždeň", weekSub: "Varíš {n}× · vždy na 2 dni pre oboch · ryba 2 dni · strukoviny 1×",
-    weekGo: "🛒 Nakúpiť na celý týždeň", portions: "porcií", freeze: "🧊 dovtedy zamraziť", lwToday: "Dnes", lwWeek: "Celý týždeň", cooksSet: "Varení obedov za týždeň",
-    barsTitle: "💪 Kľúčové živiny za deň — plán na tento týždeň", barsLunch: "plán obedov", barsExtra: "zvyšok dňa podľa týždenného zoznamu (večera, ovocie, orechy, mliečne výrobky, extra)", barsHim: "♂ Ty", barsHer: "♀ Ona", gapsTitle: "Čo chýba → čím doplniť",
+    lpLabel: "Obedy", lpHealth: "Zdravý plán", lpUsual: "Môj bežný", buyThere: "Lacnejšie v druhom obchode",
+    noShopData: "Pre {s} nie sú online ceny.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko je v týždennom zozname",
+    boostTitle: "Malé denné doplnky", boostSub: "malé denné množstvá, veľký účinok",
+    b_brazil: "1 orech denne (max 2) · selén", b_pumpkin: "ty 30 g, ona 20 g denne · zinok, železo", b_fruit: "1 denne pre každého · vit C, folát",
+    bfTitle: "Raňajky pre ňu", bfSub: "najprv jej obvyklé · cena za raňajky",
+    weekTitle: "Obedy na týždeň", weekSub: "Varíš {n}× · vždy na 2 dni pre oboch · ryba 2 dni · strukoviny 1×",
+    weekGo: "Nakúpiť na celý týždeň", portions: "porcií", freeze: "zamraziť", lwToday: "Dnes", lwWeek: "Celý týždeň", cooksSet: "Varení obedov za týždeň",
+    barsTitle: "Kľúčové živiny za deň — plán na tento týždeň", barsLunch: "plán obedov", barsExtra: "zvyšok dňa podľa týždenného zoznamu (večera, ovocie, orechy, mliečne výrobky, extra)", barsHim: "Ty", barsHer: "Ona", gapsTitle: "Čo chýba → čím doplniť",
     fix_o3: "2. varenie s rybou (sardinky, makrela) alebo sardinky na chlebe", fix_vd: "v zime ho jedlo nepokryje → vitamín D 10 µg denne, okt–mar (NHS); poraď sa s lekárom",
     fix_fol: "špenát alebo brokolica ako zelenina, avokádo", fix_fol_f: "špenát, šošovica, avokádo · ak sa snažíte o dieťa: 400 µg kyseliny listovej denne (NHS)",
     fix_fe: "hovädzie + špenát ešte 1× týždenne, spolu s vitamínom C (paprika, kiwi)", fix_zn: "1× týždenne hovädzie namiesto vajec alebo kuracieho", fix_se: "1 para orech denne", fix_ch: "vajcia (2 denne pre ňu)", fix_b12: "ryby, vajcia, jogurt", fix_vc: "paprika, kiwi, brokolica",
@@ -327,6 +451,8 @@ const SHOP = { lidl: "Lidl", billa: "Billa", albert: "Albert", kaufland: "Kaufla
 const SHOP_COLOR = { lidl: "#0050aa", billa: "#e2001a", albert: "#0a7c3d", kaufland: "#c8102e", tesco: "#00539f", sintra: "#f39200", teta: "#d6006e", dm: "#002878" };
 const APP = { lidl: "Lidl Plus", billa: "Billa card", albert: "Albert app", kaufland: "Kaufland Card", tesco: "Clubcard", teta: "Teta app" };
 const APP_SK = { billa: "Billa karta", albert: "aplikácia Albert", teta: "aplikácia Teta" };
+const SHARE_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
+const pct = (x) => Math.round(x * 100) + "%";
 function appName(s) { return (state.lang === "sk" && APP_SK[s]) || APP[s] || SHOP[s]; }
 const PROTEIN = { chicken: 18, chicken_frozen: 18, turkey: 20, pork: 19, liver_chicken: 17, liver_pork: 21, beef: 20, salmon: 20, tuna: 18,
   eggs: 7, cottage: 11, eidam: 26, balkan: 17, mozzarella: 18, kefir: 3.3, yoghurt: 5, beans: 6, quinoa: 24, sardines: 21, mackerel: 19 }; // g per 100 g/ml as sold; eggs per piece
@@ -338,6 +464,7 @@ const NOW = Date.now();
 
 // ============================================================ state
 let state = { city: "brno", lang: "en", mode: "big", gym: false, tab: "plan", at: null, set: { ...DEFAULTS }, weekly: {}, low: [], drugLow: [], hide: [], day: null, stock: {}, log: [] };
+try { if (!localStorage.getItem(LS)) state.lang = /^(sk|cs)/i.test(navigator.language || "") ? "sk" : "en"; } catch (e) {}
 try { const s = JSON.parse(localStorage.getItem(LS) || "{}"); state = { ...state, ...s, set: { ...DEFAULTS, ...(s.set || {}) } }; } catch (e) {}
 state.stock = state.stock || {}; state.log = state.log || [];
 function day() {
@@ -734,11 +861,11 @@ const TARGET = { m: { zn: 11, se: 55, o3: 250, vd: 15, fol: 400, vc: 90 }, f: { 
 const NLAB = { en: { zn: "zinc", se: "selenium", o3: "omega-3", vd: "vit D", fol: "folate", vc: "vit C", fe: "iron", ch: "choline", b12: "B12" },
   sk: { zn: "zinok", se: "selén", o3: "omega-3", vd: "vit D", fol: "folát", vc: "vit C", fe: "železo", ch: "cholín", b12: "B12" } };
 const HTAG = {
-  sweet_potato: ["β-carotene", "β-karotén"], salmon: ["♂♀ omega-3 · vit D", "♂♀ omega-3 · vit D"], sardines: ["♂♀ omega-3 · vit D", "♂♀ omega-3 · vit D"],
-  mackerel: ["♂♀ omega-3 · vit D", "♂♀ omega-3 · vit D"], turkey: ["lean protein · zinc", "chudé bielkoviny · zinok"], blueberries: ["antioxidants", "antioxidanty"],
-  strawberries: ["vit C · antioxidants", "vit C · antioxidanty"], kiwi: ["vit C · folate", "vit C · folát"], spinach: ["♀ folate · iron", "♀ folát · železo"],
-  mushrooms: ["♂ selenium", "♂ selén"], cottage: ["protein", "bielkoviny"], tuna: ["♂ selenium", "♂ selén"], quinoa: ["♀ folate · iron", "♀ folát · železo"],
-  pumpkin_seeds: ["♂ zinc", "♂ zinok"], brazil_nuts: ["♂ selenium · 1–2 a day", "♂ selén · 1–2 denne"], oranges: ["vit C · folate", "vit C · folát"],
+  sweet_potato: ["β-carotene", "β-karotén"], salmon: ["omega-3 · vit D", "omega-3 · vit D"], sardines: ["omega-3 · vit D", "omega-3 · vit D"],
+  mackerel: ["omega-3 · vit D", "omega-3 · vit D"], turkey: ["lean protein · zinc", "chudé bielkoviny · zinok"], blueberries: ["antioxidants", "antioxidanty"],
+  strawberries: ["vit C · antioxidants", "vit C · antioxidanty"], kiwi: ["vit C · folate", "vit C · folát"], spinach: ["folate · iron", "folát · železo"],
+  mushrooms: ["selenium", "selén"], cottage: ["protein", "bielkoviny"], tuna: ["selenium", "selén"], quinoa: ["folate · iron", "folát · železo"],
+  pumpkin_seeds: ["zinc", "zinok"], brazil_nuts: ["selenium · 1–2 a day", "selén · 1–2 denne"], oranges: ["vit C · folate", "vit C · folát"],
 };
 function htag(id) { const h = HTAG[id]; return h ? h[state.lang === "sk" ? 1 : 0] : ""; }
 // one cook = 4 portions = 2 days x 2 people; he eats a bit more than she does (energy needs ≈ 56 : 44)
@@ -829,10 +956,9 @@ function mealIdeas(n = 5) {
 function mealName(m) { return m.parts.map((p) => shortName(p.id)).join(" + "); }
 function mealWhere(m) {
   const shops = m.rec.shops.filter((s) => m.rec.lines.some((l) => l.shop === s));
-  if (shops.length === 1) return `<span class="dot" style="background:${SHOP_COLOR[shops[0]]}"></span> <b>${SHOP[shops[0]]}</b>`;
-  return shops.map((s) => `<span class="dot" style="background:${SHOP_COLOR[s]}"></span> <b>${SHOP[s]}</b> (${m.rec.lines.filter((l) => l.shop === s).map((l) => shortName(l.b.it.id).toLowerCase()).join(", ")})`).join(" → ");
+  if (shops.length === 1) return SHOP[shops[0]];
+  return shops.map((s) => `${SHOP[s]} (${m.rec.lines.filter((l) => l.shop === s).map((l) => shortName(l.b.it.id).toLowerCase()).join(", ")})`).join(" → ");
 }
-
 // ============================================================ health page: week lunch plan, boosters, her breakfast
 const vegOf = (c) => c.parts[c.parts.length - 1].id;
 function unitCost(id) { // cheapest live price on the usual route (no trips); else usual price
@@ -909,10 +1035,10 @@ function portionTxt(m) {
     sardines: "sardiniek", mackerel: "makrely", liver_chicken: "kuracej pečene", quinoa: "šošovice", rice: "ryže", pasta: "cestovín", sweet_potato: "batátov", eggs: "vajcia" };
   const canned = m.parts[0].id === "quinoa" && (m.rec?.lines || []).some((l) => l.b.it.id === "quinoa" && l.o?.dryeq);
   const P = m.parts[0], C = m.parts[1], sn = (id) => (id === "quinoa" && canned ? (state.lang === "sk" ? "šošovice z konzervy (odkvapkanej)" : "canned lentils (drained)") : null) || (state.lang === "sk" && id === "quinoa" ? GEN.quinoa_dry : (state.lang === "sk" && GEN[id] ? GEN[id] : shortName(id).toLowerCase()) + (id === "quinoa" ? " " + t("dry") : ""));
-  if (!m.forHer) return `♂ ${g(P.id, P.qty / m.portions)} ${sn(P.id)} + ${g(C.id, C.qty / m.portions)} ${sn(C.id)}`;
+  if (!m.forHer) return `${t("youL")} ${g(P.id, P.qty / m.portions)} ${sn(P.id)} + ${g(C.id, C.qty / m.portions)} ${sn(C.id)}`;
   const day = (q) => q / 2;
   const pm = BYID[P.id].unit === "ks" ? Math.round(day(P.qty) * SPLIT.m) : day(P.qty) * SPLIT.m, pf = BYID[P.id].unit === "ks" ? day(P.qty) - pm : day(P.qty) * SPLIT.f;
-  return `♂ ${g(P.id, pm)} ${sn(P.id)} + ${g(C.id, day(C.qty) * SPLIT.m)} ${sn(C.id)} · ♀ ${g(P.id, pf)} + ${g(C.id, day(C.qty) * SPLIT.f)}`;
+  return `${t("youL")} ${g(P.id, pm)} ${sn(P.id)} + ${g(C.id, day(C.qty) * SPLIT.m)} ${sn(C.id)} · ${t("herL")} ${g(P.id, pf)} + ${g(C.id, day(C.qty) * SPLIT.f)}`;
 }
 const FIX = { o3: "fix_o3", vd: "fix_vd", fol: "fix_fol", fe: "fix_fe", zn: "fix_zn", se: "fix_se", ch: "fix_ch", b12: "fix_b12", vc: "fix_vc" };
 function barsHtml(wk) {
@@ -929,29 +1055,28 @@ function barsHtml(wk) {
     if (who !== "f") addNutr(xm, it.id, who === "m" ? d : d * SPLIT.m);
     if (who !== "m") addNutr(xf, it.id, who === "f" ? d : d * SPLIT.f);
   }
-  const gaps = new Set();
-  const block = (who, base, extra, title) => {
-    const T = TARGET[who];
-    return `<div class="sec">${title}</div>` + Object.keys(T).map((k) => {
-      const a = Math.min(1, (base[k] || 0) / T[k]), b = Math.min(1 - a, (extra[k] || 0) / T[k]), tot = a + b, low = tot < 0.8;
-      if (low) gaps.add(k + (k === "fol" ? "_" + who : ""));
-      return `<div class="nrow"><span>${nl(k)}</span><div class="bar"><i style="width:${a * 100}%"></i><i class="x" style="width:${b * 100}%"></i></div><b style="${low ? "color:var(--bad)" : ""}">${Math.round(tot * 100)}%${low ? " ⚠" : ""}</b></div>`;
-    }).join("");
+  const per = (w, base, extra) => Object.keys(TARGET[w]).map((k) => ({ k, v: Math.min(1, ((base[k] || 0) + (extra[k] || 0)) / TARGET[w][k]) }));
+  const pm = per("m", lm, xm), pf = per("f", lf, xf), gaps = [];
+  const who = (list, w, title) => {
+    const low = list.filter((x) => x.v < 0.8);
+    for (const x of low) { const g = x.k + (x.k === "fol" ? "_" + w : ""); if (!gaps.includes(g)) gaps.push(g); }
+    return `<div class="who"><div class="row"><b>${title}</b><span class="small ${low.length ? "warn-t" : "save-t"}" style="font-weight:650;text-align:right">${low.length ? `${t("nutrLow")}: ${low.map((x) => `${nl(x.k)} ${pct(x.v)}`).join(", ")}` : t("nutrOk")}</span></div></div>`;
   };
-  let html = `<div class="card"><h2>${t("barsTitle")}</h2><div class="tiny muted" style="margin:-4px 0 6px"><span class="key"></span> ${t("barsLunch")} <span class="key x"></span> ${t("barsExtra")}</div>`;
-  html += block("m", lm, xm, t("barsHim")) + block("f", lf, xf, t("barsHer"));
-  html += `<div class="small" style="padding:6px 0 0">💊 ${t("folic")}</div>`;
-  if (gaps.size) html += `<div class="sec">${t("gapsTitle")}</div>` + [...gaps].map((g) => `<div class="small" style="padding:3px 0">⚠ <b>${nl(g.split("_")[0])}</b> → ${t(g === "fol_f" ? "fix_fol_f" : FIX[g.split("_")[0]])}</div>`).join("");
+  const rows = (list) => list.map((x) => `<div class="nrow"><span>${nl(x.k)}</span><div class="bar"><i class="${x.v < 0.8 ? "low" : ""}" style="width:${Math.max(3, x.v * 100)}%"></i></div><b class="${x.v < 0.8 ? "warn-t" : ""}">${pct(x.v)}</b></div>`).join("");
+  let html = `<div class="card"><h2>${t("nutrTitle")}</h2><div class="lead-in">${t("nutrSub")}</div>${who(pm, "m", t("barsHim"))}${who(pf, "f", t("barsHer"))}`;
+  if (gaps.length) html += `<div class="sec">${t("gapsTitle")}</div>` + gaps.map((g) => `<div class="fix"><b>${nl(g.split("_")[0])}</b> — ${t(g === "fol_f" ? "fix_fol_f" : FIX[g.split("_")[0]])}</div>`).join("");
+  html += `<div class="note">${t("folic")}</div>`;
+  html += `<details style="margin-top:8px"><summary class="small">${t("allNutr")}</summary><div class="sec">${t("barsHim")}</div>${rows(pm)}<div class="sec">${t("barsHer")}</div>${rows(pf)}</details>`;
   return html + `</div>`;
 }
 function boostHtml() {
   const bs = boosters(); if (!bs.length) return "";
   const D = day();
-  return `<div class="card"><h2>${t("boostTitle")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("boostSub")}</div>${bs.map((b) => {
+  return `<div class="card"><h2>${t("boostTitle")}</h2><div class="lead-in">${t("boostSub")}</div>${bs.map((b) => {
     const wk = +((b.m + b.f) * 7).toFixed(3), on = !!D.add[b.id];
-    return `<div class="addrow"><div><div class="t">${b.ico} ${esc(iname(BYID[b.id]))} ${b.c.o ? discBadge(b.c.o) : ""}</div><div class="m">${t(b.k)}</div>
-      <div class="m">${money(b.day)} ${t("perDay")}${b.c.o ? ` · <span class="dot" style="background:${SHOP_COLOR[b.c.o.shop]}"></span> ${SHOP[b.c.o.shop]}` : ""}</div></div>
-      <button class="btn ${on ? "done" : "primary"}" data-adddeal="${b.id}" data-qty="${wk}">${on ? t("added") : t("add7")}</button></div>`;
+    return `<div class="addrow"><div><div class="t">${esc(iname(BYID[b.id]))} ${b.c.o ? discBadge(b.c.o) : ""}</div><div class="m">${t(b.k)}</div>
+      <div class="m">${money(b.day)} ${t("perDay")}${b.c.o ? ` · ${SHOP[b.c.o.shop]}` : ""}</div></div>
+      <button class="btn ${on ? "done" : ""}" data-adddeal="${b.id}" data-qty="${wk}">${on ? t("added") : t("add7")}</button></div>`;
   }).join("")}</div>`;
 }
 function inWeekly(id) { const it = BYID[id]; return it && weeklyOf(it) > 0 && it.group !== "pantry"; } // pantry items only come on the list when you mark them low
@@ -961,12 +1086,12 @@ function bfHtml() {
   for (const b of (yog ? [yog, ...all.filter((x) => x !== yog)] : all)) { if (seen.has(b.parts[0][0])) continue; seen.add(b.parts[0][0]); list.push(b); if (list.length >= 3) break; } // her usual yoghurt first, then other bases
   if (!list.length) return "";
   const D = day();
-  return `<div class="card"><h2>${t("bfTitle")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("bfSub")}</div>${list.map((b) => {
+  return `<div class="card"><h2>${t("bfTitle")}</h2><div class="lead-in">${t("bfSub")}</div>${list.map((b) => {
     const extra = b.parts.filter(([id, q]) => q * 7 - (inWeekly(id) ? weeklyOf(BYID[id]) : 0) > 1e-6), on = extra.length && extra.every(([id]) => D.add[id]);
-    return `<div class="meal"><div class="row"><div class="t">${b.parts.map(partTxt).join(" + ")}</div><span class="per">${money(b.cost)}</span></div>
-      <div class="small" style="margin-top:3px">💪 <b>♀ ${Math.round(b.score * 100)}%</b> <span class="muted">${b.top.join(" · ")}</span>${b.deal ? ` <span class="badge b-good">${t("onDeal")}</span>` : ""}</div>
-      <div class="small">📍 ${b.shops.map((s) => `<span class="dot" style="background:${SHOP_COLOR[s]}"></span> ${SHOP[s]}`).join(" ")}${extra.length ? "" : ` · <span class="muted">${t("bfHave")}</span>`}</div>
-      ${extra.length ? `<div style="margin-top:6px"><button class="btn ${on ? "done" : ""}" data-bfadd="${b.i}">${on ? t("added") : t("add7bf")}</button></div>` : ""}</div>`;
+    return `<div class="meal"><div class="row" style="align-items:flex-start"><div class="t">${b.parts.map(partTxt).join(" + ")}</div><span class="per">${money(b.cost)}</span></div>
+      <div class="hl">${t("herL")} <b>${pct(b.score)}</b> <span class="muted">· ${b.top.join(", ")}</span>${b.deal ? ` <span class="flag s">${t("onDeal")}</span>` : ""}</div>
+      <div class="small muted" style="margin-top:2px">${b.shops.map((s) => SHOP[s]).join(", ")}${extra.length ? "" : ` · ${t("bfHave")}`}</div>
+      ${extra.length ? `<div style="margin-top:8px"><button class="btn ${on ? "done" : ""}" data-bfadd="${b.i}">${on ? t("added") : t("add7bf")}</button></div>` : ""}</div>`;
   }).join("")}</div>`;
 }
 function weekHtml(wk, inPlan) {
@@ -974,9 +1099,9 @@ function weekHtml(wk, inPlan) {
   const portions = wk.length * 4, comb = cheapestRoute(wk.flatMap((m) => m.parts.map((p) => [p.id, p.qty]))), total = comb ? comb.total : wk.reduce((a, m) => a + m.total, 0);
   const eaten = wk.reduce((a, m) => a + (m.used || m.total), 0);
   const noFish = !wk.some((m) => FISH.includes(m.fam));
-  return `<div class="card idea"><h2>${t("weekTitle")}</h2><div class="small" style="margin:-4px 0 4px">${t("weekSub", { n: wk.length })}</div>${noFish ? `<div class="small" style="color:var(--warn);font-weight:650">🐟 ${t("noFish")}</div>` : ""}${wk.map((m, i) => mealCard(m, i, "week")).join("")}
-    ${inPlan ? "" : `<div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b>${t("weekAll")}: ${money(total)}</b>${total - eaten > 1 ? ` <span class="tiny muted">${t("pantryLeft", { v: money(total - eaten) })}</span>` : ""}<span class="per">${money(eaten / portions)} <span class="tiny" style="font-weight:600">${t("perPortion")}</span></span></div>
-    <div style="margin-top:8px"><button class="btn primary" data-weekgo="1">${t("weekGo")}</button></div>`}</div>`;
+  return `<div class="card"><h2>${t("weekTitle")}</h2><div class="lead-in">${t("weekSub", { n: wk.length })}</div>${noFish ? `<div class="small warn-t" style="font-weight:650;margin-bottom:4px">${t("noFish")}</div>` : ""}${wk.map((m, i) => mealCard(m, i, "week")).join("")}
+    ${inPlan ? "" : `<div class="total"><b>${t("weekAll")}: ${money(total)}</b><span class="meal"><span class="per">${money(eaten / portions)}<small>${t("perPortion")}</small></span></span></div>${total - eaten > 1 ? `<div class="tiny muted">${t("pantryLeft", { v: money(total - eaten) })}</div>` : ""}
+    <button class="btn primary wide" data-weekgo="1">${t("weekGo")}</button>`}</div>`;
 }
 function renderHealth() {
   const out = $("healthOut"); if (!out) return;
@@ -1015,7 +1140,7 @@ function rhythmTxt(id) {
   if (r.now) bits.push(t("rhythmNow")); else if (r.nextIn != null) bits.push(t("rhythmNext", { n: r.nextIn }));
   if (r.every) bits.push(t("rhythmEvery", { n: r.every }));
   if (r.typical) bits.push(t("rhythmTypical", { p: money(r.typical) + "/" + uName(BYID[id].unit) }));
-  return "📈 " + bits.join(" · ");
+  return bits.join(" · ");
 }
 
 // ============================================================ month savings (from ticks)
@@ -1036,17 +1161,17 @@ function low30(o) {
   if (H) for (const [shop, rows] of Object.entries(H)) { if (!groceryShops().includes(shop)) continue; for (const r of rows) { const dd = daysBetween(r[0], today); if (dd > 0 && dd <= 30 && r[1] != null) { days.add(r[0]); if (r[1] < min) min = r[1]; } } }
   return (LOW[k] = days.size >= 10 && o.unit_price <= min * 0.98);
 }
+// one flag: ends today (amber) › 30-day low › discount (green)
 function discBadge(o) {
-  const ends = o.valid_to && o.valid_to.slice(0, 10) === today ? ` <span class="badge b-bad">⌛ ${t("endsToday")}</span>` : "";
-  if (low30(o)) return `<span class="badge b-bad">📉 ${t("low30")}</span>` + ends;
-  const d = discount(o);
-  if (o.promo && d >= 0.05) return `<span class="badge ${d >= state.set.alertPct / 100 ? "b-bad" : d >= state.set.stockPct / 100 ? "b-warn" : "b-good"}">−${Math.round(d * 100)}%</span>` + ends;
-  return ends;
+  const d = discount(o), off = o.promo && d >= 0.05 ? "−" + Math.round(d * 100) + "%" : "";
+  if (o.valid_to && o.valid_to.slice(0, 10) === today) return `<span class="flag w">${off ? off + " · " : ""}${t("endsToday")}</span>`;
+  if (low30(o)) return `<span class="flag s">${t("low30")}</span>`;
+  return off ? `<span class="flag s">${off}</span>` : "";
 }
 function amountTxt(l) {
   const u = l.b.it.unit, o = l.o || l.refO;
-  if (l.packs && o) return o.pack ? `${l.packs}× ${o.dryeq ? qtyTxt(o.pack * o.dryeq, u) + " 🥫" : o.edible ? qtyTxt(o.pack / o.edible, u) + " 🦴" : qtyTxt(o.pack, u)}` : `${l.packs}×`;
-  if (o && o.edible) return "~" + qtyTxt(l.qty / o.edible, u) + " 🦴";
+  if (l.packs && o) return o.pack ? `${l.packs}× ${o.dryeq ? qtyTxt(o.pack * o.dryeq, u) + " " + t("can") : o.edible ? qtyTxt(o.pack / o.edible, u) + " " + t("bone") : qtyTxt(o.pack, u)}` : `${l.packs}×`;
+  if (o && o.edible) return "~" + qtyTxt(l.qty / o.edible, u) + " " + t("bone");
   const pc = PIECE[l.b.it.id];
   return pc ? `~${Math.round(l.qty / pc)} ${uName("ks")} (${qtyTxt(l.qty, u)})` : "~" + qtyTxt(l.qty, u);
 }
@@ -1067,78 +1192,84 @@ function tipHtml(r, lunch) {
   if (!lunch && state.mode !== "quick") for (const d of r.ds) if (d.kind === "stock" && r.rec.shops.includes(d.o.shop) && !day().add[d.it.id] && !boughtToday(d.it.id)) tips.push({ v: d.saving * 0.5, txt: t("tipStock", { i: iname(d.it), p: Math.round(d.d * 100), s: SHOP[d.o.shop], v: money(d.saving) }) });
   if (false) for (const d of r.ds) if (d.kind === "extra" && nearShops().includes(d.o.shop) && !day().add[d.it.id]) tips.push({ v: d.saving * 0.4 + 5, txt: t("tipExtra", { i: iname(d.it), p: Math.round(d.d * 100), s: SHOP[d.o.shop] }) });
   const best = tips.filter((x) => x.v >= minDeal() * 0.5).sort((a, b) => b.v - a.v)[0];
-  return best ? `<div class="tip">💡 ${esc(best.txt)}</div>` : "";
+  return best ? `<div class="tip"><b>${t("tipL")}:</b> ${esc(best.txt)}</div>` : "";
 }
 function lineHtml(l) {
   regLine(l);
   const D = day(), id = l.b.it.id, done = D.done.includes(id), open = OPEN === id, w = done ? null : waitFor(l);
-  const tag = (l.b.auto ? `<span class="badge b-good">${t("healthy")}</span>` : "") + (l.whole ? ` <span class="badge b-good">${id === "ham" ? "🐔 " + t("poultry") : "🌾 " + t("whole")}</span>` : "") + (HIS.includes(id) || (id === "ham" && l.o && !l.whole) ? ` <span class="badge b-info">♂</span>` : "");
-  const wb = w ? `<span class="badge b-info">${t("waitBadge", { d: wdTxt(w.o.valid_from), s: SHOP[w.o.shop], v: money(w.sv) })}</span>` : "";
+  const tags = [];
+  if (l.whole) tags.push(id === "ham" ? t("poultry") : t("whole"));
+  if (HIS.includes(id) || (id === "ham" && l.o && !l.whole)) tags.push(t("forYou"));
+  if (l.b.auto) tags.push(t("healthy"));
+  if (l.o && l.o.conf === "med") tags.push(t("leafletTag"));
+  const flag = w ? `<span class="flag w">${t("cheaperOn", { d: wdTxt(w.o.valid_from) })}</span>` : l.o ? discBadge(l.o) : "";
   let more = "";
   if (open) {
     const o = l.o;
-    const unitRow = o ? `${t("unitPrice")}: <b>${money(o.unit_price)}/${uName(l.b.it.unit)}</b>${o.dryeq ? ` <span class="muted">(${t("dryEq")})</span>` : o.edible ? ` <span class="muted">(${t("meatEq")})</span>` : ""}${usual(id) ? ` · ${t("usual")} ${money(usual(id))}` : ""}` : `${t("est")}: ${l.packs && l.refO?.pack ? money(l.paid) + " / " + qtyTxt(l.refO.pack, l.b.it.unit) : money(l.paid) + "/" + uName(l.b.it.unit)}`;
+    const unitRow = o ? `${t("unitPrice")}: <b>${money(o.unit_price)}/${uName(l.b.it.unit)}</b>${o.dryeq ? ` <span class="muted">(${t("dryEq")})</span>` : o.edible ? ` <span class="muted">(${t("meatEq")})</span>` : ""}${usual(id) ? ` · ${t("usual")} ${money(usual(id))}` : ""}` : `<span class="warn-t">≈</span> ${t("est")}: ${l.packs && l.refO?.pack ? money(l.paid) + " / " + qtyTxt(l.refO.pack, l.b.it.unit) : money(l.paid) + "/" + uName(l.b.it.unit)}`;
     const calc = l.packs ? `${l.packs} × ${money(l.paid)} = ${money(l.cost)}` : `${fmtN(l.qty)} ${uName(l.b.it.unit)} × ${money(l.paid)} = ${money(l.cost)}`;
     const rt = rhythmTxt(id);
     more = `<div class="more"><div>${unitRow}</div><div>${calc}</div>${o ? `<div class="muted">${esc(o.name)} · ${validTxt(o)}${o.card ? " · " + esc(o.card) : ""}${o.url ? ` · <a href="${esc(o.url)}" target="_blank" rel="noopener">${t("check")}</a>` : ""}</div>${o.conf === "med" ? `<div class="muted">${t("scanned")}</div>` : ""}` : ""}
-      ${w ? `<div style="margin-top:4px"><b>${t("waitTxt", { d: dayTxt(w.o.valid_from), s: SHOP[w.o.shop], p: money(w.o.price) })}</b></div>` : ""}${rt ? `<div class="muted">${rt}</div>` : ""}
-      <div class="acts"><button class="btn" data-q="-" data-id="${id}">−</button><button class="btn" data-q="+" data-id="${id}">+</button>
+      ${w ? `<div><b>${t("waitTxt", { d: dayTxt(w.o.valid_from), s: SHOP[w.o.shop], p: money(w.o.price) })}</b></div>` : ""}${rt ? `<div class="muted">${rt}</div>` : ""}
+      <div class="acts"><button class="btn" data-q="-" data-id="${id}" aria-label="less">−</button><button class="btn" data-q="+" data-id="${id}" aria-label="more">+</button>
       ${w ? `<button class="btn primary" data-skip="${id}">${t("waitBtn")}</button>` : `<button class="btn" data-skip="${id}">${t("skip")}</button>`}
       ${o ? `<button class="btn ghost" data-hide="${esc(hideKey(o))}">${t("wrong")}</button>` : ""}</div></div>`;
   }
   return `<div class="li ${done ? "done" : ""}">
-    <button class="ck" data-done="${id}" aria-label="done">${done ? "✓" : ""}</button>
-    <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span> ${l.o ? discBadge(l.o) : ""} ${wb} ${tag}</div>
-      <div class="sub">${l.o ? esc(l.o.name) : `<i>${l.seen ? t("lastSeen", { d: dateTxt(l.seen) }) : t("noPriceShort")}</i>`}</div></div>
-    <div class="pr">${confGlyph(l)}${money(l.cost)}</div>${more}</div>`;
+    <button class="ck" data-done="${id}" aria-label="${t("tickL")}"><span>${done ? "✓" : ""}</span></button>
+    <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span> ${flag}</div>
+      <div class="sub">${tags.length ? `<span class="tag">${tags.join(" · ")}</span> · ` : ""}${l.o ? esc(l.o.name) : `<i>${l.seen ? t("lastSeen", { d: dateTxt(l.seen) }) : t("noPriceShort")}</i>`}</div></div>
+    <div class="pr">${l.o ? "" : `<span class="est" title="${t("est")}">≈</span>`}${money(l.cost)}</div>${more}</div>`;
 }
 function stockRowHtml(d) {
   const D = day(), onList = !!D.add[d.it.id], key = `${today}|${state.city}|${d.it.id}|stock`, isBought = state.log.some((e) => e.k === key);
   const u = d.it.unit, amount = d.packs ? `${d.packs}× ${qtyTxt(d.o.pack, u)}` : qtyTxt(d.qty, u);
   const rt = rhythmTxt(d.it.id);
+  const info = [d.weeks ? t("lasts", { n: Math.max(1, Math.round(d.weeks)) }) : "", d.it.shelf === "freezable" ? t("freezeP") : "", validTxt(d.o)].filter(Boolean).join(" · ");
   return `<div class="addrow"><div><div class="t">${esc(iname(d.it))} ${discBadge(d.o)}</div>
-    <div class="m"><span class="dot" style="background:${SHOP_COLOR[d.o.shop]}"></span> <b>${SHOP[d.o.shop]}</b> · ${amount}${HIS.includes(d.it.id) ? ' <span class="badge b-info">♂</span>' : ""}</div>
-    <div class="m">${t("payKeep", { p: money(d.cost), v: money(d.saving) })}${d.weeks ? ` · ${t("lasts", { n: Math.max(1, Math.round(d.weeks)) })}` : ""}${d.it.shelf === "freezable" ? ` · ${t("freezeP")}` : ""} · ${validTxt(d.o)}${rt ? "<br>" + rt : ""}</div></div>
-    <div class="acts"><button class="btn ${onList ? "done" : "primary"}" data-adddeal="${d.it.id}" data-qty="${d.qty}">${onList ? t("added") : t("add")}</button>
-    <button class="btn ${isBought ? "done" : ""}" data-bought="${d.it.id}">${isBought ? t("inStockBtn") : t("bought")}</button></div></div>`;
+    <div class="m"><b style="color:var(--text)">${SHOP[d.o.shop]}</b> · ${amount}${HIS.includes(d.it.id) ? " · " + t("forYou") : ""}</div>
+    <div class="m">${t("payL")} ${money(d.cost)} · <b class="save-t">${t("save")} ${money(d.saving)}</b></div>
+    <div class="m">${info}${rt ? "<br>" + rt : ""}</div></div>
+    <div class="acts"><button class="btn ${onList ? "done" : ""}" data-adddeal="${d.it.id}" data-qty="${d.qty}">${onList ? t("added") : t("add")}</button>
+    <button class="btn ${isBought ? "done" : "ghost"}" data-bought="${d.it.id}">${isBought ? t("inStockBtn") : t("bought")}</button></div></div>`;
 }
 function forN(n) { return state.lang === "sk" ? `za ${n} ${n === 1 ? "porciu" : n < 5 ? "porcie" : "porcií"}` : `for ${n} portion${n === 1 ? "" : "s"}`; }
 function mealCard(m, k, mode, chosen) {
-  const lines = (m.rec?.lines || []).map((l) => `<div class="row"><span>${amountTxt(l)} ${esc(shortName(l.b.it.id).toLowerCase())} · <b>${SHOP[l.shop]}</b>${l.o ? ` <span class="muted">${esc(l.o.name.slice(0, 30))}</span>` : ` <span class="muted">${t("est")}</span>`}</span><span>${money(l.cost)}</span></div>`).join("");
+  const lines = (m.rec?.lines || []).map((l) => `<div class="row"><span>${amountTxt(l)} ${esc(shortName(l.b.it.id).toLowerCase())} · ${SHOP[l.shop]}${l.o ? "" : ` <span class="warn-t">≈</span>`}</span><span>${money(l.cost)}</span></div>`).join("");
   const liver = m.parts.some((p) => p.id.startsWith("liver"));
-  const hl = `💪 ${t("him")} <b>${Math.round(m.h.m * 100)}%</b>${m.forHer ? ` · ${t("her")} <b>${Math.round(m.h.f * 100)}%</b>` : ` · <span class="badge b-info">${t(m.fam === "pork" ? "onlyHimPork" : "onlyHim")}</span>`}${m.h.top.length ? ` <span class="muted">${m.h.top.join(" · ")}</span>` : ""}`;
-  const pre = mode === "pick" ? (chosen ? "✅ " : "⬜ ") + (k === 0 && m.inPlan ? `<span class="badge b-accent">${t("todayPlan")}</span> ` : "") : mode === "week" ? `<span class="badge b-accent">${cookDay(k)}</span> ` : (m.forHer ? k + 1 + ". " : "♂ ");
-  const fz = mode === "week" && needsFreeze(m, k) ? ` <span class="badge b-info">${t("freeze")}</span>` : "";
-  return `<div class="meal" ${mode === "pick" ? `data-mealpick="${k}" style="cursor:pointer"` : ""}><div class="row"><div class="t">${pre}${esc(mealName(m))}${fz}</div><span class="per">${money(m.per)} <span class="tiny" style="font-weight:600">${t("perPortion")}</span></span></div>
-    <div class="small" style="margin-top:4px">${hl}</div>${liver ? `<div class="small" style="color:var(--warn);font-weight:650">⚠ ${t("liverWarn")}</div>` : ""}
-    <div class="small" style="margin-top:2px">🍽 ${portionTxt(m)}</div>
-    <div class="small" style="margin-top:2px">📍 ${mealWhere(m)} · ${t("shopFor")} ${money(m.total)}${m.total > (m.used || m.total) * 1.15 ? ` <span class="muted">(${t("leftover")})</span>` : ""}</div>
-    <details style="margin-top:4px"><summary class="small">${t("calc")}</summary><div class="calc">${lines}</div></details>
-    ${mode ? "" : `<div class="row" style="margin-top:8px;justify-content:flex-start;gap:6px"><button class="btn primary" data-mealgo="${k}">${t("goMeal")}</button><button class="btn" data-meal="${k}">${t("addMeal")}</button></div>`}</div>`;
+  const hl = m.forHer ? `${t("youL")} <b>${pct(m.h.m)}</b> · ${t("herL")} <b>${pct(m.h.f)}</b>` : `${t("youL")} <b>${pct(m.h.m)}</b> · <span class="warn-t" style="font-weight:650">${t(m.fam === "pork" ? "onlyHimPork" : "onlyHim")}</span>`;
+  const flags = (mode === "week" && needsFreeze(m, k) ? ` <span class="flag n">${t("freeze")}</span>` : "") + (mode === "pick" && k === 0 && m.inPlan ? ` <span class="flag n">${t("todayPlan")}</span>` : "");
+  const left = m.total > (m.used || m.total) * 1.15 ? ` (${t("leftover")})` : "";
+  const body = `<div class="row" style="align-items:flex-start"><div class="t">${esc(mealName(m))}${flags}</div><span class="per">${money(m.per)}<small>${t("perPortion")}</small></span></div>
+    <div class="hl">${hl}${m.h.top.length ? ` <span class="muted">· ${m.h.top.join(", ")}</span>` : ""}</div>${liver ? `<div class="small warn-t" style="margin-top:3px">${t("liverWarn")}</div>` : ""}
+    <details><summary>${t("calc")}</summary><div><div>${portionTxt(m)}</div><div class="muted">${t("shopFor")} ${money(m.total)}${left} · ${mealWhere(m)}</div><div class="calc">${lines}</div></div></details>
+    ${mode ? "" : `<div class="acts" style="margin-top:8px"><button class="btn" data-meal="${k}">${t("addMeal")}</button><button class="btn ghost" data-mealgo="${k}">${t("goMeal")}</button></div>`}`;
+  if (mode === "week") return `<div class="meal day"><div class="d">${cookDay(k)}</div><div>${body}</div></div>`;
+  if (mode === "pick") return `<div class="meal pick ${chosen ? "on" : ""}" data-mealpick="${k}"><span class="ck"><span>${chosen ? "✓" : ""}</span></span><div>${body}</div></div>`;
+  return `<div class="meal">${body}</div>`;
 }
 function mealsHtml(list, picker) {
   if (!list.length) return "";
   const D = day(), sel = new Set(D.meals.map((m) => m.key));
-  return `<div class="card idea"><h2>${picker ? t("pickMeals") : t("meals")}</h2><div class="small" style="margin:-4px 0 4px">${t("mealsAim")}</div>${list.map((m, k) => mealCard(m, k, picker ? "pick" : "", sel.has(m.key))).join("")}<details class="note"><summary class="small">${t("healthHow")}</summary><div style="margin-top:4px">${t("healthTxt")}</div></details></div>`;
+  return `<div class="card"><h2>${picker ? t("pickMeals") : t("meals")}</h2><div class="lead-in">${t("mealsAim")}</div>${list.map((m, k) => mealCard(m, k, picker ? "pick" : "", sel.has(m.key))).join("")}<details class="note"><summary class="small">${t("healthHow")}</summary><div style="margin-top:4px">${t("healthTxt")}</div></details></div>`;
 }
 function monthHtml() {
   const s = monthStats(); if (!s.n) return "";
   const mName = new Date(today + "T12:00:00").toLocaleDateString(loc(), { month: "long" });
-  return `<details class="card"><summary>📊 ${mName}: ${t("spent")} <b>${money(s.spent)}</b> · ${t("saved")} <b style="color:var(--good)">${money(s.saved)}</b></summary><div class="note">${t("monthNote")}</div></details>`;
+  return `<details><summary>${mName[0].toUpperCase() + mName.slice(1)}: ${t("spent")} ${money(s.spent)} · <span class="save-t">${t("saved")} ${money(s.saved)}</span></summary><div class="note" style="margin-top:0">${t("monthNote")}</div></details>`;
 }
-
 // ============================================================ pages
-function renderAtRow() {
-  $("atRow").innerHTML = `<b class="small">${t("imAt")}</b>` + groceryShops().map((s) => `<button class="chip ${state.at === s ? "on" : ""}" data-at="${s}">${SHOP[s]}</button>`).join("");
+function atChips() {
+  return `<div class="atline"><span>${t("imAt")}</span>${groceryShops().map((s) => `<button class="chip ${state.at === s ? "on" : ""}" data-at="${s}">${SHOP[s]}</button>`).join("")}</div>`;
 }
 function renderPlan() {
   const out = $("planOut");
   LINES = {};
-  $("gymRow").style.display = state.city === "brno" && !state.at ? "" : "none";
-  $("lpRow").style.display = state.mode === "big" && !state.at ? "" : "none";
+  $("controls").style.display = state.at ? "none" : "";
+  $("gymRow").style.display = state.city === "brno" ? "" : "none";
+  $("lpRow").style.display = state.mode === "big" ? "" : "none";
   $("lpSeg").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.lp === (state.set.lunchPlan || "health")));
   if (!PRICES) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
-  renderAtRow();
   if (state.at && groceryShops().includes(state.at)) return renderInShop(out);
   const r = decide(); LAST = r;
   if (!r.rec) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
@@ -1146,52 +1277,63 @@ function renderPlan() {
   const used = rec.shops.filter((s) => rec.lines.some((l) => l.shop === s && !l.missing));
   const route = used.length ? used : rec.shops;
   const saved = Math.max(0, rec.normal - rec.total), nPortions = Math.max(1, D.meals.reduce((a, m) => a + (m.n || 4), 0));
-  const waits = rec.lines.filter((l) => !D.done.includes(l.b.it.id) && waitFor(l)).length;
-  let html = `<div class="card hero"><div class="label">${t("goTo")}</div>
-    <div class="go">${route.map((s) => SHOP[s]).join(" → ")}</div>
-    <div class="big"><div><b>${money(rec.total)}</b> <span>${t("pay")}</span></div>${lunch ? `<div><b>${money(rec.lines.reduce((a, l) => a + (l.missing ? 0 : l.qty ? l.cost / l.qty * l.b.need : l.cost), 0) / nPortions)}</b> <span>${t("perPortion")}</span></div>` : `<div><b>${money(saved)}</b> <span>${t("saveVs")}</span></div>`}</div>
-    <div class="pills">${route.map((s) => `<span class="pill">🎟 ${appName(s)} ${t("couponsShort")}</span>`).join("")}${rec.est ? `<span class="pill">≈ ${t("estPill", { n: rec.est, m: rec.lines.filter((l) => !l.missing).length })}</span>` : ""}</div>
-    ${tipHtml(r, lunch)}${r.steps.filter((x) => x.ok).map((x) => `<div class="tiny" style="margin-top:4px;opacity:.95">➕ ${t("stopGain", { s: SHOP[x.added], v: money(x.shown) })}</div>`).join("")}${r.trip ? `<div class="tiny" style="margin-top:4px;opacity:.95">🚋 ${t(r.trip.ok ? "tripGo" : "tripSkip", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>` : groceryShops().includes("kaufland") || state.mode !== "big" ? "" : `<div class="tiny" style="margin-top:4px;opacity:.85">🚋 ${t("tripNoData")}</div>`}</div>`;
+  // the slip: where to go, what you pay, what you save — then at most a few short notes
+  const foot = [], tip = tipHtml(r, lunch);
+  if (tip) foot.push(tip);
+  if (healthLunch()) {
+    const wk = weekPlan(), inside = (i) => daysBetween(today, cookDate(i)) < horizon();
+    const inN = wk.map((m, i) => i).filter(inside), rest = wk.map((m, i) => i).filter((i) => !inside(i));
+    if (wk.length && inN.length) foot.push(`<div class="m">${t("lunchIncl", { a: inN.map((i) => cookDay(i)).join(" + "), b: rest.length ? t("lunchNext", { b: rest.map((i) => cookDay(i)).join(" + ") }) : "" })}</div>`);
+  }
+  for (const x of r.steps.filter((x) => x.ok)) foot.push(`<div class="m">${t("stopGain", { s: SHOP[x.added], v: money(x.shown) })}</div>`);
+  if (r.trip) foot.push(`<div class="m">${t(r.trip.ok ? "tripGo" : "tripSkip", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>`);
+  else if (!groceryShops().includes("kaufland") && state.mode === "big") foot.push(`<div class="m">${t("tripNoData")}</div>`);
+  if (rec.est) foot.push(`<div class="m">${t("estPill", { n: rec.est, m: rec.lines.filter((l) => !l.missing).length })}</div>`);
+  const apps = route.filter((s) => APP[s]).map(appName);
+  if (apps.length) foot.push(`<div class="m">${t("activate", { a: apps.join(", ") })}</div>`);
+  const pp = lunch ? rec.lines.reduce((a, l) => a + (l.missing ? 0 : l.qty ? l.cost / l.qty * l.b.need : l.cost), 0) / nPortions : 0;
+  let html = `<div class="slip"><div class="lbl">${t("goTo")}</div>
+    <div class="go">${route.map((s) => SHOP[s]).join(` <span class="via">→</span> `)}</div>
+    <div class="lead pay"><span>${t("payL")}</span><i></i><b>${money(rec.total)}</b></div>
+    ${lunch ? `<div class="lead"><span>${t("portionL")}</span><i></i><b>${money(pp)}</b></div>` : `<div class="lead saved"><span>${t("savedL")}</span><i></i><b>${money(saved)}</b></div>`}
+    ${foot.length ? `<div class="foot">${foot.join("")}</div>` : ""}</div>`;
   if (lunch) {
     html += `<div class="seg full" id="lwSeg" style="margin-bottom:12px"><button data-lw="0" class="${D.lw ? "" : "on"}">${t("lwToday")}</button><button data-lw="1" class="${D.lw ? "on" : ""}">${t("lwWeek")}</button></div>`;
     if (D.lw) html += weekHtml(weekPlan(), true);
     else { const w0 = weekPlan()[0], ideas = mealIdeas(5).filter((x) => !w0 || x.key !== w0.key); LAST_MEALS = w0 ? [{ ...w0, inPlan: true }, ...ideas.slice(0, 4)] : ideas; html += mealsHtml(LAST_MEALS, true); }
   }
-  if (healthLunch()) {
-    const wk = weekPlan(), inside = (i) => daysBetween(today, cookDate(i)) < horizon();
-    const inN = wk.map((m, i) => i).filter(inside), rest = wk.map((m, i) => i).filter((i) => !inside(i));
-    if (wk.length) html += `<div class="card small" style="padding:10px 14px">${t("lunchIncl", { a: inN.map((i) => cookDay(i)).join(" + "), b: rest.length ? t("lunchNext", { b: rest.map((i) => cookDay(i)).join(" + ") }) : "" })}</div>`;
-  }
   const sw = swapsFor(rec);
   if (sw.length) html += `<div class="card"><h2>${t("swaps")}</h2>${sw.map((s) => `<div class="addrow"><div><div class="t">${esc(iname(BYID[s.from]))} → ${esc(iname(BYID[s.to]))}</div>
-    <div class="m">${money(s.uA)} → ${money(s.uB)} /${uName(BYID[s.to].unit)} · ${t("save")} <b>${money(s.sv)}</b></div></div><button class="btn primary" data-swap="${s.from}|${s.to}|${s.need}">${t("swapBtn")}</button></div>`).join("")}</div>`;
-  html += `<div class="card"><div class="row"><h2 style="margin:0">${t("list")}</h2><button class="btn" id="shareBtn">${t("share")}</button></div><div class="legend">${t("legend")}</div>`;
+    <div class="m">${money(s.uA)} → ${money(s.uB)} /${uName(BYID[s.to].unit)} · <b class="save-t">${t("save")} ${money(s.sv)}</b></div></div><button class="btn" data-swap="${s.from}|${s.to}|${s.need}">${t("swapBtn")}</button></div>`).join("")}</div>`;
+  html += `<div class="card"><div class="listhead"><h2>${t("list")}</h2><button class="btn ghost" id="shareBtn">${SHARE_ICO} ${t("share")}</button></div>${atChips()}`;
   const all = rec.lines.filter((l) => !l.missing);
   for (const s of route) {
     const ls = all.filter((l) => l.shop === s);
     if (!ls.length) continue;
-    html += `<div class="shop"><span class="dot" style="background:${SHOP_COLOR[s]}"></span>${SHOP[s]}<span class="sum">${money(ls.reduce((a, l) => a + l.cost, 0))}</span></div>`;
+    html += `<div class="shop">${SHOP[s]}<span class="sum">${money(ls.reduce((a, l) => a + l.cost, 0))}</span></div>`;
     html += ls.map(lineHtml).join("");
   }
   if (!all.length) html += `<div class="empty">${t("nothing")}</div>`;
-  if (all.length && all.every((l) => D.done.includes(l.b.it.id))) html += `<div class="note" style="text-align:center;font-size:1rem">${t("allDone")}</div>`;
+  if (all.length && all.every((l) => D.done.includes(l.b.it.id))) html += `<div class="note" style="text-align:center;font-size:1rem;font-weight:700">${t("allDone")}</div>`;
   if (r.home.length) html += `<div class="note">${t("atHome")} ${r.home.map((id) => esc(iname(BYID[id]))).join(", ")}</div>`;
   const inList = new Set(rec.lines.map((l) => l.b.it.id));
-  html += `<div style="margin-top:10px"><button class="btn" id="addItemBtn">${t("addItem")}</button></div>`;
+  html += `<div class="row" style="margin-top:10px;align-items:flex-start"><button class="btn quiet" id="addItemBtn">${t("addItem")}</button><div class="legend" style="margin:0;text-align:right">${all.some((l) => !l.o) ? t("legendEst") + "<br>" : ""}${t("legendTap")}</div></div>`;
   if (ADDING) html += `<div class="note">${t("pickItem")}</div><div class="chips">${ITEMS.filter((it) => it.group !== "drugstore" && !inList.has(it.id)).map((it) => `<button class="chip" data-additem="${it.id}">${esc(iname(it))}</button>`).join("")}</div>`;
   html += `</div>`;
   if (!lunch && state.mode !== "quick" && state.set.extras === "suggest") {
     const ex = r.ds.filter((d) => d.kind === "extra" && route.concat(nearShops()).includes(d.o.shop)).slice(0, 5);
     if (ex.length) html += `<div class="card"><h2>${t("extrasTitle")}</h2>${ex.map((d) => { const on = !!D.add[d.it.id], u = d.it.unit, amount = d.packs ? `${d.packs}× ${qtyTxt(d.o.pack, u)}` : qtyTxt(d.qty, u);
-      return `<div class="addrow"><div><div class="t">${esc(iname(d.it))} ${discBadge(d.o)}</div><div class="m"><span class="dot" style="background:${SHOP_COLOR[d.o.shop]}"></span> ${SHOP[d.o.shop]} · ${amount} · ${money(d.cost)}</div>${htag(d.it.id) ? `<div class="m">💪 ${htag(d.it.id)}</div>` : ""}</div>
-      <button class="btn ${on ? "done" : "primary"}" data-adddeal="${d.it.id}" data-qty="${d.qty}">${on ? t("added") : t("add")}</button></div>`; }).join("")}</div>`;
+      return `<div class="addrow"><div><div class="t">${esc(iname(d.it))} ${discBadge(d.o)}</div><div class="m">${SHOP[d.o.shop]} · ${amount} · ${money(d.cost)}</div>${htag(d.it.id) ? `<div class="m">${htag(d.it.id)}</div>` : ""}</div>
+      <button class="btn ${on ? "done" : ""}" data-adddeal="${d.it.id}" data-qty="${d.qty}">${on ? t("added") : t("add")}</button></div>`; }).join("")}</div>`;
   }
+  // secondary places, grouped quietly at the end
+  const links = [];
   if (!lunch) {
     const onRoute = state.mode === "quick" ? [] : r.ds.filter((d) => d.kind === "stock" && route.includes(d.o.shop) && !D.add[d.it.id]);
-    if (onRoute.length) html += `<div class="card linkrow" data-p="stock"><span>${t("stockLine", { n: onRoute.length, p: money(onRoute.reduce((a, d) => a + d.cost, 0)), v: money(onRoute.reduce((a, d) => a + d.saving, 0)) })} · ~${fmtN(Math.round(onRoute.reduce((a, d) => a + (d.it.unit === "ks" ? d.qty * 0.06 : d.qty), 0)))} kg</span><span class="arrow">›</span></div>`;
-    html += `<div class="card linkrow" data-p="health"><span>${t("mealsLink")}</span><span class="arrow">›</span></div>`;
+    if (onRoute.length) links.push(`<button class="linkrow" data-p="stock"><span>${t("stockLine")}<span class="m">${t("stockLineM", { n: onRoute.length, p: money(onRoute.reduce((a, d) => a + d.cost, 0)), v: money(onRoute.reduce((a, d) => a + d.saving, 0)) })}</span></span><span class="arrow">›</span></button>`);
+    links.push(`<button class="linkrow" data-p="health"><span>${t("mealsLink")}<span class="m">${t("mealsLinkM")}</span></span><span class="arrow">›</span></button>`);
   }
-  html += monthHtml();
+  const mh = monthHtml(); if (mh) links.push(mh);
   const cd = cityData(), why = [];
   why.push(t("bestSingle", { s: SHOP[r.bestSingle.shops[0]], v: money(r.bestSingle.total) }));
   r.steps.forEach((s) => why.push(t(s.ok ? "addWorth" : "addNot", { s: SHOP[s.added], v: money(Math.max(0, s.gain)), th: money(s.need ?? th.stop) })));
@@ -1199,12 +1341,12 @@ function renderPlan() {
   if (cd.uncovered?.length) why.push(t("notCompared", { s: cd.uncovered.map((s) => SHOP[s]).join(", ") }));
   if (rec.est) why.push(t("estNote", { n: rec.est }));
   const sorted = r.opts.slice().sort((a, b) => a.score - b.score);
-  html += `<details class="card"><summary>${t("why")}</summary><ul class="why">${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul><div class="tw" style="margin-top:8px"><table><thead><tr><th>${t("option")}</th><th class="num">${t("basket")}</th><th class="num">${t("stockup")}</th><th class="num">${t("effective")}</th></tr></thead><tbody>
-    ${sorted.map((o) => `<tr class="${o === rec ? "best" : ""}"><td>${o.shops.map((s) => SHOP[s]).join(" + ")}${o.est ? ` <span class="badge b-warn">${o.est} ${t("est")}</span>` : ""}</td><td class="num">${money(o.total)}</td><td class="num">${o.bonus > 0.5 ? "−" + money(o.bonus) : "—"}</td><td class="num">${money(o.score)}</td></tr>`).join("")}
-    </tbody></table></div></details>`;
+  links.push(`<details><summary>${t("why")}</summary><div><ul class="why">${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul><div class="tw" style="margin-top:8px"><table><thead><tr><th>${t("option")}</th><th class="num">${t("basket")}</th><th class="num">${t("stockup")}</th><th class="num">${t("effective")}</th></tr></thead><tbody>
+    ${sorted.map((o) => `<tr class="${o === rec ? "best" : ""}"><td>${o.shops.map((s) => SHOP[s]).join(" + ")}${o.est ? ` <span class="warn-t">${o.est} ${t("est")}</span>` : ""}</td><td class="num">${money(o.total)}</td><td class="num">${o.bonus > 0.5 ? "−" + money(o.bonus) : "—"}</td><td class="num">${money(o.score)}</td></tr>`).join("")}
+    </tbody></table></div></div></details>`);
+  html += `<div class="card group">${links.join("")}</div>`;
   out.innerHTML = html;
 }
-
 function renderInShop(out) {
   const at = state.at, D = day(), r = decide(), plan = r.rec;
   const byId = {}; for (const l of plan?.lines || []) byId[l.b.it.id] = l;
@@ -1223,29 +1365,33 @@ function renderInShop(out) {
   }
   LAST = { rec: { shops: [at], lines: buy, total: buy.reduce((a, l) => a + l.cost, 0) }, bask: r.bask };
   const sumBuy = LAST.rec.total, noData = !(cityData()?.covered || []).includes(at) || !ITEMS.some((it) => offersFor(it.id, at).length);
-  let html = `<div class="card hero"><div class="row"><div class="go" style="margin:0">${t("atShop", { s: SHOP[at] })}</div><button class="x" data-at="${at}">${t("back")}</button></div>
-    <div class="pills"><span class="pill">🛒 ${t("chipBuy", { n: buy.length, v: money(sumBuy) })}</span>${check.length ? `<span class="pill">🔍 ${t("chipCheck", { n: check.length })}</span>` : ""}${there.length ? `<span class="pill">➡ ${t("chipThere", { n: there.length })}</span>` : ""}${later.length ? `<span class="pill">⏳ ${later.length}</span>` : ""}<span class="pill">🎟 ${appName(at)}</span></div>
-    ${noData ? `<div class="tiny" style="margin-top:6px">${t("noShopData", { s: SHOP[at] })}</div>` : check.length > buy.length ? `<div class="tiny" style="margin-top:6px">${t("fewPrices", { s: SHOP[at] })}</div>` : ""}</div>`;
-  html += `<div class="card">`;
   const restShop = Object.entries(there.concat(check).reduce((a, x) => { if (!x.pl.est && x.pl.shop !== at) a[x.pl.shop] = (a[x.pl.shop] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1])[0];
-  if (restShop) html += `<div class="small" style="margin-bottom:6px"><b>${t("restAt", { n: buy.length, s: SHOP[restShop[0]] })}</b></div>`;
+  const foot = [];
+  if (check.length) foot.push(`<div>${t("chipCheck", { n: check.length })}</div>`);
+  if (noData) foot.push(`<div class="m">${t("noShopData", { s: SHOP[at] })}</div>`);
+  if (APP[at]) foot.push(`<div class="m">${t("activate", { a: appName(at) })}</div>`);
+  let html = `<div class="slip"><div class="top"><div><div class="lbl">${t("inShopL")}</div><div class="go">${SHOP[at]}</div></div><button class="btn" data-at="${at}">${t("back")}</button></div>
+    <div class="lead pay"><span>${t("buyHere")} · ${buy.length}</span><i></i><b>${money(sumBuy)}</b></div>
+    ${restShop ? `<div class="lead"><span>${t("restL")}</span><i></i><b>${SHOP[restShop[0]]}</b></div>` : ""}
+    ${foot.length ? `<div class="foot">${foot.join("")}</div>` : ""}</div>`;
+  html += `<div class="card">${atChips()}`;
   if (buy.length) html += `<div class="sec">${t("buyHere")}</div>` + buy.map(lineHtml).join("");
   if (later.length) html += `<div class="sec">${t("buyLater")}</div>` + later.map(lineHtml).join("");
   if (there.length) {
     html += `<div class="sec">${t("buyThere")}</div>`;
     const by = {}; for (const x of there) (by[x.pl.shop] = by[x.pl.shop] || []).push(x);
-    for (const [shop, xs] of Object.entries(by)) html += `<div class="li"><div class="ico"><span class="dot" style="background:${SHOP_COLOR[shop]}"></span></div><div><div class="nm">${SHOP[shop]}</div>
-      <div class="small muted" style="white-space:normal">${xs.map((x) => esc(iname(x.b.it)) + (x.sv ? ` <b style="color:var(--good)">+${money(x.sv)}</b>` : "")).join(" · ")}</div></div><div class="pr"></div></div>`;
+    for (const [shop, xs] of Object.entries(by)) html += `<div class="li"><div></div><div><div class="nm">${SHOP[shop]}</div>
+      <div class="small muted">${xs.map((x) => esc(iname(x.b.it)) + (x.sv ? ` <b class="save-t">+${money(x.sv)}</b>` : "")).join(" · ")}</div></div><div class="pr"></div></div>`;
   }
   if (check.length) {
     const row = (x) => {
       const done = D.done.includes(x.b.it.id), u = x.pl.qty ? x.pl.cost / x.pl.qty : x.pl.paid;
       LINES[x.b.it.id] = { shop: at, qty: x.pl.qty, cost: x.pl.cost, est: true, base: x.pl.cost, needBase: x.b.base || 0 };
-      return `<div class="li ${done ? "done" : ""}"><button class="ck" data-done="${x.b.it.id}">${done ? "✓" : ""}</button><div><div class="nm">${esc(iname(x.b.it))}<span class="qty">${amountTxt(x.pl)}</span></div>
-        <div class="sub">${x.b.it.id === "ham" && x.pl.whole ? "🐔 " + t("poultry") + " · " : ""}${t("buyIf", { p: money(u) + "/" + uName(x.b.it.unit) })}${x.pl.est ? "" : ` · ${t("elseAt", { s: SHOP[x.pl.shop] })}`}</div></div><div class="pr">≤ ${money(x.pl.cost)}</div></div>`;
+      return `<div class="li ${done ? "done" : ""}"><button class="ck" data-done="${x.b.it.id}" aria-label="${t("tickL")}"><span>${done ? "✓" : ""}</span></button><div><div class="nm">${esc(iname(x.b.it))}<span class="qty">${amountTxt(x.pl)}</span></div>
+        <div class="sub">${x.b.it.id === "ham" && x.pl.whole ? `<span class="tag">${t("poultry")}</span> · ` : ""}${t("buyIf", { p: money(u) + "/" + uName(x.b.it.unit) })}${x.pl.est || (restShop && x.pl.shop === restShop[0]) ? "" : ` · ${t("elseAt", { s: SHOP[x.pl.shop] })}`}</div></div><div class="pr">≤ ${money(x.pl.cost)}</div></div>`;
     };
     html += `<div class="sec">${t("checkShelf")}</div>` + check.slice(0, 5).map(row).join("");
-    if (check.length > 5) html += `<details><summary class="small">+ ${check.length - 5}</summary>${check.slice(5).map(row).join("")}</details>`;
+    if (check.length > 5) html += `<details style="margin-top:6px"><summary class="small">+ ${check.length - 5}</summary>${check.slice(5).map(row).join("")}</details>`;
   }
   if (!r.bask.length) html += `<div class="empty">${t("nothing")}</div>`;
   if (r.home.length) html += `<div class="note">${t("atHome")} ${r.home.map((id) => esc(iname(BYID[id]))).join(", ")}</div>`;
@@ -1254,11 +1400,19 @@ function renderInShop(out) {
   if (here.length) html += `<div class="card"><h2>${t("stockHere")}</h2>${here.slice(0, 5).map(stockRowHtml).join("")}</div>`;
   out.innerHTML = html;
 }
-
 function renderDeals() {
   const out = $("dealsOut");
   if (!PRICES) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
   let html = "";
+  const fresh = deals().filter((d) => d.kind === "fresh" || d.kind === "extra");
+  if (fresh.length) html += `<div class="card"><h2>${t("freshTitle")}</h2>${fresh.map((d) => `<div class="deal"><div class="row"><div class="t">${esc(iname(d.it))} <span class="muted" style="font-weight:500">· ${SHOP[d.o.shop]}</span></div>${discBadge(d.o)}</div><div class="m">${money(d.o.unit_price)}/${uName(d.it.unit)} · ${t("usual")} ${money(d.ref)} · ${validTxt(d.o)}</div></div>`).join("")}</div>`;
+  const up = [];
+  for (const it of ITEMS) {
+    const now = Math.min(...nearShops().flatMap((s) => offersFor(it.id, s).filter((x) => x.conf !== "low").map((x) => x.unit_price)), Infinity);
+    for (const o of (cityData().items[it.id]?.offers || [])) if (upcoming(o, 5) && discount(o) >= 0.2 && o.unit_price < now * 0.9 && it.group !== "drugstore" && !state.hide.includes(hideKey(o))) up.push({ it, o });
+  }
+  up.sort((a, b) => Date.parse(a.o.valid_from) - Date.parse(b.o.valid_from));
+  if (up.length) html += `<div class="card"><h2>${t("soon")}</h2>${up.slice(0, 10).map(({ it, o }) => `<div class="deal"><div class="row"><div class="t">${esc(iname(it))} <span class="muted" style="font-weight:500">· ${SHOP[o.shop]}</span></div>${discBadge(o)}</div><div class="m">${t("from")} ${dayTxt(o.valid_from)} · ${money(o.price)} · ${money(o.unit_price)}/${uName(it.unit)}</div></div>`).join("")}</div>`;
   const rows = [];
   for (const [id, p] of Object.entries(PROTEIN)) {
     const it = BYID[id]; if (!it) continue;
@@ -1266,27 +1420,16 @@ function renderDeals() {
     rows.push({ it, o, v: o.unit_price / (it.unit === "ks" ? p : p * 10) * 10, him: HIS.includes(id) });
   }
   rows.sort((a, b) => a.v - b.v);
-  const top = rows.slice(0, 8), max = top.length ? top[top.length - 1].v : 1;
-  if (top.length) html += `<div class="card"><h2>${t("protein")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("proteinUnit")}</div>${top.map((r, i) => `<div class="prow"><div class="row"><span><b>${esc(iname(r.it))}</b>${r.him ? ' <span class="badge b-info">♂</span>' : ""}${r.it.id.startsWith("liver") ? ` <span class="badge b-warn">⚠ ${t("liverShort")}</span>` : ""} <span class="tiny muted">${SHOP[r.o.shop]}</span></span><b style="${i === 0 ? "color:var(--good)" : ""}">${money(r.v)}</b></div><div class="bar"><i style="width:${Math.max(6, r.v / max * 100)}%;${i === 0 ? "" : "opacity:.55"}"></i></div></div>`).join("")}</div>`;
+  const top = rows.slice(0, 8);
+  if (top.length) html += `<div class="card"><h2>${t("protein")}</h2><div class="lead-in">${t("proteinUnit")}</div>${top.map((r, i) => `<div class="prow"><div class="row" style="align-items:flex-start"><span><b>${esc(iname(r.it))}</b> <span class="small muted">${SHOP[r.o.shop]}${r.him ? " · " + t("forYou") : ""}</span>${r.it.id.startsWith("liver") ? ` <span class="flag w">${t("liverShort")}</span>` : ""}</span><b class="${i === 0 ? "save-t" : ""}">${money(r.v)}</b></div></div>`).join("")}</div>`;
   const kl = state.city === "brno" ? (PRICES.kaufland_leaflets || []) : (PRICES.scans?.kaufland_kezmarok?.leaflets || []);
-  if (kl.length) html += `<div class="card"><h2>${t("kLeaf")}</h2>${kl.map((f) => `<div class="row" style="padding:6px 0"><span>${dateTxt(f.from)}–${dateTxt(f.to)}</span><a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>`).join("")}<div class="note">${t(groceryShops().includes("kaufland") ? "kNote" : "kNoteOff")}</div></div>`;
-  const up = [];
-  for (const it of ITEMS) {
-    const now = Math.min(...nearShops().flatMap((s) => offersFor(it.id, s).filter((x) => x.conf !== "low").map((x) => x.unit_price)), Infinity);
-    for (const o of (cityData().items[it.id]?.offers || [])) if (upcoming(o, 5) && discount(o) >= 0.2 && o.unit_price < now * 0.9 && it.group !== "drugstore" && !state.hide.includes(hideKey(o))) up.push({ it, o });
-  }
-  up.sort((a, b) => Date.parse(a.o.valid_from) - Date.parse(b.o.valid_from));
-  if (up.length) html += `<div class="card"><h2>${t("soon")}</h2>${up.slice(0, 10).map(({ it, o }) => `<div class="deal"><div class="row"><div class="t">${esc(iname(it))} · ${SHOP[o.shop]}</div>${discBadge(o)}</div><div class="m">${dayTxt(o.valid_from)} · ${money(o.price)} · ${money(o.unit_price)}/${uName(it.unit)}</div></div>`).join("")}</div>`;
-  const fresh = deals().filter((d) => d.kind === "fresh" || d.kind === "extra");
-  if (fresh.length) html += `<div class="card"><h2>${t("freshTitle")}</h2>${fresh.map((d) => `<div class="deal"><div class="row"><div class="t">${esc(iname(d.it))} · ${SHOP[d.o.shop]}</div>${discBadge(d.o)}</div><div class="m">${money(d.o.unit_price)}/${uName(d.it.unit)} · ${t("usual")} ${money(d.ref)} · ${validTxt(d.o)}</div></div>`).join("")}</div>`;
+  if (kl.length) html += `<div class="card"><h2>${t("kLeaf")}</h2><div class="lead-in">${t(groceryShops().includes("kaufland") ? "kNote" : "kNoteOff")}</div>${kl.map((f) => `<div class="row" style="padding:5px 0"><span>${dateTxt(f.from)}–${dateTxt(f.to)}</span><a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>`).join("")}</div>`;
   out.innerHTML = html || `<div class="card empty">${t("none")}</div>`;
 }
-
 function stockStep(it) { const w = weeklyOf(it); return it.unit === "ks" ? Math.max(1, Math.round(w / 2) || 1) : w > 0 ? Math.max(0.1, +(w / 2).toFixed(2)) : 0.25; }
 function renderStock() {
   const out = $("stockOut");
   if (!PRICES) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
-  const nd = histDays();
   let html = "";
   const ds = deals().filter((d) => d.kind === "stock");
   html += `<div class="card"><h2>${t("stockTitle")}</h2>${ds.length ? ds.map(stockRowHtml).join("") : `<div class="empty">${t("none")}</div>`}</div>`;
@@ -1295,21 +1438,20 @@ function renderStock() {
   if (!ids.length) html += `<div class="empty">${t("noStock")}</div>`;
   for (const id of ids) {
     const it = BYID[id], rem = stockRem(id), w = weeklyOf(it), daysLeft = w > 0 ? Math.round(rem / (w / 7)) : null, low = daysLeft != null && daysLeft <= 3;
-    const pct = daysLeft != null ? Math.min(100, daysLeft / 28 * 100) : 100;
     html += `<div class="prow"><div class="row"><span><b>${esc(iname(it))}</b> <span class="qty">${qtyTxt(rem, it.unit)}</span></span>
-      <span class="small" style="${low ? "color:var(--bad);font-weight:700" : "color:var(--muted)"}">${daysLeft != null ? t("daysLeft", { n: daysLeft }) : t("inStock")}</span></div>
-      <div class="bar"><i style="width:${Math.max(4, pct)}%;${low ? "background:var(--bad)" : ""}"></i></div>
-      <div class="row" style="justify-content:flex-start;gap:6px;margin-top:6px"><button class="btn" data-st="-" data-id="${id}">−</button><button class="btn" data-st="+" data-id="${id}">+</button><button class="btn ghost" data-st="x" data-id="${id}">${t("usedUp")}</button></div></div>`;
+      <span class="small ${low ? "warn-t" : "muted"}" style="${low ? "font-weight:700" : ""}">${daysLeft != null ? t("daysLeft", { n: daysLeft }) : t("inStock")}</span></div>
+      <div class="acts" style="margin-top:6px"><button class="btn" data-st="-" data-id="${id}" aria-label="less">−</button><button class="btn" data-st="+" data-id="${id}" aria-label="more">+</button><button class="btn ghost" data-st="x" data-id="${id}">${t("usedUp")}</button></div></div>`;
   }
   html += `<details style="margin-top:10px"><summary class="small">${t("addStock")}</summary><div class="chips">${ITEMS.filter((it) => it.group !== "drugstore" && it.shelf !== "fresh" && !ids.includes(it.id)).map((it) => `<button class="chip" data-stadd="${it.id}">${esc(iname(it))}</button>`).join("")}</div></details></div>`;
   out.innerHTML = html;
 }
-
 function renderPrices() {
-  const out = $("pricesOut");
+  const out = $("pricesOut"), drug = state.pv === "drug";
+  $("pview").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.pv === (drug ? "drug" : "food")));
+  $("foodView").style.display = drug ? "none" : ""; $("drugOut").style.display = drug ? "" : "none";
   if (!PRICES) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
   const q = normTxt($("q").value || ""), shops = groceryShops();
-  let html = `<div class="card note" style="margin-top:0">${t("pricesHint")} ${t("checkedAt", { d: dtTxt(PRICES.generated) })}</div>`;
+  let html = `<div class="note" style="margin:-4px 2px 10px">${t("pricesHint")}</div>`;
   for (const g of ["dinner", "lunch", "breakfast", "fruit", "pantry", "extras"]) {
     const its = ITEMS.filter((it) => it.group === g && (!q || normTxt(iname(it)).includes(q) || normTxt(it.en).includes(q)));
     if (!its.length) continue;
@@ -1317,44 +1459,43 @@ function renderPrices() {
       const cells = shops.map((s) => ({ s, o: offersFor(it.id, s).filter((o) => o.conf !== "low").sort((a, b) => a.unit_price - b.unit_price)[0] })).filter((c) => c.o).sort((a, b) => a.o.unit_price - b.o.unit_price);
       const rt = rhythmTxt(it.id), u = uName(it.unit);
       return `<div class="prow"><div class="row"><b>${esc(iname(it))}</b><span class="tiny muted">${t("usual")} ${money(usual(it.id))}/${u}</span></div>
-        <div class="small">${cells.length ? cells.map((c, i) => `<span style="${i === 0 ? "font-weight:800;color:var(--good)" : "color:var(--muted)"}">${SHOP[c.s]} ${money(c.o.unit_price)}${c.o.promo && (!usual(it.id) || c.o.unit_price < usual(it.id)) ? "★" : ""}</span>`).join(" · ") : "—"}</div>
+        <div class="small">${cells.length ? cells.map((c, i) => `<span class="${i === 0 ? "save-t" : "muted"}" style="${i === 0 ? "font-weight:750" : ""}">${SHOP[c.s]} ${money(c.o.unit_price)}${c.o.promo && (!usual(it.id) || c.o.unit_price < usual(it.id)) ? "★" : ""}</span>`).join(" · ") : "—"}</div>
         ${cells[0] ? `<div class="tiny muted">${esc(cells[0].o.name.slice(0, 60))}</div>` : ""}${rt ? `<div class="tiny muted">${rt}</div>` : ""}</div>`;
     }).join("") + `</div>`;
   }
   out.innerHTML = html;
 }
-
 function renderDrug() {
   const out = $("drugOut");
   if (!PRICES) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
   const its = ITEMS.filter((it) => it.group === "drugstore"), dun = cityData().drug_uncovered || [];
-  let html = `<div class="card"><div class="small muted">${t("drugHint")}${dun.length ? " " + t("notCompared", { s: dun.map((x) => SHOP[x]).join(", ") }) : ""}</div><div class="small" style="margin-top:8px"><b>${t("needNow")}:</b></div>
-    <div class="chips">${its.map((it) => `<button class="chip ${state.drugLow.includes(it.id) ? "on" : ""}" data-dlow="${it.id}">${esc(iname(it))}</button>`).join("")}</div></div>`;
+  let html = `<div class="card"><div class="small muted">${t("drugHint")}${dun.length ? " " + t("notCompared", { s: dun.map((x) => SHOP[x]).join(", ") }) : ""}</div><div class="small" style="margin-top:10px;font-weight:650">${t("needNow")}:</div>
+    <div class="chips">${its.map((it) => `<button class="chip ${state.drugLow.includes(it.id) ? "on" : ""}" data-dlow="${it.id}">${esc(iname(it))}</button>`).join("")}</div></div><div class="card">`;
   for (const it of its) {
     const offs = offersFor(it.id).sort((a, b) => a.unit_price - b.unit_price);
-    html += `<div class="card"><div class="row"><h2 style="margin:0">${esc(iname(it))}</h2>${state.drugLow.includes(it.id) ? `<span class="badge b-accent">${t("needNow")}</span>` : ""}</div>`;
-    if (!offs.length) { html += `<div class="empty">—</div></div>`; continue; }
-    html += offs.slice(0, 3).map((o, i) => `<div class="deal"><div class="row"><div class="t">${i === 0 && !TRIP.includes(o.shop) ? "★ " : ""}${SHOP[o.shop]} · ${money(o.price)}${o.pack ? ` / ${qtyTxt(o.pack, it.unit)}` : ""}</div>${discBadge(o)}</div><div class="m">${esc(o.name)} · ${money(o.unit_price)}/${uName(it.unit)} · ${validTxt(o)}</div></div>`).join("");
-    html += `</div>`;
+    html += `<div class="sec">${esc(iname(it))}${state.drugLow.includes(it.id) ? ` <span class="flag n">${t("needNow")}</span>` : ""}</div>`;
+    if (!offs.length) { html += `<div class="empty">—</div>`; continue; }
+    const per = []; for (const o of offs) if (!per.some((x) => x.shop === o.shop)) per.push(o);
+    html += per.slice(0, 2).map((o, i) => `<div class="deal"><div class="row"><div class="t">${SHOP[o.shop]} <span class="${i === 0 && !TRIP.includes(o.shop) ? "save-t" : ""}">${money(o.price)}</span>${o.pack ? ` <span class="muted" style="font-weight:500">/ ${qtyTxt(o.pack, it.unit)}</span>` : ""}</div>${discBadge(o)}</div><div class="m">${money(o.unit_price)}/${uName(it.unit)} · ${esc(o.name)}${o.promo ? " · " + validTxt(o) : ""}</div></div>`).join("");
   }
-  out.innerHTML = html;
+  out.innerHTML = html + `</div>`;
 }
-
 function renderSettings() {
   const s = state.set, src = PRICES?.sources || {};
   const rows = Object.entries(src).filter(([k]) => k.endsWith("_" + state.city)).map(([k, v]) => {
     const shop = k.split("_")[0], ok = v.status === "ok" && v.offers > 0, leaf = v.status === "leaflet";
-    return `<div class="setrow"><div><b>${SHOP[shop] || shop}</b><div class="tiny muted">${ok && !v.stale ? "" : esc(v.note || "") + " · "}${v.checked ? dtTxt(v.checked) : ""}</div></div><span class="badge ${ok ? "b-good" : leaf ? "b-info" : "b-warn"}">${ok ? t("covered") + " · " + v.offers : leaf ? t("leafOnly") : v.status === "ok" ? t("noPrices") : t("notCovered")}</span></div>`;
+    return `<div class="setrow"><div><b>${SHOP[shop] || shop}</b><div class="tiny muted">${[ok && !v.stale ? "" : esc(v.note || ""), v.checked ? dtTxt(v.checked) : ""].filter(Boolean).join(" · ")}</div></div><span class="small ${ok || leaf ? "muted" : "warn-t"}" style="font-weight:650;text-align:right">${ok ? "✓ " + v.offers : leaf ? t("leafOnly") : v.status === "ok" ? t("noPrices") : t("notCovered")}</span></div>`;
   }).join("");
-  const wk = ITEMS.filter((it) => it.group !== "drugstore" && it.group !== "extras").map((it) => `<div class="setrow"><span>${esc(iname(it))} <span class="tiny muted">${uName(it.unit)} ${t("perWeek")}${learned(it.id) != null && state.weekly[it.id] == null ? ` · 🧠 ${t("learnedTag")}` : ""}</span></span><input type="number" step="0.05" min="0" data-wk="${it.id}" value="${weeklyOf(it)}"></div>`).join("");
+  const wk = ITEMS.filter((it) => it.group !== "drugstore" && it.group !== "extras").map((it) => `<div class="setrow"><span>${esc(iname(it))} <span class="tiny muted">${uName(it.unit)} ${t("perWeek")}${learned(it.id) != null && state.weekly[it.id] == null ? ` · ${t("learnedTag")}` : ""}</span></span><input type="number" step="0.05" min="0" data-wk="${it.id}" value="${weeklyOf(it)}"></div>`).join("");
   $("setOut").innerHTML = `<div class="card"><h2>${t("settings")}</h2>
+    <div class="setrow"><span>${t("language")}</span><div class="seg" id="lang">${["en", "sk"].map((v) => `<button data-v="${v}" class="${state.lang === v ? "on" : ""}">${v === "en" ? "English" : "Slovenčina"}</button>`).join("")}</div></div>
     <div class="setrow"><span>${t("stopTh")} (Brno, Kč)</span><input type="number" data-set="stopBrno" value="${s.stopBrno}"></div>
     <div class="setrow"><span>${t("tripTh")} (Brno, Kč)</span><input type="number" data-set="tripBrno" value="${s.tripBrno}"></div>
     <div class="setrow"><span>${t("stopTh")} (Kežmarok, €)</span><input type="number" data-set="stopKk" value="${s.stopKk}"></div>
     <div class="setrow"><span>${t("tripTh")} (Kežmarok, €)</span><input type="number" data-set="tripKk" value="${s.tripKk}"></div>
     <div class="setrow"><span>${t("stockPct")}</span><input type="number" data-set="stockPct" value="${s.stockPct}"></div>
     <div class="setrow"><span>${t("alertPct")}</span><input type="number" data-set="alertPct" value="${s.alertPct}"></div>
-    <div class="setrow"><span>${t("learnSet")}</span><div class="seg">${["on", "off"].map((v) => `<button data-learn="${v}" class="${(state.set.learn !== false) === (v === "on") ? "on" : ""}">${v === "on" ? "✓" : "✕"}</button>`).join("")}</div></div>
+    <div class="setrow"><span>${t("learnSet")}</span><div class="seg">${["on", "off"].map((v) => `<button data-learn="${v}" class="${(state.set.learn !== false) === (v === "on") ? "on" : ""}">${t(v === "on" ? "onL" : "offL")}</button>`).join("")}</div></div>
     <div class="setrow"><span>${t("cooksSet")}</span><input type="number" min="2" max="5" data-set="cooks" value="${s.cooks}"></div>
     <div class="setrow"><span>${t("extrasSet")}</span><div class="seg" id="extrasSeg">${["auto", "suggest", "off"].map((v) => `<button data-ex="${v}" class="${s.extras === v ? "on" : ""}">${t("ex_" + v)}</button>`).join("")}</div></div>
     <div style="margin-top:8px"><button class="btn" id="resetSet">${t("reset")}</button></div></div>
@@ -1372,20 +1513,20 @@ function renderSettings() {
 function renderChrome() {
   document.documentElement.lang = state.lang;
   document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
-  for (const id of ["lang", "city", "mode"]) $(id).querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === state[id]));
+  for (const id of ["lang", "city", "mode"]) $(id)?.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === state[id]));
   $("gym").checked = !!state.gym;
   $("gear").classList.toggle("on", state.tab === "set");
   document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.toggle("on", b.dataset.p === state.tab));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("on", p.id === "p-" + state.tab));
   $("q").placeholder = t("search");
-  if (PRICES) $("updated").textContent = t("checkedAt", { d: dtTxt(PRICES.generated) });
+  if (PRICES) $("updated").textContent = t("pricesAt", { d: dtTxt(PRICES.generated) });
 }
 function renderAll() { renderChrome(); renderPlan(); renderHealth(); renderDeals(); renderStock(); renderPrices(); renderDrug(); renderSettings(); }
 
 // ============================================================ share
 function shareText() {
   const r = LAST; if (!r?.rec) return "";
-  const D = day(), lines = [`🛒 Grocery · ${dayTxt(today)}`];
+  const D = day(), lines = [`Grocery · ${dayTxt(today)}`];
   for (const s of r.rec.shops) {
     const ls = r.rec.lines.filter((l) => l.shop === s && !l.missing); if (!ls.length) continue;
     lines.push("", `${SHOP[s].toUpperCase()} — ${money(ls.reduce((a, l) => a + l.cost, 0))}`);
@@ -1509,6 +1650,7 @@ document.addEventListener("click", (e) => {
     for (const [id, q] of need) { if (on) delete D.add[id]; else { D.add[id] = +q.toFixed(3); D.skip = D.skip.filter((x) => x !== id); } }
     save(); renderAll(); return;
   }
+  if (b.dataset.pv) { state.pv = b.dataset.pv; save(); renderPrices(); return; }
   if (b.dataset.dlow) { const id = b.dataset.dlow; state.drugLow = state.drugLow.includes(id) ? state.drugLow.filter((x) => x !== id) : state.drugLow.concat(id); save(); renderDrug(); return; }
 });
 $("gym").addEventListener("change", (e) => { state.gym = e.target.checked; MEAL_CACHE = null; save(); renderPlan(); renderHealth(); renderDeals(); });
@@ -1524,7 +1666,8 @@ async function load() {
     PRICES = await pr.json();
   } catch (e) { PRICES = null; }
   try { const h = await fetch("data/history.json", { cache: "no-cache" }); if (h.ok) HIST = await h.json(); } catch (e) {}
-  if (!["plan", "health", "deals", "stock", "prices", "drug"].includes(state.tab)) state.tab = "plan";
+  if (state.tab === "drug") { state.tab = "prices"; state.pv = "drug"; }
+  if (!["plan", "health", "deals", "stock", "prices"].includes(state.tab)) state.tab = "plan";
   day(); cleanStock(); save();
   renderAll();
 }
