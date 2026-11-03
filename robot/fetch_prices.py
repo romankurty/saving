@@ -193,6 +193,11 @@ def offer(item_id, shop, city, currency, name, price, unit_price, pack, *, norma
         return None
     if it.get("min_pack") and pack and pack < it["min_pack"]:  # 150 g of "chicken" is a cold cut, not raw meat
         return None
+    # raw meat sold as whole boxes ("CA. 6 KG") can't be bought in household amounts
+    if it.get("min_pack"):
+        bm = re.search(r"\bca\.?\s*(\d+(?:[,.]\d+)?)\s*kg", norm(name))
+        if bm and float(bm.group(1).replace(",", ".")) >= 3:
+            return None
     # a "normal" price must be above the offer price and plausible (not a per-100 g number, not 6x higher)
     if normal_unit and (normal_unit <= unit_price * 1.001 or normal_unit > unit_price * 6 or not within_bounds(it, normal_unit, currency)):
         normal_unit = None

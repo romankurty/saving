@@ -258,7 +258,7 @@ ITEMS = [
          bounds=(1.5, 40), count_required=True),
     dict(id="wet_wipes", en="Wet toilet paper / wipes", sk="Vlhčený papier / obrúsky", group="drugstore", unit="ks", weekly=0, shelf="long", quick=False,
          cz=["vlhčený toaletní papír", "vlhčené ubrousky"], skt=["vlhčený toaletný papier", "vlhčené obrúsky"],
-         inc=r"vlhc|vlhk", exc=r"cistic|povrch|kuchyn|dezinf|nabytek|podlah|okn|antibakter|psy|zvirat|auto|okn|podlah|nabytek|nabytok|odlicov|make",
+         inc=r"vlhc|vlhk", exc=r"baby|detsk|deti|kojen|cistic|povrch|kuchyn|dezinf|nabytek|podlah|okn|antibakter|psy|zvirat|auto|okn|podlah|nabytek|nabytok|odlicov|make",
          bounds=(0.1, 5), count_required=True),
     dict(id="toothpaste", en="Toothpaste", sk="Zubná pasta", group="drugstore", unit="l", weekly=0, shelf="long", quick=False,
          cz=["zubní pasta"], skt=["zubná pasta"],
