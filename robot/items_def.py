@@ -146,9 +146,11 @@ ITEMS = [
          inc=r"\bkefir.*(jahod|boruv|cucorie|visn|visen|mango|ovoc|vanil|banan|malin|brosk|ochucen|jablk|hrusk|merunk|marhul|lesni|lesne)|(jahod|boruv|visn|mango|ovoc|vanil|banan|malin|brosk|ochucen|lesni).*\bkefir",
          exc=r"syr|tycink",
          bounds=(20, 250)),
-    dict(id="yoghurt", en="Yoghurt (for her, bifido)", sk="Jogurt (bifido)", group="breakfast", unit="kg", weekly=1.05, shelf="fresh", quick=True,
+    dict(id="yoghurt", en="Yoghurt (plain, for her)", sk="Jogurt (biely, pre ňu)", group="breakfast", unit="kg", weekly=1.05, shelf="fresh", quick=True,
          cz=["jogurt", "bifidus"], skt=["jogurt"],
-         inc=r"jogurt|jogurt|bifid|activia", exc=r"napoj|drink|tycink|cokol|musli|muesli|zmrzl|mrazen|zmrazen|cereal|dresink|omack|krem na|plet|telov|kosmet|susenk|oplat|polev|rozinky v|krekr",
+         inc=r"jogurt|jogurt|bifid|activia", exc=r"napoj|drink|tycink|cokol|musli|muesli|zmrzl|mrazen|zmrazen|cereal|dresink|omack|krem na|plet|telov|kosmet|susenk|oplat|polev|rozinky v|krekr|"
+             r"jahod|boruv|cucorie|malin|visn|visen|tresn|ceresn|brosk|merunk|marhul|ananas|mango|banan|vanil|karamel|straciat|kokos|lesni|lesne|ovocn|"
+             r"ochucen|prichut|smetanov|dezert|puding|ruzne druhy|rozne druhy|duo|kids|deti|slazen|sladen|med\b|medov",
          bounds=(30, 250)),
     dict(id="olive_oil", en="Olive oil", sk="Olivový olej", group="pantry", unit="l", weekly=0, shelf="long", quick=False,
          cz=["olivový olej"], skt=["olivový olej"],

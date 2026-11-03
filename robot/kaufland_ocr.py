@@ -14,7 +14,7 @@ UNIT_RE = re.compile(r"=\s*(1\s*kg|100\s*g|1\s*l|100\s*ml|1\s*ks)\s*[:=]?\s*(\d{
 UNIT_RE2 = re.compile(r"(1\s*kg|100\s*g|1\s*l|100\s*ml)\s*=\s*(\d{1,4})\s*[,.]\s*(\d{2})")
 MONEY_RE = re.compile(r"(?<![\d,.=])(\d{1,4})\s*[,.]\s*(\d{2})(?![\d%])")
 INT_PRICE_RE = re.compile(r"(?<![\d,.])(\d{3,5})(?![\d%,.])")
-VERSION = 3  # bump when the reading rules change, so cached results are re-read
+VERSION = 4  # bump when the reading rules change, so cached results are re-read
 FACTOR = {"1kg": 1.0, "100g": 10.0, "1l": 1.0, "100ml": 10.0, "1ks": 1.0}
 
 
@@ -158,8 +158,15 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, 
                     break
             if verified:
                 break
+        # "-36%" sticker next to the product -> Kaufland's own regular price (only a minus sign + 10-60 % counts)
+        disc = None
+        for L in near[:8]:
+            dm = re.search(r"[-–—]\s?(\d{2})\s?%", L["text"])
+            if dm and 10 <= int(dm.group(1)) <= 60:
+                disc = int(dm.group(1)) / 100
+                break
         if verified:
-            found.append((iid, name_text[:80], verified[0], unit, verified[1], card))
+            found.append((iid, name_text[:80], verified[0], unit, verified[1], card, disc))
             debug.append(("OK", iid, unit, verified, text[:100]))
         else:
             debug.append(("unverified", iid, unit, packs[:2], prices[:6], text[:100]))
@@ -210,8 +217,9 @@ def kaufland_offers(session_get, store_id, today, items_terms, deps, max_pages=4
                         seen_pg.add((x[0], x[3]))
                         got.append(x)
             debug_all += [(pg.get("number"),) + d for d in dbg]
-            for iid, name, price, unit, pack, card in got:
+            for iid, name, price, unit, pack, card, disc in got:
                 o = deps["offer"](iid, "kaufland", "brno", "CZK", clean_name(name), price, unit, pack, card=card, promo=True,
+                                  normal_price=round(price / (1 - disc), 2) if disc else None, normal_unit=round(unit / (1 - disc), 2) if disc else None,
                                   valid_from=vf + "T00:00:00+01:00" if vf else None, valid_to=vt + "T23:59:59+01:00" if vt else None,
                                   source=f"Kaufland leaflet p.{pg.get('number')} (scan, verified)", conf="med", url=f.get("flyerUrlAbsolute"))
                 if o:
