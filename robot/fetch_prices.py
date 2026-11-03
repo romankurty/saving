@@ -853,11 +853,13 @@ def main():
     CANNED = re.compile(r"nalev|sterilov|konzerv|plech|\d+ ?ml\b|v sl\.|v slanom|v slanem")
     for o in all_offers:
         if o["item"] == "quinoa" and CANNED.search(norm(o["name"])) and not o.get("dryeq"):
-            o["dryeq"] = 4
-            o["unit_price"] = round(o["unit_price"] * 4, 2)
-            o["pack"] = round(o["pack"] / 4, 4) if o.get("pack") else o.get("pack")
+            # pack ≤ 300 g = drained weight already (240 g cooked ≈ 95 g dry); bigger = whole can (400 g ≈ 100 g dry)
+            o["dryeq"] = 2.5 if (o.get("pack") or 1) <= 0.3 else 4
+            f = o["dryeq"]
+            o["unit_price"] = round(o["unit_price"] * f, 2)
+            o["pack"] = round(o["pack"] / f, 4) if o.get("pack") else o.get("pack")
             if o.get("normal_unit"):
-                o["normal_unit"] = round(o["normal_unit"] * 4, 2)
+                o["normal_unit"] = round(o["normal_unit"] * f, 2)
     def with_data(city, shops):  # a shop counts as covered only when it delivered prices for this city
         return [s for s in shops if any(o["city"] == city and o["shop"] == s for o in all_offers)]
     brno_shops = with_data("brno", ["lidl", "billa", "albert", "kaufland"])

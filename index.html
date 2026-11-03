@@ -243,7 +243,7 @@ const T = {
     healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (you eat ~56 %, she ~44 % of a cook; each nutrient max 100 %). ♂: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. ♀: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. 🍽 = raw weight per lunch. Approximate values.",
     extrasTitle: "🥗 Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
     covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland Královo Pole leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "📷 Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "📷 read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
-    tHealth: "Health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
+    tHealth: "Health", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving (needs {th}) → stay in the centre", lunchIncl: "🍽 Lunch plan in this shop: {a}{b}", lunchNext: " · next shop: {b}", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
     tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip: only +{v} (needs {th}) → stay in the centre",
     lpLabel: "🍽 Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "➡ Cheaper at the other shop (your plan)",
     noShopData: "No online prices for {s} — check the limits below.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
@@ -272,7 +272,7 @@ const T = {
     nothing: "Netreba nič kupovať.", est: "odhad", estLike: "tu bez ceny — odhad ako Billa +5 %",
     unitPrice: "Cena za jednotku", usual: "bežne", valid: "platí", priceOn: "cena z", check: "overiť akciu ↗",
     skip: "Dnes nie", wrong: "Zlý produkt", restore: "Znova zobraziť skryté produkty", hiddenN: "{n} skrytých produktov", healthy: "zdravá akcia",
-    waitBadge: "⏳ {d} {s} −{v}", waitTxt: "Lacnejšie od {d} v {s}: {p}", waitBtn: "Počkať", waitPill: "⏳ {n} o pár dní lacnejšie",
+    waitBadge: "⏳ {d} {s} −{v}", waitTxt: "Lacnejšie od {d} v {s}: {p}", waitBtn: "Počkať", waitPill: "⏳ {n}× lacnejšie o pár dní",
     swaps: "🔁 Lacnejšie náhrady", swapBtn: "Vymeniť", atHome: "🏠 Doma, vynechané:",
     stockTitle: "📦 Teraz do zásoby", myStock: "🏠 Moje zásoby", addStock: "+ Pridať do zásob", usedUp: "Minuté", daysLeft: "≈ {n} dní",
     inStock: "v zásobe", noStock: "Zatiaľ nič v zásobe. Ťukni ✓ Kúpené, keď nakúpiš do zásoby.", stockRoute: "📦 Do zásoby na trase: {n} · ušetríš {v}",
@@ -293,7 +293,7 @@ const T = {
     healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (ty zješ ~56 %, ona ~44 % varenia; každá živina max 100 %). ♂: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. ♀: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. 🍽 = surová váha na obed. Približné hodnoty.",
     extrasTitle: "🥗 Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
     covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland Kráľovo Pole", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "📷 Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "📷 prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
-    tHealth: "Zdravie", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
+    tHealth: "Zdravie", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "📦 Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory (treba {th}) → ostaň v centre", lunchIncl: "🍽 Obedy z plánu v tomto nákupe: {a}{b}", lunchNext: " · ďalší nákup: {b}", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
     tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu: len +{v} (treba {th}) → ostaň v centre",
     lpLabel: "🍽 Obedy", lpHealth: "Zdravý plán", lpUsual: "Ako zvyčajne", buyThere: "➡ Lacnejšie v druhom obchode (tvoj plán)",
     noShopData: "Pre {s} nie sú online ceny — riaď sa limitmi nižšie.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko máš v týždennom zozname",
@@ -388,7 +388,12 @@ function validTxt(o) {
   return `${t("priceOn")} ${dateTxt(chk)}`;
 }
 function byWeight(o) { return o.weighted || !o.pack || Math.abs(o.price / o.pack - o.unit_price) / o.unit_price > 0.15; }
-function roundQty(it, need) { return it?.unit === "ks" ? Math.max(1, Math.ceil(need - 0.15)) : Math.max(0.1, Math.round(need * 20) / 20); }
+const PIECE = { paprika: 0.15, tomato: 0.1, sweet_potato: 0.3, carrot: 0.1, onion: 0.12, bananas: 0.18, apples: 0.18, oranges: 0.2, kiwi: 0.08, broccoli: 0.4 };
+function roundQty(it, need) {
+  if (it?.unit === "ks") return Math.max(1, Math.ceil(need - 0.15));
+  const pc = PIECE[it?.id]; if (pc) return Math.max(1, Math.round(need / pc)) * pc;
+  return Math.max(0.1, Math.round(need * 20) / 20);
+}
 function purchase(o, need) {
   if (byWeight(o)) { const q = roundQty(BYID[o.item], need); return { o, packs: null, qty: q, cost: o.unit_price * q, paid: o.unit_price }; }
   let packs = Math.max(1, Math.ceil(need / o.pack - 1e-6)), price = o.price;
@@ -418,8 +423,9 @@ function bestPurchase(id, shop, need) {
 }
 function valueOf(p, need) { return p.qty ? p.cost / p.qty * need : p.cost; }
 // healthy engine: wholegrain bread / pasta / brown rice win when at most ~15 % dearer per kg
-const WG = { bread: /celozrn|zitn|spald|graham|vicezrn|viaczrn/, pasta: /celozrn|spald|integral|wholegrain|zitn/, rice: /natural|hned|celozrn|brown|cervena|cerna ryze/ };
+const WG = { ham: /kure|kuraci|kruti|morcac|drubez|hydin/, bread: /celozrn|zitn|spald|graham|vicezrn|viaczrn/, pasta: /celozrn|spald|integral|wholegrain|zitn/, rice: /natural|hned|celozrn|brown|cervena|cerna ryze/ };
 const WG_BONUS = 0.13;
+const HIS = ["pork", "liver_pork"]; // she doesn't eat pork
 function normTxt(s) { return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
 // compare shops by price per unit for the amount needed (a bigger pack at a lower unit price wins)
 function bestAnywhere(id, need, shops) {
@@ -479,7 +485,9 @@ function deals() {
     let packs = null;
     if (!byWeight(o)) { packs = Math.min(12, Math.max(o.min_qty || 1, Math.ceil(qty / o.pack - 1e-6))); qty = packs * o.pack; } else qty = Math.min(qty, 5);
     const ref = usual(it.id) || o.normal_unit;
-    res.push({ it, o, d: best.d, kind, qty, packs, cost: packs ? packs * o.price : qty * o.unit_price, saving: (ref - o.unit_price) * qty, ref });
+    const alt = Math.min(...nearShops().filter((s) => s !== o.shop).flatMap((s) => offersFor(it.id, s).filter((x) => x.conf !== "low").map((x) => x.unit_price)), Infinity);
+    res.push({ it, o, d: best.d, kind, qty, packs, cost: packs ? packs * o.price : qty * o.unit_price, saving: (ref - o.unit_price) * qty, ref,
+      only: Math.max(0, (Math.min(ref, alt) - o.unit_price) * qty) }); // what you'd lose by NOT going to this shop
   }
   return res.sort((a, b) => b.saving - a.saving);
 }
@@ -534,7 +542,7 @@ function evaluate(shops, bask, ds) {
     const u = usual(b.it.id); normal += (u && best.o ? Math.max(u, best.o.unit_price) * best.qty : best.cost);
   }
   let bonus = 0;
-  if (state.mode === "big") for (const d of ds) if (d.kind === "stock" && shops.includes(d.o.shop) && !bask.find((b) => b.it.id === d.it.id)) bonus += d.saving;
+  if (state.mode === "big") for (const d of ds) if (d.kind === "stock" && shops.includes(d.o.shop) && !bask.find((b) => b.it.id === d.it.id)) bonus += d.only;
   return { shops, lines, total, est, normal, bonus, score: vtotal - bonus };
 }
 
@@ -559,15 +567,18 @@ function tripCombos(base = []) {
 }
 function pickRoute(opts) {
   const th = thresholds();
-  const singles = opts.filter((o) => o.shops.length === 1).sort((a, b) => a.score - b.score);
+  // a shop where most of the list has no price is not a real option (estimates are guesses)
+  const real = (o) => o.est <= o.lines.length / 2;
+  const singles = opts.filter((o) => o.shops.length === 1).sort((a, b) => (real(b) - real(a)) || a.score - b.score);
   let rec = singles[0];
   const steps = [];
   for (;;) {
     const next = opts.filter((o) => o.shops.length === rec.shops.length + 1 && rec.shops.every((s) => o.shops.includes(s))).sort((a, b) => a.score - b.score)[0];
     if (!next) break;
     const added = next.shops.find((s) => !rec.shops.includes(s)), gain = rec.score - next.score;
-    steps.push({ ok: gain >= th.stop, added, gain });
-    if (gain >= th.stop) rec = next; else break;
+    const need = added === "albert" && state.gym && state.city === "brno" ? Math.min(th.stop, 30) : th.stop;
+    steps.push({ ok: gain >= need, added, gain, need });
+    if (gain >= need) rec = next; else break;
   }
   return { rec, steps, bestSingle: singles[0] };
 }
@@ -575,7 +586,7 @@ function pickRoute(opts) {
 function decide() {
   const ds = deals(), D = day();
   if (state.mode === "lunch" && D.lw) D.meals = weekPlan().map((m) => ({ key: m.key, n: m.portions, parts: m.parts.map((p) => [p.id, p.qty]) }));
-  if (state.mode === "lunch" && !D.meals.length) { const ms = mealIdeas(5), m = ms.find((x) => x.forHer) || ms[0]; if (m) D.meals = [{ key: m.key, n: m.portions, parts: m.parts.map((p) => [p.id, p.qty]) }]; }
+  if (state.mode === "lunch" && !D.meals.length) { const ms = mealIdeas(5), m = weekPlan()[0] || ms.find((x) => x.forHer) || ms[0]; if (m) D.meals = [{ key: m.key, n: m.portions, parts: m.parts.map((p) => [p.id, p.qty]) }]; }
   const { list: bask, home } = basket();
   if (state.mode !== "lunch" && state.set.extras === "auto") for (const d of ds) if (d.kind === "extra" && !D.drop.includes(d.it.id) && !bask.find((b) => b.it.id === d.it.id)) bask.push({ it: d.it, need: d.qty, auto: true, base: d.qty });
   const opts = combos().map((c) => evaluate(c, bask, ds));
@@ -607,6 +618,8 @@ function waitFor(l) {
   return best;
 }
 // smart swaps: similar item ≥30 % cheaper per unit on the chosen route
+// nutrient density per 100 g against both of your daily targets (used to block unhealthy swaps)
+function density(id) { const n = NUTR[id]; if (!n) return 0; let v = 0; for (const T of [TARGET.m, TARGET.f]) for (const [k, x] of Object.entries(T)) v += Math.min(1, (n[k] || 0) / x); return v; }
 function swapsFor(rec) {
   if (state.mode === "lunch") return [];
   const out = {};
@@ -615,6 +628,7 @@ function swapsFor(rec) {
     const g = SWAPS.find((x) => x.includes(l.b.it.id)); if (!g) continue;
     for (const alt of g) {
       if (alt === l.b.it.id || !BYID[alt] || BYID[alt].unit !== l.b.it.unit) continue;
+      if (density(alt) < density(l.b.it.id) * 0.8) continue; // healthy engine: never swap to a clearly less nutritious food
       const p = bestAnywhere(alt, l.b.need, rec.shops); if (!p) continue;
       const uA = l.cost / l.qty, uB = p.cost / p.qty, sv = (uA - uB) * l.b.need;
       if (sv >= minSave() * 1.5 && uB <= uA * 0.7 && (!out[l.b.it.id] || sv > out[l.b.it.id].sv)) out[l.b.it.id] = { from: l.b.it.id, to: alt, need: l.b.need, sv, p, uA, uB };
@@ -683,11 +697,11 @@ const MEAL_CARBS = [[["rice", 0.4]], [["pasta", 0.4], ["tomato_can", 0.8]], [["s
 const MEAL_VEGS = [["broccoli", 0.4], ["spinach", 0.3], ["paprika", 0.4], ["frozen_veg", 0.4], ["carrot", 0.4], ["mushrooms", 0.4], ["sauerkraut", 0.5]];
 const SHORT = {
   en: { chicken: "Chicken", chicken_frozen: "Chicken", turkey: "Turkey", pork: "Pork", liver_chicken: "Chicken liver", liver_pork: "Pork liver", beef: "Beef", salmon: "Salmon", tuna: "Tuna",
-    sardines: "Sardines", mackerel: "Mackerel", eggs: "Eggs", quinoa: "Lentils", yoghurt: "plain yoghurt", kefir: "kefir", cottage: "cottage cheese", bread: "wholegrain bread",
+    sardines: "Sardines", mackerel: "Mackerel", eggs: "Eggs", quinoa: "Lentils", yoghurt: "plain yoghurt", kefir: "kefir", cottage: "cottage cheese", bread: "rye bread",
     avocado: "avocado", nuts: "nuts", pumpkin_seeds: "pumpkin seeds", brazil_nuts: "Brazil nut", kiwi: "kiwi", oranges: "orange", blueberries: "blueberries", strawberries: "berries", bananas: "banana", apples: "apple", tomato: "tomato",
     rice: "rice", pasta: "pasta", tomato_can: "tomato sauce", sweet_potato: "sweet potatoes", broccoli: "broccoli", frozen_veg: "frozen veg", carrot: "carrots", paprika: "peppers", spinach: "spinach", mushrooms: "mushrooms", sauerkraut: "sauerkraut" },
   sk: { chicken: "Kuracie", chicken_frozen: "Kuracie", turkey: "Morčacie", pork: "Bravčové", liver_chicken: "Kuracia pečeň", liver_pork: "Bravčová pečeň", beef: "Hovädzie", salmon: "Losos", tuna: "Tuniak",
-    sardines: "Sardinky", mackerel: "Makrela", eggs: "Vajcia", quinoa: "Šošovica", yoghurt: "biely jogurt", kefir: "kefír", cottage: "cottage", bread: "celozrnný chlieb",
+    sardines: "Sardinky", mackerel: "Makrela", eggs: "Vajcia", quinoa: "Šošovica", yoghurt: "biely jogurt", kefir: "kefír", cottage: "cottage", bread: "ražný chlieb",
     avocado: "avokádo", nuts: "orechy", pumpkin_seeds: "tekvicové semienka", brazil_nuts: "para orech", kiwi: "kiwi", oranges: "pomaranč", blueberries: "čučoriedky", strawberries: "bobule", bananas: "banán", apples: "jablko", tomato: "paradajka",
     rice: "ryža", pasta: "cestoviny", tomato_can: "paradajková omáčka", sweet_potato: "batáty", broccoli: "brokolica", frozen_veg: "mrazená zelenina", carrot: "mrkva", paprika: "paprika", spinach: "špenát", mushrooms: "šampiňóny", sauerkraut: "kyslá kapusta" },
 };
@@ -737,7 +751,7 @@ function mealIdeas(n = 5) {
   for (const c of shared) { if (out.length >= 4) break; if (!keys.has(c.key)) take(c); }
   // always at least one fish lunch (omega-3, vit D)
   if (!out.some((c) => FISH.includes(c.fam))) { const f = shared.find((c) => FISH.includes(c.fam)); if (f) { if (out.length >= 4) out.pop(); out.push(f); } }
-  out.sort((a, b) => a.rank - b.rank);
+  out.sort((a, b) => b.hs - a.hs);
   const hisPick = his.find((c) => !fams.has(c.fam) && c.hs >= HFLOOR); // liver max 1x a week -> never two liver lunches
   if (hisPick) take(hisPick);
   for (const c of shared) { if (out.length >= 5) break; if (!keys.has(c.key) && !out.includes(c)) take(c); }
@@ -782,19 +796,19 @@ function cookDay(i) { return wdTxt(addDays(today, i * 2)); }
 function needsFreeze(m, i) { return i > 0 && BYID[m.parts[0].id]?.shelf !== "long"; }
 // daily boosters (food, not pills): amounts per day for him / her
 function boosters() {
-  const fr = [["kiwi", 0.075], ["oranges", 0.15]].filter(([id]) => BYID[id] && unitCost(id)).sort((a, b) => unitCost(a[0]).u * a[1] - unitCost(b[0]).u * b[1])[0];
+  const fr = [["kiwi", 0.075], ["oranges", 0.15]].filter(([id]) => BYID[id] && unitCost(id)?.o).sort((a, b) => unitCost(a[0]).u * a[1] - unitCost(b[0]).u * b[1])[0];
   const list = [{ id: "brazil_nuts", m: 0.005, f: 0.005, k: "b_brazil", ico: "🌰" }, { id: "pumpkin_seeds", m: 0.03, f: 0.02, k: "b_pumpkin", ico: "🎃" }];
   if (fr) list.push({ id: fr[0], m: fr[1], f: fr[1], k: "b_fruit", ico: fr[0] === "kiwi" ? "🥝" : "🍊" });
-  return list.filter((b) => BYID[b.id]).map((b) => { const c = unitCost(b.id); return { ...b, c, day: c ? c.u * (b.m + b.f) : null }; }).filter((b) => b.c);
+  return list.filter((b) => BYID[b.id]).map((b) => { const c = unitCost(b.id); return { ...b, c, day: c ? c.u * (b.m + b.f) : null }; }).filter((b) => b.c && b.c.o);
 }
 // her breakfast (he usually skips breakfast): per breakfast, ranked by ♀ fertility nutrients first, then price
-const BF = [[["yoghurt", 0.2], ["kiwi", 0.075, 1], ["pumpkin_seeds", 0.015]], [["kefir", 0.25], ["bananas", 0.12, 1], ["nuts", 0.02]],
+const BF = [[["yoghurt", 0.2], ["bananas", 0.12, 1], ["nuts", 0.02]], [["yoghurt", 0.2], ["apples", 0.15, 1], ["nuts", 0.02]], [["yoghurt", 0.2], ["blueberries", 0.08], ["nuts", 0.02]], [["yoghurt", 0.2], ["kiwi", 0.075, 1], ["pumpkin_seeds", 0.015]], [["kefir", 0.25], ["bananas", 0.12, 1], ["nuts", 0.02]],
   [["eggs", 2], ["bread", 0.06], ["paprika", 0.08]], [["cottage", 0.15], ["blueberries", 0.08], ["brazil_nuts", 0.005, 1]],
   [["bread", 0.06], ["avocado", 0.5], ["eggs", 1]], [["yoghurt", 0.2], ["strawberries", 0.1], ["nuts", 0.02]], [["kefir", 0.25], ["oranges", 0.15, 1], ["pumpkin_seeds", 0.015]]];
 function breakfasts() {
   const out = [];
   BF.forEach((parts, i) => {
-    if (!parts.every(([id]) => BYID[id] && unitCost(id))) return;
+    if (!parts.every(([id]) => BYID[id] && unitCost(id)?.o)) return;
     const tf = {}; let cost = 0; const shops = new Set(); let deal = false;
     for (const [id, q] of parts) { addNutr(tf, id, q); const c = unitCost(id); cost += c.u * q; if (c.o) { shops.add(c.o.shop); if (c.o.promo && discount(c.o) >= state.set.stockPct / 100) deal = true; } }
     const cf = cover(tf, "f"), score = scoreOf(cf);
@@ -807,7 +821,9 @@ function partTxt([id, q, pcs]) { const it = BYID[id]; return (pcs ? pcs + "×" :
 // raw amount per lunch for him / her
 function portionTxt(m) {
   const g = (id, q) => BYID[id].unit === "ks" ? String(Math.round(q)) + "×" : Math.round(q * 1000 / 5) * 5 + " g";
-  const P = m.parts[0], C = m.parts[1], sn = (id) => shortName(id).toLowerCase() + (id === "quinoa" ? " " + t("dry") : "");
+  const GEN = { chicken: "kuracieho", chicken_frozen: "kuracieho", turkey: "morčacieho", pork: "bravčového", beef: "hovädzieho", salmon: "lososa", tuna: "tuniaka",
+    sardines: "sardiniek", mackerel: "makrely", liver_chicken: "kuracej pečene", quinoa: "šošovice", rice: "ryže", pasta: "cestovín", sweet_potato: "batátov", eggs: "vajcia" };
+  const P = m.parts[0], C = m.parts[1], sn = (id) => (state.lang === "sk" && GEN[id] ? GEN[id] : shortName(id).toLowerCase()) + (id === "quinoa" ? " " + t("dry") : "");
   if (!m.forHer) return `♂ ${g(P.id, P.qty / m.portions)} ${sn(P.id)} + ${g(C.id, C.qty / m.portions)} ${sn(C.id)}`;
   const day = (q) => q / 2;
   const pm = BYID[P.id].unit === "ks" ? Math.round(day(P.qty) * SPLIT.m) : day(P.qty) * SPLIT.m, pf = BYID[P.id].unit === "ks" ? day(P.qty) - pm : day(P.qty) * SPLIT.f;
@@ -819,7 +835,7 @@ function barsHtml(wk) {
   const bs = boosters();
   const avg = (key) => { const o = {}; for (const m of wk) for (const [k, v] of Object.entries(m.h[key])) o[k] = (o[k] || 0) + v / wk.length; return o; };
   const lm = avg("tm"), lf = avg("tf"), xm = {}, xf = {};
-  for (const b of bs) { addNutr(xm, b.id, b.m); addNutr(xf, b.id, b.f); }
+  for (const b of bs) if (day().add[b.id] || stockRem(b.id) > 0) { addNutr(xm, b.id, b.m); addNutr(xf, b.id, b.f); }
   // everyday food from your weekly amounts: dinners, fruit, nuts, dairy (kefir = you, yoghurt + flavoured kefir = her)
   for (const it of ITEMS) {
     if (!NUTR[it.id] || !["dinner", "breakfast", "fruit"].includes(it.group) && it.id !== "nuts") continue;
@@ -832,7 +848,7 @@ function barsHtml(wk) {
   const block = (who, base, extra, title) => {
     const T = TARGET[who];
     return `<div class="sec">${title}</div>` + Object.keys(T).map((k) => {
-      const a = Math.min(1, (base[k] || 0) / T[k]), b = Math.min(1 - a, (extra[k] || 0) / T[k]), tot = a + b, low = tot < 0.6;
+      const a = Math.min(1, (base[k] || 0) / T[k]), b = Math.min(1 - a, (extra[k] || 0) / T[k]), tot = a + b, low = tot < 0.75;
       if (low) gaps.add(k + (k === "fol" ? "_" + who : ""));
       return `<div class="nrow"><span>${nl(k)}</span><div class="bar"><i style="width:${a * 100}%"></i><i class="x" style="width:${b * 100}%"></i></div><b style="${low ? "color:var(--bad)" : ""}">${Math.round(tot * 100)}%${low ? " ⚠" : ""}</b></div>`;
     }).join("");
@@ -853,7 +869,9 @@ function boostHtml() {
   }).join("")}</div>`;
 }
 function bfHtml() {
-  const list = breakfasts().slice(0, 3); if (!list.length) return "";
+  const all = breakfasts(), yog = all.find((b) => b.parts[0][0] === "yoghurt");
+  const list = all.slice(0, 3); if (yog && !list.includes(yog)) list[2] = yog;
+  if (!list.length) return "";
   const D = day();
   return `<div class="card"><h2>${t("bfTitle")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("bfSub")}</div>${list.map((b) => {
     const extra = b.parts.filter(([id]) => weeklyOf(BYID[id]) === 0), on = extra.length && extra.every(([id]) => D.add[id]);
@@ -929,7 +947,8 @@ function discBadge(o) {
 function amountTxt(l) {
   const u = l.b.it.unit, o = l.o || l.refO;
   if (l.packs && o) return o.pack ? `${l.packs}× ${o.dryeq ? qtyTxt(o.pack * o.dryeq, u) + " 🥫" : qtyTxt(o.pack, u)}` : `${l.packs}×`;
-  return "≈ " + qtyTxt(l.qty, u);
+  const pc = PIECE[l.b.it.id];
+  return pc ? `≈ ${Math.round(l.qty / pc)} ${uName("ks")} (${qtyTxt(l.qty, u)})` : "≈ " + qtyTxt(l.qty, u);
 }
 function regLine(l) {
   const u = usual(l.b.it.id);
@@ -938,12 +957,12 @@ function regLine(l) {
 function lineHtml(l) {
   regLine(l);
   const D = day(), id = l.b.it.id, done = D.done.includes(id), open = OPEN === id, w = done ? null : waitFor(l);
-  const tag = (l.b.auto ? `<span class="badge b-good">${t("healthy")}</span>` : "") + (l.whole ? ` <span class="badge b-good">🌾 ${t("whole")}</span>` : "");
+  const tag = (l.b.auto ? `<span class="badge b-good">${t("healthy")}</span>` : "") + (l.whole ? ` <span class="badge b-good">${id === "ham" ? "🐔 " + t("poultry") : "🌾 " + t("whole")}</span>` : "") + (HIS.includes(id) ? ` <span class="badge b-info">♂</span>` : "");
   const wb = w ? `<span class="badge b-info">${t("waitBadge", { d: wdTxt(w.o.valid_from), s: SHOP[w.o.shop], v: money(w.sv) })}</span>` : "";
   let more = "";
   if (open) {
     const o = l.o;
-    const unitRow = o ? `${t("unitPrice")}: <b>${money(o.unit_price)}/${uName(l.b.it.unit)}</b>${usual(id) ? ` · ${t("usual")} ${money(usual(id))}` : ""}` : `${t("est")}: ${money(l.paid)}/${uName(l.b.it.unit)}`;
+    const unitRow = o ? `${t("unitPrice")}: <b>${money(o.unit_price)}/${uName(l.b.it.unit)}</b>${o.dryeq ? ` <span class="muted">(${t("dryEq")})</span>` : ""}${usual(id) ? ` · ${t("usual")} ${money(usual(id))}` : ""}` : `${t("est")}: ${l.packs && l.refO?.pack ? money(l.paid) + " / " + qtyTxt(l.refO.pack, l.b.it.unit) : money(l.paid) + "/" + uName(l.b.it.unit)}`;
     const calc = l.packs ? `${l.packs} × ${money(l.paid)} = ${money(l.cost)}` : `${fmtN(l.qty)} ${uName(l.b.it.unit)} × ${money(l.paid)} = ${money(l.cost)}`;
     const rt = rhythmTxt(id);
     more = `<div class="more"><div>${unitRow}</div><div>${calc}</div>${o ? `<div class="muted">${esc(o.name)} · ${validTxt(o)}${o.card ? " · " + esc(o.card) : ""}${o.url ? ` · <a href="${esc(o.url)}" target="_blank" rel="noopener">${t("check")}</a>` : ""}</div>${o.conf === "med" ? `<div class="muted">${t("scanned")}</div>` : ""}` : ""}
@@ -955,7 +974,7 @@ function lineHtml(l) {
   return `<div class="li ${done ? "done" : ""}">
     <button class="ck" data-done="${id}" aria-label="done">${done ? "✓" : ""}</button>
     <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span> ${l.o ? discBadge(l.o) : `<span class="badge b-warn">${t("est")}</span>`} ${wb} ${tag}</div>
-      <div class="sub">${l.o ? esc(l.o.name) : t("estLike")}</div></div>
+      <div class="sub">${l.o ? esc(l.o.name) : l.refO ? t("estLike") : t("estTypical")}</div></div>
     <div class="pr">${money(l.cost)}</div>${more}</div>`;
 }
 function stockRowHtml(d) {
@@ -1017,10 +1036,15 @@ function renderPlan() {
     <div class="go">${route.map((s) => SHOP[s]).join(" → ")}</div>
     <div class="big"><div><b>${money(rec.total)}</b> <span>${t("pay")}</span></div>${lunch ? `<div><b>${money(rec.total / nPortions)}</b> <span>${t("perPortion")}</span></div>` : `<div><b>${money(saved)}</b> <span>${t("saveVs")}</span></div>`}</div>
     <div class="pills">${route.map((s) => `<span class="pill">🎟 ${appName(s)}</span>`).join("")}${waits ? `<span class="pill">${t("waitPill", { n: waits })}</span>` : ""}</div>
-    <div class="tiny" style="margin-top:6px;opacity:.85">🎟 = ${t("coupons")}</div>${r.trip ? `<div class="tiny" style="margin-top:4px;opacity:.95">🚋 ${t(r.trip.ok ? "tripGo" : "tripSkip", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>` : ""}</div>`;
+    <div class="tiny" style="margin-top:6px;opacity:.85">🎟 = ${t("coupons")}</div>${r.trip ? `<div class="tiny" style="margin-top:4px;opacity:.95">🚋 ${t(r.trip.ok ? "tripGo" : r.trip.gain > 0.5 ? "tripSkip" : "tripNone", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>` : ""}</div>`;
   if (lunch) {
     html += `<div class="seg full" id="lwSeg" style="margin-bottom:12px"><button data-lw="0" class="${D.lw ? "" : "on"}">${t("lwToday")}</button><button data-lw="1" class="${D.lw ? "on" : ""}">${t("lwWeek")}</button></div>`;
-    if (D.lw) html += weekHtml(weekPlan(), true); else { LAST_MEALS = mealIdeas(5); html += mealsHtml(LAST_MEALS, true); }
+    if (D.lw) html += weekHtml(weekPlan(), true);
+    else { const w0 = weekPlan()[0], ideas = mealIdeas(5); LAST_MEALS = w0 && !ideas.some((x) => x.key === w0.key) ? [w0, ...ideas.slice(0, 4)] : ideas; html += mealsHtml(LAST_MEALS, true); }
+  }
+  if (healthLunch()) {
+    const wk = weekPlan(), inN = wk.filter((m, i) => i * 2 < horizon()), rest = wk.filter((m, i) => i * 2 >= horizon());
+    if (wk.length) html += `<div class="card small" style="padding:10px 14px">${t("lunchIncl", { a: inN.map((m, i) => `<b>${cookDay(i)}</b> ${esc(mealName(m))}`).join(" · "), b: rest.length ? t("lunchNext", { b: rest.map((m) => esc(mealName(m))).join(", ") }) : "" })}</div>`;
   }
   const sw = swapsFor(rec);
   if (sw.length) html += `<div class="card"><h2>${t("swaps")}</h2>${sw.map((s) => `<div class="addrow"><div><div class="t">${esc(iname(BYID[s.from]))} → ${esc(iname(BYID[s.to]))}</div>
@@ -1048,13 +1072,13 @@ function renderPlan() {
   }
   if (!lunch) {
     const onRoute = r.ds.filter((d) => d.kind === "stock" && route.includes(d.o.shop) && !D.add[d.it.id]);
-    if (onRoute.length) html += `<div class="card linkrow" data-p="stock"><span>${t("stockRoute", { n: onRoute.length, v: money(onRoute.reduce((a, d) => a + d.saving, 0)) })}</span><span class="arrow">›</span></div>`;
+    if (onRoute.length) html += `<div class="card linkrow" data-p="stock"><span>${state.lang === "sk" ? t("dealsN", { n: onRoute.length, v: money(onRoute.reduce((a, d) => a + d.saving, 0)) }) : `📦 ${onRoute.length} stock-up deal${onRoute.length === 1 ? "" : "s"} on your route · save ${money(onRoute.reduce((a, d) => a + d.saving, 0))}`}</span><span class="arrow">›</span></div>`;
     html += `<div class="card linkrow" data-p="health"><span>${t("mealsLink")}</span><span class="arrow">›</span></div>`;
   }
   html += monthHtml();
   const cd = cityData(), why = [];
   why.push(t("bestSingle", { s: SHOP[r.bestSingle.shops[0]], v: money(r.bestSingle.total) }));
-  r.steps.forEach((s) => why.push(t(s.ok ? "addWorth" : "addNot", { s: SHOP[s.added], v: money(s.gain), th: money(th.stop) })));
+  r.steps.forEach((s) => why.push(t(s.ok ? "addWorth" : "addNot", { s: SHOP[s.added], v: money(Math.max(0, s.gain)), th: money(s.need ?? th.stop) })));
   if (r.trip) why.push(t(r.trip.ok ? "tripWorth" : "tripNot", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) }));
   if (cd.uncovered?.length) why.push(t("notCompared", { s: cd.uncovered.map((s) => SHOP[s]).join(", ") }));
   if (rec.est) why.push(t("estNote", { n: rec.est }));
@@ -1119,11 +1143,11 @@ function renderDeals() {
   for (const [id, p] of Object.entries(PROTEIN)) {
     const it = BYID[id]; if (!it) continue;
     const o = offersFor(id).filter((x) => x.conf !== "low").sort((a, b) => a.unit_price - b.unit_price)[0]; if (!o) continue;
-    rows.push({ it, o, v: o.unit_price / (it.unit === "ks" ? p : p * 10) * 10 });
+    rows.push({ it, o, v: o.unit_price / (it.unit === "ks" ? p : p * 10) * 10, him: HIS.includes(id) });
   }
   rows.sort((a, b) => a.v - b.v);
   const top = rows.slice(0, 8), max = top.length ? top[top.length - 1].v : 1;
-  if (top.length) html += `<div class="card"><h2>${t("protein")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("proteinUnit")}</div>${top.map((r, i) => `<div class="prow"><div class="row"><span><b>${esc(iname(r.it))}</b> <span class="tiny muted">${SHOP[r.o.shop]}</span></span><b style="${i === 0 ? "color:var(--good)" : ""}">${money(r.v)}</b></div><div class="bar"><i style="width:${Math.max(6, r.v / max * 100)}%;${i === 0 ? "" : "opacity:.55"}"></i></div></div>`).join("")}</div>`;
+  if (top.length) html += `<div class="card"><h2>${t("protein")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("proteinUnit")}</div>${top.map((r, i) => `<div class="prow"><div class="row"><span><b>${esc(iname(r.it))}</b>${r.him ? ' <span class="badge b-info">♂</span>' : ""} <span class="tiny muted">${SHOP[r.o.shop]}</span></span><b style="${i === 0 ? "color:var(--good)" : ""}">${money(r.v)}</b></div><div class="bar"><i style="width:${Math.max(6, r.v / max * 100)}%;${i === 0 ? "" : "opacity:.55"}"></i></div></div>`).join("")}</div>`;
   const kl = state.city === "brno" ? (PRICES.kaufland_leaflets || []) : [];
   if (kl.length) html += `<div class="card"><h2>${t("kLeaf")}</h2>${kl.map((f) => `<div class="row" style="padding:6px 0"><span>${dateTxt(f.from)}–${dateTxt(f.to)}</span><a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>`).join("")}<div class="note">${t(groceryShops().includes("kaufland") ? "kNote" : "kNoteOff")}</div></div>`;
   const up = [];
