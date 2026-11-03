@@ -247,7 +247,7 @@ const T = {
     healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (you eat ~56 %, she ~44 % of a cook; each nutrient max 100 %). ♂: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. ♀: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. 🍽 = raw weight per lunch. Approximate values.",
     extrasTitle: "🥗 Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
     covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland Královo Pole leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "📷 Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "📷 read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
-    tHealth: "Health", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "📷 = read from the leaflet picture · ≈ = estimate · tap a line for details",
+    tHealth: "Health", lastSeen: "≈ everyday price last seen {d}", learnedTag: "learned from your ticks", learnSet: "🧠 Learn amounts from my ticks", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "📷 = read from the leaflet picture · ≈ = estimate · tap a line for details",
     tipWait: "Wait till {d}: {i} at {s} saves {v}", tipStock: "Stock up {i} −{p}% at {s} → save {v}", tipExtra: "Healthy deal: {i} −{p}% at {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving (needs {th}) → stay in the centre", lunchIncl: "🍽 Lunch plan in this shop: {a}{b}", lunchNext: " · next shop: {b}", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
     tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip: only +{v} (needs {th}) → stay in the centre",
     lpLabel: "🍽 Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "➡ Cheaper at the other shop (your plan)",
@@ -298,7 +298,7 @@ const T = {
     healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (ty zješ ~56 %, ona ~44 % varenia; každá živina max 100 %). ♂: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. ♀: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. 🍽 = surová váha na obed. Približné hodnoty.",
     extrasTitle: "🥗 Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
     covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland Kráľovo Pole", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "📷 Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "📷 prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
-    tHealth: "Zdravie", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "📷 = prečítané z obrázka letáku · ≈ = odhad · ťukni na riadok pre detail",
+    tHealth: "Zdravie", lastSeen: "≈ bežná cena naposledy {d}", learnedTag: "naučené z odškrtnutí", learnSet: "🧠 Učiť sa množstvá z odškrtnutí", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "📷 = prečítané z obrázka letáku · ≈ = odhad · ťukni na riadok pre detail",
     tipWait: "Počkaj do {d}: {i} v {s} ušetrí {v}", tipStock: "Do zásoby {i} −{p}% v {s} → ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% v {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "📦 Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory (treba {th}) → ostaň v centre", lunchIncl: "🍽 Obedy z plánu v tomto nákupe: {a}{b}", lunchNext: " · ďalší nákup: {b}", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
     tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu: len +{v} (treba {th}) → ostaň v centre",
     lpLabel: "🍽 Obedy", lpHealth: "Zdravý plán", lpUsual: "Ako zvyčajne", buyThere: "➡ Lacnejšie v druhom obchode (tvoj plán)",
@@ -370,7 +370,21 @@ function daysBetween(a, b) { return Math.round((Date.parse(b + "T12:00:00") - Da
 function median(a) { const v = a.slice().sort((x, y) => x - y); if (!v.length) return null; const m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; }
 function thresholds() { return state.city === "brno" ? { stop: +state.set.stopBrno, trip: +state.set.tripBrno } : { stop: +state.set.stopKk, trip: +state.set.tripKk }; }
 function minSave() { return state.city === "brno" ? 10 : 0.4; }
-function weeklyOf(it) { return state.weekly[it.id] ?? it.weekly; }
+function learned(id) {
+  if (state.set.learn === false) return null;
+  const es = state.log.filter((e) => e.i === id && e.c === state.city && daysBetween(e.d, today) <= 56);
+  if (es.length < 3) return null;
+  const first = es.reduce((a, e) => (e.d < a ? e.d : a), today), span = daysBetween(first, today);
+  if (span < 21) return null;
+  const st = stockMap()[id], it = BYID[id], rem = st && it ? Math.max(0, st.qty - Math.max(0, daysBetween(st.start, today)) * it.weekly / 7) : 0; // no recursion via weeklyOf
+  const used = es.reduce((a, e) => a + (e.q || 0), 0) - rem;
+  return used > 0 ? used / (span / 7) : null;
+}
+function weeklyOf(it) {
+  if (state.weekly[it.id] != null) return state.weekly[it.id];
+  const l = it.weekly > 0 ? learned(it.id) : null;
+  return l != null ? +(0.5 * it.weekly + 0.5 * l).toFixed(3) : it.weekly;
+}
 function horizon() { return state.mode === "quick" ? 1 : state.mode === "big" ? 3.5 : 0; }
 function toast(msg) { const el = $("toast"); el.textContent = msg; el.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("on"), 1800); }
 
@@ -535,13 +549,20 @@ function mainShop(shops) {
   const n = (sh) => (COVN[state.city + sh] ??= ITEMS.reduce((a, it) => a + (offersFor(it.id, sh).length ? 1 : 0), 0));
   return shops.length < 2 ? shops[0] : shops.slice().sort((a, b) => n(b) - n(a))[0];
 }
+function lastSeen(id, shops) {
+  const H = HIST?.[state.city]?.[id]; if (!H) return null;
+  let best = null;
+  for (const s of shops) for (const r of H[s] || []) if (r[2] && daysBetween(r[0], today) <= 30 && (!best || r[0] > best.d)) best = { u: r[2], d: r[0], shop: s };
+  return best;
+}
 function evaluate(shops, bask, ds) {
   const lines = []; let total = 0, est = 0, normal = 0, vtotal = 0;
   for (const b of bask) {
     let best = bestAnywhere(b.it.id, b.need, shops);
     if (!best) {
-      const ref = groceryShops().includes("billa") ? bestPurchase(b.it.id, "billa", b.need) : null;
-      if (ref) best = { shop: mainShop(shops), est: true, cost: ref.cost * 1.05, qty: ref.qty, packs: ref.packs, paid: ref.paid * 1.05, refO: ref.o };
+      const seen = lastSeen(b.it.id, shops), ref = groceryShops().includes("billa") ? bestPurchase(b.it.id, "billa", b.need) : null;
+      if (seen) { const q = roundQty(b.it, b.need); best = { shop: seen.shop, est: true, cost: seen.u * q, qty: q, packs: null, paid: seen.u, seen: seen.d }; }
+      else if (ref) best = { shop: mainShop(shops), est: true, cost: ref.cost * 1.05, qty: ref.qty, packs: ref.packs, paid: ref.paid * 1.05, refO: ref.o };
       else {
         const u = (usual(b.it.id) ?? Math.min(...offersFor(b.it.id).map((o) => o.unit_price), Infinity)) * 1.1;
         if (!isFinite(u)) { lines.push({ b, missing: true }); continue; }
@@ -1001,7 +1022,7 @@ function lineHtml(l) {
   return `<div class="li ${done ? "done" : ""}">
     <button class="ck" data-done="${id}" aria-label="done">${done ? "✓" : ""}</button>
     <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span> ${l.o ? discBadge(l.o) : ""} ${wb} ${tag}</div>
-      <div class="sub">${l.o ? esc(l.o.name) : `<i>${t("noPriceShort")}</i>`}</div></div>
+      <div class="sub">${l.o ? esc(l.o.name) : `<i>${l.seen ? t("lastSeen", { d: dateTxt(l.seen) }) : t("noPriceShort")}</i>`}</div></div>
     <div class="pr">${confGlyph(l)}${money(l.cost)}</div>${more}</div>`;
 }
 function stockRowHtml(d) {
@@ -1252,7 +1273,7 @@ function renderSettings() {
     const shop = k.split("_")[0], ok = v.status === "ok" && v.offers > 0, leaf = v.status === "leaflet";
     return `<div class="setrow"><div><b>${SHOP[shop] || shop}</b><div class="tiny muted">${ok && !v.stale ? "" : esc(v.note || "") + " · "}${v.checked ? dtTxt(v.checked) : ""}</div></div><span class="badge ${ok ? "b-good" : leaf ? "b-info" : "b-warn"}">${ok ? t("covered") + " · " + v.offers : leaf ? t("leafOnly") : v.status === "ok" ? t("noPrices") : t("notCovered")}</span></div>`;
   }).join("");
-  const wk = ITEMS.filter((it) => it.group !== "drugstore" && it.group !== "extras").map((it) => `<div class="setrow"><span>${esc(iname(it))} <span class="tiny muted">${uName(it.unit)} ${t("perWeek")}</span></span><input type="number" step="0.05" min="0" data-wk="${it.id}" value="${weeklyOf(it)}"></div>`).join("");
+  const wk = ITEMS.filter((it) => it.group !== "drugstore" && it.group !== "extras").map((it) => `<div class="setrow"><span>${esc(iname(it))} <span class="tiny muted">${uName(it.unit)} ${t("perWeek")}${learned(it.id) != null && state.weekly[it.id] == null ? ` · 🧠 ${t("learnedTag")}` : ""}</span></span><input type="number" step="0.05" min="0" data-wk="${it.id}" value="${weeklyOf(it)}"></div>`).join("");
   $("setOut").innerHTML = `<div class="card"><h2>${t("settings")}</h2>
     <div class="setrow"><span>${t("stopTh")} (Brno, Kč)</span><input type="number" data-set="stopBrno" value="${s.stopBrno}"></div>
     <div class="setrow"><span>${t("tripTh")} (Brno, Kč)</span><input type="number" data-set="tripBrno" value="${s.tripBrno}"></div>
@@ -1260,6 +1281,7 @@ function renderSettings() {
     <div class="setrow"><span>${t("tripTh")} (Kežmarok, €)</span><input type="number" data-set="tripKk" value="${s.tripKk}"></div>
     <div class="setrow"><span>${t("stockPct")}</span><input type="number" data-set="stockPct" value="${s.stockPct}"></div>
     <div class="setrow"><span>${t("alertPct")}</span><input type="number" data-set="alertPct" value="${s.alertPct}"></div>
+    <div class="setrow"><span>${t("learnSet")}</span><div class="seg">${["on", "off"].map((v) => `<button data-learn="${v}" class="${(state.set.learn !== false) === (v === "on") ? "on" : ""}">${v === "on" ? "✓" : "✕"}</button>`).join("")}</div></div>
     <div class="setrow"><span>${t("cooksSet")}</span><input type="number" min="2" max="5" data-set="cooks" value="${s.cooks}"></div>
     <div class="setrow"><span>${t("extrasSet")}</span><div class="seg" id="extrasSeg">${["auto", "suggest", "off"].map((v) => `<button data-ex="${v}" class="${s.extras === v ? "on" : ""}">${t("ex_" + v)}</button>`).join("")}</div></div>
     <div style="margin-top:8px"><button class="btn" id="resetSet">${t("reset")}</button></div></div>
@@ -1403,6 +1425,7 @@ document.addEventListener("click", (e) => {
     save(); renderPlan(); return;
   }
   if (b.dataset.ex) { state.set.extras = b.dataset.ex; save(); renderAll(); return; }
+  if (b.dataset.learn) { state.set.learn = b.dataset.learn === "on"; save(); renderAll(); return; }
   if (b.dataset.lp) { state.set.lunchPlan = b.dataset.lp; save(); renderPlan(); return; }
   if (b.dataset.lw != null) { D.lw = b.dataset.lw === "1"; D.meals = []; save(); renderPlan(); return; }
   if (b.dataset.weekgo) { state.mode = "lunch"; state.at = null; D.lw = true; D.meals = []; state.tab = "plan"; save(); renderAll(); window.scrollTo(0, 0); return; }

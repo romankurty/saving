@@ -1,6 +1,6 @@
 // Service worker: lets the app open without internet (shows the last saved prices).
 // Network first: when online you always get the newest prices and app version.
-var CACHE = 'grocery-v7';
+var CACHE = 'grocery-v8';
 
 var CORE_FILES = [
   './',

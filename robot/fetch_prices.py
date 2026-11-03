@@ -148,10 +148,15 @@ ITEM = {it["id"]: it for it in ITEMS}
 
 
 PET = re.compile(PET_EXC)
+# non-food products (Lidl/Kaufland home & garden brands, devices, candles ...) never count as food or drugstore items
+NONFOOD = re.compile(r"silvercrest|livarno|parkside|crivit|esmara|lupilu|tronic|ernesto|yankee|candle|sviec|svic|elektrick|mlynek na|mlyncek na|"
+                     r"odvlhc|zvlhc|kavovar|fritez|mixer|hrnec|panev|forma na|chlebnik|kosik na|lego|puzzle")
 
 
 def match_items(name):
     t = norm(name)
+    if NONFOOD.search(t):
+        return []
     pet = bool(PET.search(t))
     out = []
     for iid, (inc, exc) in COMPILED.items():

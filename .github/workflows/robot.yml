@@ -3,7 +3,9 @@ name: price-robot
 on:
   schedule:
     - cron: "15 4 * * *"      # every morning (~05:15 Brno time in winter)
-    - cron: "15 17 * * 3,4"   # Wednesday + Thursday evening, when new leaflets start
+    - cron: "15 10 * * *"     # midday refresh (Billa card prices / Lidl daily deals change during the day)
+    - cron: "15 16 * * *"     # late afternoon, before the evening shop (~17:15)
+    - cron: "45 19 * * 2,3"   # Tue + Wed evening: next leaflets usually appear
   workflow_dispatch:
   push:
     paths:
