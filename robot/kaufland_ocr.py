@@ -14,7 +14,7 @@ UNIT_RE = re.compile(r"=\s*(1\s*kg|100\s*g|1\s*l|100\s*ml|1\s*ks)\s*[:=]?\s*(\d{
 UNIT_RE2 = re.compile(r"(1\s*kg|100\s*g|1\s*l|100\s*ml)\s*=\s*(\d{1,4})\s*[,.]\s*(\d{2})")
 MONEY_RE = re.compile(r"(?<![\d,.=])(\d{1,4})\s*[,.]\s*(\d{2})(?![\d%])")
 INT_PRICE_RE = re.compile(r"(?<![\d,.])(\d{3,5})(?![\d%,.])")
-VERSION = 5  # bump when the reading rules change, so cached results are re-read
+VERSION = 6  # bump when the reading rules change, so cached results are re-read
 FACTOR = {"1kg": 1.0, "100g": 10.0, "1l": 1.0, "100ml": 10.0, "1ks": 1.0}
 
 
@@ -115,9 +115,13 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, 
         block = near[:14]
         order = lambda ls: sorted(ls, key=lambda L: (L["y0"], L["x0"]))  # noqa: E731
         # product names are printed above (or level with) their unit price, never below it
-        name_text = " ".join(L["text"] for L in order([L for L in near if L["cy"] <= U["cy"] + 0.6 * U["h"]][:6]))
+        above = [L for L in near if L["cy"] <= U["cy"] + 0.6 * U["h"]]
+        name_text = " ".join(L["text"] for L in order(above[:6]))
         text = " ".join(L["text"] for L in order(block))
         ids = match_items(name_text)
+        if not ids:  # the product name is sometimes a little higher (big price box in between)
+            name_text = " ".join(L["text"] for L in order(above[:8]))
+            ids = match_items(name_text)
         if len(ids) > 1:
             ids = [i for i in ids if i not in GENERIC] or ids
         if not ids:
@@ -158,6 +162,19 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, 
                     break
             if verified:
                 break
+        # big prices are printed as "29" + small "90": if unit price x pack gives a real shop price (x,90 / x,99 ...)
+        # and its whole-crown part is printed in the block, that is the price
+        if not verified:
+            ints = set(re.findall(r"(?<![\d,.])\d{1,4}(?![\d,.])", text))
+            for pq in packs:
+                pk = convert(pq[0], pq[1], it["unit"])
+                if not pk:
+                    continue
+                exp = unit * pk
+                p2 = round(exp, 2)
+                if p2 >= 1 and abs(exp - p2) <= 0.005 * max(1, pk) + 0.006 and f"{p2:.2f}"[-2:] in ENDINGS and str(int(p2)) in ints:
+                    verified = (p2, pk)
+                    break
         # "-36%" sticker next to the product -> Kaufland's own regular price (only a minus sign + 10-60 % counts)
         disc = None
         for L in near[:8]:
