@@ -227,7 +227,7 @@ ITEMS = [
          cz=["tuňák"], skt=["tuniak"],
          inc=r"\btunak|\btuniak", exc=r"pomazank|salat|pastet|krmiv|kocky|psy|kapsick|sendvic|bageta|pizza|testovin|cestovin|felix|whiskas",
          bounds=(150, 1200)),
-    dict(id="quinoa", en="Quinoa / lentils / chickpeas", sk="Quinoa / šošovica / cícer", group="extras", unit="kg", weekly=0, shelf="long", quick=False, deal_qty=1.0,
+    dict(id="quinoa", en="Lentils / chickpeas (dry weight)", sk="Šošovica / cícer (suchá váha)", group="extras", unit="kg", weekly=0, shelf="long", quick=False, deal_qty=1.0,
          cz=["quinoa", "čočka", "cizrna"], skt=["quinoa", "šošovica", "cícer"],
          inc=r"quinoa|kinoa|\bcocka\b|\bcocku\b|\bsosovic|cizrn|\bcicer", exc=r"chips|krekr|tycin|polevk|salat|pomazank|hummus|testovin|cestovin|hotov|pasta|mouk|muk|placky|snack|puffed|burizon",
          bounds=(30, 600)),

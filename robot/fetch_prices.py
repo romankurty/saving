@@ -797,8 +797,22 @@ def main():
         STATUS.setdefault(name, {"status": "not covered", "offers": 0, "note": notes[name.split("_")[0]]})
 
     hist_path = os.path.join(ROOT, "data", "history.json")
-    history = load(hist_path, {})
+    history = hist0
+    if not history.get("_mig_dryeq"):  # one-time: legume history was on can weight
+        for c in ("brno", "kezmarok"):
+            history.get(c, {}).pop("quinoa", None)
+        history["_mig_dryeq"] = TODAY
     cities = {}
+    # legumes: compare on DRY weight. A 400 g can holds ~240 g cooked = ~100 g dry, so canned price per kg x4
+    CANNED = re.compile(r"nalev|sterilov|konzerv|plech|\d+ ?ml\b|v sl\.|v slanom|v slanem")
+    for o in all_offers:
+        if o["item"] == "quinoa" and CANNED.search(norm(o["name"])) and not o.get("dryeq"):
+            o["dryeq"] = 4
+            o["unit_price"] = round(o["unit_price"] * 4, 2)
+            o["pack"] = round(o["pack"] / 4, 4) if o.get("pack") else o.get("pack")
+            if o.get("normal_unit"):
+                o["normal_unit"] = round(o["normal_unit"] * 4, 2)
+    hist0 = load(os.path.join(ROOT, "data", "history.json"), {})
     brno_shops = ["lidl", "billa", "albert"] + (["kaufland"] if k_offers else [])
     for city, currency, shops in (("brno", "CZK", brno_shops), ("kezmarok", "EUR", ["lidl", "billa"])):
         items_out = {}
