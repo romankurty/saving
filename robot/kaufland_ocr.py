@@ -14,7 +14,7 @@ UNIT_RE = re.compile(r"=\s*(1\s*kg|100\s*g|1\s*l|100\s*ml|1\s*ks)\s*[:=]?\s*(\d{
 UNIT_RE2 = re.compile(r"(1\s*kg|100\s*g|1\s*l|100\s*ml)\s*=\s*(\d{1,4})\s*[,.]\s*(\d{2})")
 MONEY_RE = re.compile(r"(?<![\d,.=])(\d{1,4})\s*[,.]\s*(\d{2})(?![\d%])")
 INT_PRICE_RE = re.compile(r"(?<![\d,.])(\d{3,5})(?![\d%,.])")
-VERSION = 8  # bump when the reading rules change, so cached results are re-read
+VERSION = 9  # bump when the reading rules change, so cached results are re-read
 FACTOR = {"1kg": 1.0, "100g": 10.0, "1l": 1.0, "100ml": 10.0, "1ks": 1.0}
 
 
@@ -95,7 +95,7 @@ def page_passes(img, pytesseract, Image):
     yield ocr_lines(img.resize((W * 2, H * 2), Image.LANCZOS), pytesseract, digit_conf=0, scale=2.0)
 
 
-def _verify(packs, prices, text, unit, it, convert):
+def _verify(packs, prices, text, unit, it, convert, own=()):
     """price / pack must reproduce the printed unit price (3 %), or unit x pack must be a real shop price whose
     whole-crown part is printed (big '29' + small '90')."""
     for pq in packs:
@@ -106,13 +106,14 @@ def _verify(packs, prices, text, unit, it, convert):
             if p > 0 and abs(p / pk - unit) / unit <= TOL:
                 return (p, pk)
     ints = set(re.findall(r"(?<![\d,.])\d{1,4}(?![\d,.])", text))
-    for pq in packs:
+    for pq in own:  # only the pack size printed with the product's own name
         pk = convert(pq[0], pq[1], it["unit"])
         if not pk:
             continue
         exp = unit * pk
         p2 = round(exp, 2)
-        if p2 >= 1 and abs(exp - p2) <= 0.005 * max(1, pk) + 0.006 and f"{p2:.2f}"[-2:] in ENDINGS and str(int(p2)) in ints:
+        whole = str(int(p2))
+        if p2 >= 1 and (len(whole) >= 2 or f"{int(p2)}" in ints and re.search(r"(?<!\d)%s\s*[,.]?\s*%s" % (whole, f"{p2:.2f}"[-2:]), text)) and abs(exp - p2) <= 0.005 * max(1, pk) + 0.006 and f"{p2:.2f}"[-2:] in ENDINGS and str(int(p2)) in ints:
             return (p2, pk)
     return None
 
@@ -132,8 +133,9 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, 
             continue
         base = m.group(1).replace(" ", "")
         unit = float(m.group(2) + "." + m.group(3)) * FACTOR.get(base, 1.0)
-        # product block: from 0.22 W ABOVE the unit-price line to 0.05 W below it, same column
-        near = [L for L in lines if L is not U and abs(L["cx"] - U["cx"]) < 0.22 * W and -0.05 * W < (U["cy"] - L["cy"]) < 0.22 * W]
+        # product block: from 0.22 W above the unit-price line to 0.15 W below it, same column
+        # (Kaufland prints the big price above/next to the unit price, Lidl often below it)
+        near = [L for L in lines if L is not U and abs(L["cx"] - U["cx"]) < 0.22 * W and -0.15 * W < (U["cy"] - L["cy"]) < 0.22 * W]
         near.sort(key=lambda L: abs(U["cy"] - L["cy"]) + 0.6 * abs(U["cx"] - L["cx"]))
         block = near[:14]
         order = lambda ls: sorted(ls, key=lambda L: (L["y0"], L["x0"]))  # noqa: E731
@@ -174,17 +176,18 @@ def read_page(img, pytesseract, match_items, parse_qty, convert, norm, ITEM, W, 
                     break
         prices = _price_candidates(block)
         card = card_name if re.search(card_re, norm(text)) else None
-        verified = _verify(packs, prices, text, unit, it, convert)
+        own = [q for q in (parse_qty(name_text),) if q]
+        verified = _verify(packs, prices, text, unit, it, convert, own)
         if not verified and packs:
             # small price boxes: zoom into this product (3x) and read it again
             x0, x1 = max(0, int(U["cx"] - 0.24 * W)), min(img.size[0], int(U["cx"] + 0.24 * W))
-            y0, y1 = max(0, int(U["cy"] - 0.26 * W)), min(img.size[1], int(U["cy"] + 0.06 * W))
+            y0, y1 = max(0, int(U["cy"] - 0.26 * W)), min(img.size[1], int(U["cy"] + 0.16 * W))
             if x1 - x0 > 40 and y1 - y0 > 40:
                 crop = img.crop((x0, y0, x1, y1))
                 crop = crop.resize(((x1 - x0) * 3, (y1 - y0) * 3), 1)
                 zl = ocr_lines(crop, pytesseract, digit_conf=0, scale=3.0)
                 ztext = " ".join(L["text"] for L in zl)
-                verified = _verify(packs, _price_candidates(zl), ztext, unit, it, convert)
+                verified = _verify(packs, _price_candidates(zl), ztext, unit, it, convert, own)
                 if verified:
                     debug.append(("zoom-OK", iid, unit, verified))
         # "-36%" sticker next to the product -> Kaufland's own regular price (only a minus sign + 10-60 % counts)

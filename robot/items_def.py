@@ -123,7 +123,7 @@ ITEMS = [
          bounds=(20, 250)),
     dict(id="corn", en="Sweet corn (can)", sk="Kukurica (konzerva)", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["kukuřice"], skt=["kukurica"],
-         inc=r"kukuric", exc=r"popcorn|lupin|chips|krup|mouk|muk|kase|flakes|tycin|klas|corn|krekr|chleb|plack|olej|mrazen|zmrazen|zmes|smes",
+         inc=r"kukuric", exc=r"trubick|chrumk|snack|tycin|chips|lupien|popcorn|popcorn|lupin|chips|krup|mouk|muk|kase|flakes|tycin|klas|corn|krekr|chleb|plack|olej|mrazen|zmrazen|zmes|smes",
          bounds=(20, 250)),
     dict(id="peas", en="Peas (can)", sk="Hrášok (konzerva)", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["hrášek"], skt=["hrášok"],
