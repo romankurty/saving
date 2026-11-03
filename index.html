@@ -407,7 +407,13 @@ function upcoming(o, days = 4) { const f = o.valid_from ? Date.parse(o.valid_fro
 function hideKey(o) { return o.shop + "|" + o.name; }
 function offersFor(id, shop) {
   const d = cityData()?.items?.[id];
-  return (d?.offers || []).filter((o) => (!shop || o.shop === shop) && validNow(o) && !state.hide.includes(hideKey(o)));
+  return (d?.offers || []).filter((o) => (!shop || o.shop === shop) && validNow(o) && !state.hide.includes(hideKey(o)) && plausible(o));
+}
+// a price read from a leaflet picture far below the regular price is almost always a misread
+function plausible(o) {
+  if (o.conf !== "med") return true;
+  const u = cityData()?.items?.[o.item]?.usual ?? null, x = otherUsual(o.item), ref = u != null ? u : x;
+  return ref == null || o.unit_price >= ref * 0.45;
 }
 function usual(id) {
   const u = cityData()?.items?.[id]?.usual ?? null, o = otherUsual(id);
