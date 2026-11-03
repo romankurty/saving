@@ -717,7 +717,7 @@
     "orechy"
    ],
    "bounds": [
-    120,
+    150,
     900
    ]
   },
@@ -1055,8 +1055,8 @@
   },
   {
    "id": "quinoa",
-   "en": "Quinoa / lentils / chickpeas",
-   "sk": "Quinoa / šošovica / cícer",
+   "en": "Lentils / chickpeas (dry weight)",
+   "sk": "Šošovica / cícer (suchá váha)",
    "group": "extras",
    "unit": "kg",
    "weekly": 0,
