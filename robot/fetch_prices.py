@@ -793,6 +793,28 @@ def main():
         live = [o for o in k_offers if (o.get("valid_from") or "")[:10] <= TODAY]
         STATUS["kaufland_brno"] = {"status": "ok", "offers": len(k_offers), "checked": (k_cache or {}).get("scanned") or NOW.isoformat(),
                                    "note": f"leaflet deals read from the leaflet images, only self-checked prices ({len(live)} valid today)"}
+    # safety net: when a shop's check fails today, keep its last good prices (max 3 days old), clearly dated
+    for key, st in list(STATUS.items()):
+        shop, city = key.split("_", 1)
+        if shop not in ("lidl", "billa", "albert", "teta") or (st.get("status") == "ok" and st.get("offers")):
+            continue
+        pst = (prev.get("sources") or {}).get(key) or {}
+        pchk = pst.get("checked") or ""
+        if not pchk or pst.get("status") != "ok" or not pst.get("offers"):
+            continue
+        try:
+            age = (NOW - dt.datetime.fromisoformat(pchk)).total_seconds() / 86400
+        except ValueError:
+            continue
+        if age > 3:
+            continue
+        old = [o for d in ((prev.get("cities") or {}).get(city, {}).get("items") or {}).values() for o in d.get("offers", [])
+               if o.get("shop") == shop and (o.get("valid_to") or "9999")[:10] >= TODAY]
+        if old:
+            all_offers += old
+            STATUS[key] = {**pst, "status": "ok", "offers": len(old), "stale": True,
+                           "note": f"today's check failed - showing prices from {pchk[:10]}"}
+            log(f"{key}: check failed, reusing {len(old)} offers from {pchk[:10]}")
     notes = {"kaufland": "blocks robots on its website; leaflet only as images",
              "tesco": "blocks robots on all its websites",
              "dm": "its robots rules forbid reading product data",
@@ -801,7 +823,7 @@ def main():
         STATUS.setdefault(name, {"status": "not covered", "offers": 0, "note": notes[name.split("_")[0]]})
 
     hist_path = os.path.join(ROOT, "data", "history.json")
-    history = hist0
+    history = load(hist_path, {})
     if not history.get("_mig_dryeq"):  # one-time: legume history was on can weight
         for c in ("brno", "kezmarok"):
             history.get(c, {}).pop("quinoa", None)
@@ -816,7 +838,6 @@ def main():
             o["pack"] = round(o["pack"] / 4, 4) if o.get("pack") else o.get("pack")
             if o.get("normal_unit"):
                 o["normal_unit"] = round(o["normal_unit"] * 4, 2)
-    hist0 = load(os.path.join(ROOT, "data", "history.json"), {})
     def with_data(city, shops):  # a shop counts as covered only when it delivered prices for this city
         return [s for s in shops if any(o["city"] == city and o["shop"] == s for o in all_offers)]
     brno_shops = with_data("brno", ["lidl", "billa", "albert", "kaufland"])
@@ -851,6 +872,7 @@ def main():
             obs += [o["unit_price"] for o in offs if not o["promo"]]
             for rows in ih.values():
                 obs += [r[2] for r in rows if r[2] and r[0] >= cutoff]
+            obs = [x for x in obs if within_bounds(it, x, currency)]  # drop mis-scaled numbers (e.g. per 100 g)
             usual = round(p25(obs), 2) if obs else None
             # never above the cheapest everyday (non-promo) price you can get today -> no fake "deals"
             everyday = [o["unit_price"] for o in offs if not o["promo"] and o.get("conf") != "low"]
