@@ -11,7 +11,7 @@ bounds: sane unit-price range in CZK per base unit (filters out wrong matches). 
 
 EUR_CZK = 25.0
 
-PROCESSED = r"uzen|sunk|salam|klobas|park|parek|pastik|pastet|konzerv|vyvar|polevk|hotov|smazen|obalov|nuget|nugget|kebab|gyros|tlacenk|jitrnic|jelit|slanin|bacon|krm |pro psy|pro kocky|granul|kapsicka"
+PROCESSED = r"sekan|uzen|sunk|salam|klobas|park|parek|pastik|pastet|konzerv|vyvar|polevk|hotov|smazen|obalov|nuget|nugget|kebab|gyros|tlacenk|jitrnic|jelit|slanin|bacon|krm |pro psy|pro kocky|granul|kapsicka"
 
 ITEMS = [
     # ---------------- dinner ----------------
@@ -56,30 +56,30 @@ ITEMS = [
          inc=r"chleb|chlieb|sumava", exc=r"rozpek|dopec|toust|toast|rohlik|bageta|strouhank|kruton|chlebic|knacke|tycink|crisp|veka|kaiser|housk|tortill|pita|krekr|bezlep|sendvic|chlebovy|chlebova",
          bounds=(25, 200)),
     # ---------------- lunch ----------------
-    dict(id="chicken", en="Chicken (fresh)", sk="Kuracie mäso (čerstvé)", group="lunch", unit="kg", weekly=3.0, shelf="fresh", quick=False,
+    dict(id="chicken", min_pack=0.3, en="Chicken (fresh)", sk="Kuracie mäso (čerstvé)", group="lunch", unit="kg", weekly=3.0, shelf="fresh", quick=False,
          cz=["kuřecí prsa", "kuřecí řízky", "kuřecí stehna", "kuře"], skt=["kuracie prsia", "kuracie rezne", "kuracie stehná", "kurča"],
          inc=r"\b(kur(e|ec|ec[ia])|kuraci|kurac|kurc|kurat).*(prs|rizk|rezn|stehn|palic|kridl|cel[ea]|duo|filet|platk|mix|cast|ctvrt|drob)|\bkure\b|\bkurca\b",
          exc=PROCESSED + r"|jatr|pecen\b|pecienk|marinov|mrazen|zmrazen|hluboko|vyvar|bujon|pomazank|sendvic|tortill|wrap|bageta|krmiv|salat|grilovan|pecene|pecena|dusen|sous|kari|chips|nudl|instant",
          bounds=(50, 450)),
-    dict(id="chicken_frozen", en="Chicken (frozen, stock-up)", sk="Kuracie mäso (mrazené)", group="lunch", unit="kg", weekly=0, shelf="freezable", quick=False,
+    dict(id="chicken_frozen", min_pack=0.3, en="Chicken (frozen, stock-up)", sk="Kuracie mäso (mrazené)", group="lunch", unit="kg", weekly=0, shelf="freezable", quick=False,
          cz=["kuřecí mražené"], skt=["kuracie mrazené"],
          inc=r"\b(kur|kurac|kurc).*(mrazen|zmrazen)|(mrazen|zmrazen).*\b(kur|kurac|kurc)",
          exc=PROCESSED + r"|pizza|hranol|nudl|instant|smes",
          bounds=(50, 400)),
-    dict(id="pork", en="Pork", sk="Bravčové mäso", group="lunch", unit="kg", weekly=1.0, shelf="freezable", quick=False,
+    dict(id="pork", min_pack=0.3, en="Pork", sk="Bravčové mäso", group="lunch", unit="kg", weekly=1.0, shelf="freezable", quick=False,
          cz=["vepřové maso", "vepřová krkovice", "vepřová kýta", "vepřová plec", "vepřová pečeně"], skt=["bravčové mäso", "bravčová krkovička", "bravčové stehno", "bravčové pliecko"],
          inc=r"(vepr|bravc).*(krkovic|plec|pliec|kotlet|pecene|panenk|bok|bucek|bocik|maso|rizek|kyt|stehn|kolin|mlet|zebr|karé|kare|steak|nudlick|gulas|kost)",
          exc=PROCESSED + r"|sadlo|skvark|jatr|\bpecen\b|pecienk|marinov|hotov|vyvar|polevk",
          bounds=(60, 450)),
-    dict(id="liver_chicken", en="Chicken liver", sk="Kuracia pečeň", group="lunch", unit="kg", weekly=0, shelf="fresh", quick=False,
+    dict(id="liver_chicken", min_pack=0.3, en="Chicken liver", sk="Kuracia pečeň", group="lunch", unit="kg", weekly=0, shelf="fresh", quick=False,
          cz=["kuřecí játra"], skt=["kuracia pečeň"],
          inc=r"(kureci|kuraci|kuraca|kuracia).*(jatr|\bpecen\b)|jatra kureci", exc=r"pastik|pastet|pomazank|konzerv|krm",
          bounds=(30, 300)),
-    dict(id="liver_pork", en="Pork liver", sk="Bravčová pečeň", group="lunch", unit="kg", weekly=0, shelf="fresh", quick=False,
+    dict(id="liver_pork", min_pack=0.3, en="Pork liver", sk="Bravčová pečeň", group="lunch", unit="kg", weekly=0, shelf="fresh", quick=False,
          cz=["vepřová játra"], skt=["bravčová pečeň"],
          inc=r"(vepr|bravc).*(jatr|\bpecen\b)", exc=r"pastik|pastet|pomazank|konzerv|krm|knedl|jitrnic",
          bounds=(30, 300)),
-    dict(id="beef", en="Beef (only at a very good price)", sk="Hovädzie (len vo veľmi dobrej cene)", group="lunch", unit="kg", weekly=0, shelf="freezable", quick=False,
+    dict(id="beef", min_pack=0.3, en="Beef (only at a very good price)", sk="Hovädzie (len vo veľmi dobrej cene)", group="lunch", unit="kg", weekly=0, shelf="freezable", quick=False,
          cz=["hovězí maso"], skt=["hovädzie mäso"],
          inc=r"hovez|hovadz", exc=PROCESSED + r"ready|omack|omac|rajsk|svickov|hame|poesie|so stavou|pripravok|s testovin|knedl|houskov|premium \d|vyvar|bujon|polevk|gulas hotov|burger|kostk|konzerv|tatark|carpacc|vepr|bravc|kura|kure|mix",
          bounds=(120, 900)),
@@ -195,7 +195,7 @@ ITEMS = [
          cz=["losos"], skt=["losos"],
          inc=r"\blosos", exc=r"prsty|mousse|pate|hotov|pasta|krem|polstar|plnen|s lososem|neprav|treska|surimi|tycink|uzen|pomazank|pastet|salat|sushi|konzerv|v oleji|krem|bagel|sendvic|tycink|krmiv|kocky|psy|kapsick|chips|olej|omega|kapsl|nuget|obalov|burger|tartar",
          bounds=(200, 1200)),
-    dict(id="turkey", en="Turkey (breast / thigh)", sk="Morčacie (prsia / stehno)", group="extras", unit="kg", weekly=0, shelf="freezable", quick=False, deal_qty=0.75,
+    dict(id="turkey", min_pack=0.3, en="Turkey (breast / thigh)", sk="Morčacie (prsia / stehno)", group="extras", unit="kg", weekly=0, shelf="freezable", quick=False, deal_qty=0.75,
          cz=["krůtí prsa"], skt=["morčacie prsia"],
          inc=r"(kruti|krůtí|morcac).*(prs|rizk|rezn|filet|platk|stehn)", exc=PROCESSED + r"|marinov|pastik",
          bounds=(120, 600)),

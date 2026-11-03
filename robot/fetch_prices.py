@@ -191,6 +191,8 @@ def offer(item_id, shop, city, currency, name, price, unit_price, pack, *, norma
         return None
     if not within_bounds(it, unit_price, currency):
         return None
+    if it.get("min_pack") and pack and pack < it["min_pack"]:  # 150 g of "chicken" is a cold cut, not raw meat
+        return None
     # a "normal" price must be above the offer price and plausible (not a per-100 g number, not 6x higher)
     if normal_unit and (normal_unit <= unit_price * 1.001 or normal_unit > unit_price * 6 or not within_bounds(it, normal_unit, currency)):
         normal_unit = None
@@ -760,7 +762,8 @@ def leaflet_scan(key, client_locale, subs, store_id, shop, city, currency, terms
     cache = ((prev or {}).get("scans") or {}).get(key) or {}
     if ids and cache.get("ids") == ids and cache.get("v") == K.VERSION and cache.get("offers") is not None:
         # re-check the cached names against today's matching rules (rules may have been tightened since)
-        offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY and o["item"] in match_items(o["name"])]
+        offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY and o["item"] in match_items(o["name"])
+                and not (ITEM[o["item"]].get("min_pack") and o.get("pack") and o["pack"] < ITEM[o["item"]]["min_pack"])]
         log(f"{label} scan: leaflets unchanged, reusing {len(offs)} verified offers")
         return offs, {**cache, "offers": offs}
     if not ids:
@@ -939,7 +942,7 @@ def main():
     os.makedirs(os.path.join(ROOT, "config"), exist_ok=True)
     with open(os.path.join(ROOT, "config", "items.json"), "w") as fh:
         json.dump({"groups": GROUP_ORDER, "eur_czk": EUR_CZK,
-                   "items": [{k: v for k, v in it.items() if k not in ("inc", "exc")} for it in ITEMS]},
+                   "items": [{k: v for k, v in it.items() if k not in ("inc", "exc", "min_pack")} for it in ITEMS]},
                   fh, ensure_ascii=False, indent=1)
 
     # summary for the log
