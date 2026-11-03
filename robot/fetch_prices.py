@@ -56,12 +56,17 @@ def allowed(url):
     if base not in _robots:
         rp = urllib.robotparser.RobotFileParser()
         status = None
-        try:
-            r = session.get(base + "/robots.txt", timeout=20)
-            status = r.status_code
-            rp.parse(r.text.splitlines() if status == 200 else [])
-        except Exception:  # noqa: BLE001
-            rp.parse([])
+        r = None
+        for attempt in range(3):  # a refused robots.txt is often a short hiccup: try again before treating the site as blocked
+            try:
+                r = session.get(base + "/robots.txt", timeout=20)
+                status = r.status_code
+            except Exception:  # noqa: BLE001
+                status = None
+            if status in (200, 404):
+                break
+            time.sleep(20)
+        rp.parse(r.text.splitlines() if (r is not None and status == 200) else [])
         _robots[base] = (rp, status)
         time.sleep(DELAY_S)
     rp, status = _robots[base]
