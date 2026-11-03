@@ -221,7 +221,7 @@ const T = {
     goMeal: "Shop just for this", pickMeals: "Which lunch? (tap to choose)", forPortions: "for 4 portions",
     why: "ℹ Why this plan · all options", options: "All options", option: "Option", basket: "Basket", stockup: "Stock-up", effective: "Effective",
     bestSingle: "Best single shop: {s} — {v}.", addWorth: "Adding {s} saves {v} (≥ {th}) → go.", addNot: "Adding {s} saves only {v} (< {th}) → skip.",
-    tripWorth: "Královo Pole trip saves {v} (≥ {th}) → go.", tripNot: "Královo Pole trip saves only {v} (< {th}) → stay in the centre.",
+    tripWorth: "Kaufland trip saves {v} (≥ {th}) → go.", tripNot: "Kaufland trip saves only {v} (< {th}) → skip it.",
     notCompared: "Not compared: {s} (no open price data).", estNote: "{n} items with estimated price.",
     nothing: "Nothing to buy.", est: "estimate", estLike: "no price here — estimated like Billa +5 %",
     unitPrice: "Unit price", usual: "usual", valid: "valid", priceOn: "price on", check: "check offer ↗",
@@ -246,10 +246,10 @@ const T = {
     mealsAim: "🎯 Health first, then price. % = share of the day's key fertility nutrients in one lunch. Fish 2 days a week.", healthHow: "ℹ What the % means",
     healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (you eat ~56 %, she ~44 % of a cook; each nutrient max 100 %). ♂: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. ♀: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. 🍽 = raw weight per lunch. Approximate values.",
     extrasTitle: "🥗 Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
-    covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland Královo Pole leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "📷 Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "📷 read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
+    covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "📷 Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "📷 read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
     tHealth: "Health", low30: "30-day low", lastSeen: "≈ everyday price last seen {d}", learnedTag: "learned from your ticks", learnSet: "🧠 Learn amounts from my ticks", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "📷 leaflet picture · 🗞 leaflet text · ≈ estimate — glance at the shelf price · tap a line for details",
-    tipWait: "Wait till {d}: {i} at {s} saves {v}", tipStock: "Stock up {i} −{p}% at {s} → save {v}", tipExtra: "Healthy deal: {i} −{p}% at {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving (needs {th}) → stay in the centre", lunchIncl: "🍽 Lunch plan in this shop: {a}{b}", lunchNext: " · next shop: {b}", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
-    tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip: only +{v} (needs {th}) → stay in the centre",
+    tipWait: "Wait till {d}: {i} at {s} saves {v}", tipStock: "Stock up {i} −{p}% at {s} → save {v}", tipExtra: "Healthy deal: {i} −{p}% at {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving → skip it", lunchIncl: "🍽 Lunch plan in this shop: {a}{b}", lunchNext: " · next shop: {b}", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
+    tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip: only +{v} (needs {th}) → skip it",
     lpLabel: "🍽 Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "➡ Cheaper at the other shop (your plan)",
     noShopData: "No online prices for {s} — check the limits below.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
     boostTitle: "🌰 Daily boosters — food, not pills", boostSub: "small amounts, big help for key fertility nutrients",
@@ -272,7 +272,7 @@ const T = {
     goMeal: "Nakúpiť len na tento obed", pickMeals: "Ktorý obed? (ťukni a vyber)", forPortions: "za 4 porcie",
     why: "ℹ Prečo tento plán · všetky možnosti", options: "Všetky možnosti", option: "Možnosť", basket: "Košík", stockup: "Zásoby", effective: "Efektívne",
     bestSingle: "Najlepší 1 obchod: {s} — {v}.", addWorth: "Pridanie {s} ušetrí {v} (≥ {th}) → choď.", addNot: "Pridanie {s} ušetrí iba {v} (< {th}) → vynechaj.",
-    tripWorth: "Cesta do Kráľovho Poľa ušetrí {v} (≥ {th}) → choď.", tripNot: "Cesta do Kráľovho Poľa ušetrí iba {v} (< {th}) → ostaň v centre.",
+    tripWorth: "Cesta do Kauflandu ušetrí {v} (≥ {th}) → choď.", tripNot: "Cesta do Kauflandu ušetrí iba {v} (< {th}) → vynechaj.",
     notCompared: "Neporovnané: {s} (žiadne otvorené dáta).", estNote: "{n} položiek s odhadovanou cenou.",
     nothing: "Netreba nič kupovať.", est: "odhad", estLike: "tu bez ceny — odhad ako Billa +5 %",
     unitPrice: "Cena za jednotku", usual: "bežne", valid: "platí", priceOn: "cena z", check: "overiť akciu ↗",
@@ -297,10 +297,10 @@ const T = {
     mealsAim: "🎯 Najprv zdravie, potom cena. % = podiel denných kľúčových živín pre plodnosť v jednom obede. Ryba 2 dni v týždni.", healthHow: "ℹ Čo znamenajú %",
     healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (ty zješ ~56 %, ona ~44 % varenia; každá živina max 100 %). ♂: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. ♀: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. 🍽 = surová váha na obed. Približné hodnoty.",
     extrasTitle: "🥗 Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
-    covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland Kráľovo Pole", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "📷 Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "📷 prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
+    covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "📷 Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "📷 prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
     tHealth: "Zdravie", low30: "najnižšia za 30 dní", lastSeen: "≈ bežná cena naposledy {d}", learnedTag: "naučené z odškrtnutí", learnSet: "🧠 Učiť sa množstvá z odškrtnutí", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "📷 obrázok letáku · 🗞 text letáku · ≈ odhad — pozri cenu na regáli · ťukni na riadok pre detail",
-    tipWait: "Počkaj do {d}: {i} v {s} ušetrí {v}", tipStock: "Do zásoby {i} −{p}% v {s} → ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% v {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "📦 Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory (treba {th}) → ostaň v centre", lunchIncl: "🍽 Obedy z plánu v tomto nákupe: {a}{b}", lunchNext: " · ďalší nákup: {b}", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
-    tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu: len +{v} (treba {th}) → ostaň v centre",
+    tipWait: "Počkaj do {d}: {i} v {s} ušetrí {v}", tipStock: "Do zásoby {i} −{p}% v {s} → ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% v {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "📦 Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory → vynechaj", lunchIncl: "🍽 Obedy z plánu v tomto nákupe: {a}{b}", lunchNext: " · ďalší nákup: {b}", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
+    tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu: len +{v} (treba {th}) → vynechaj",
     lpLabel: "🍽 Obedy", lpHealth: "Zdravý plán", lpUsual: "Ako zvyčajne", buyThere: "➡ Lacnejšie v druhom obchode (tvoj plán)",
     noShopData: "Pre {s} nie sú online ceny — riaď sa limitmi nižšie.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko máš v týždennom zozname",
     boostTitle: "🌰 Denné boostery — jedlo, nie tabletky", boostSub: "malé množstvá, veľká pomoc pre kľúčové živiny",
@@ -459,7 +459,7 @@ function bestAnywhere(id, need, shops) {
 }
 function groceryShops() { return (cityData()?.covered || []).slice(); }
 const TRIP = ["kaufland", "tesco"];
-function nearShops(at) { const cov = groceryShops(); return state.city === "brno" && !TRIP.includes(at) ? cov.filter((s) => !TRIP.includes(s)) : cov; }
+function nearShops(at) { const cov = groceryShops(); return !TRIP.includes(at) ? cov.filter((s) => !TRIP.includes(s)) : cov; }
 
 // ============================================================ stock (pantry)
 function stockMap() { state.stock[state.city] = state.stock[state.city] || {}; return state.stock[state.city]; }
@@ -586,13 +586,13 @@ function combos() {
     const gym = [["albert"], ["albert", "lidl"], ["albert", "billa"], ["albert", "lidl", "billa"]];
     return (state.gym ? home.concat(gym) : home).filter((c) => c.every((s) => cov.includes(s)));
   }
-  const out = cov.map((s) => [s]);
-  for (let i = 0; i < cov.length; i++) for (let j = i + 1; j < cov.length; j++) out.push([cov[i], cov[j]]);
+  const near = cov.filter((s) => !TRIP.includes(s)); // Kežmarok: Kaufland (opposite Tesco, sídlisko Juh) is a separate trip
+  const out = near.map((s) => [s]);
+  for (let i = 0; i < near.length; i++) for (let j = i + 1; j < near.length; j++) out.push([near[i], near[j]]);
   return out;
 }
 // separate trip to Královo Pole: the trip shop alone, or the trip shop for its deals + the usual centre shops for the rest
 function tripCombos(base = []) {
-  if (state.city !== "brno") return [];
   const cov = groceryShops().filter((s) => TRIP.includes(s));
   const out = cov.map((s) => [s]); if (cov.length > 1) out.push(cov.slice());
   for (const s of cov) if (base.length && !base.includes(s)) out.push([...base, s]);
@@ -1204,7 +1204,7 @@ function renderDeals() {
   rows.sort((a, b) => a.v - b.v);
   const top = rows.slice(0, 8), max = top.length ? top[top.length - 1].v : 1;
   if (top.length) html += `<div class="card"><h2>${t("protein")}</h2><div class="tiny muted" style="margin:-4px 0 4px">${t("proteinUnit")}</div>${top.map((r, i) => `<div class="prow"><div class="row"><span><b>${esc(iname(r.it))}</b>${r.him ? ' <span class="badge b-info">♂</span>' : ""} <span class="tiny muted">${SHOP[r.o.shop]}</span></span><b style="${i === 0 ? "color:var(--good)" : ""}">${money(r.v)}</b></div><div class="bar"><i style="width:${Math.max(6, r.v / max * 100)}%;${i === 0 ? "" : "opacity:.55"}"></i></div></div>`).join("")}</div>`;
-  const kl = state.city === "brno" ? (PRICES.kaufland_leaflets || []) : [];
+  const kl = state.city === "brno" ? (PRICES.kaufland_leaflets || []) : (PRICES.scans?.kaufland_kezmarok?.leaflets || []);
   if (kl.length) html += `<div class="card"><h2>${t("kLeaf")}</h2>${kl.map((f) => `<div class="row" style="padding:6px 0"><span>${dateTxt(f.from)}–${dateTxt(f.to)}</span><a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>`).join("")}<div class="note">${t(groceryShops().includes("kaufland") ? "kNote" : "kNoteOff")}</div></div>`;
   const up = [];
   for (const it of ITEMS) {

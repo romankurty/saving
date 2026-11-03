@@ -780,7 +780,8 @@ def leaflet_scan(key, client_locale, subs, store_id, shop, city, currency, terms
         if o["pack"] and abs(o["pack"] - 1) < 1e-6 and ITEM[o["item"]]["unit"] == "kg":
             o["weighted"] = True
     log(f"{label} scan: {len(offs)} verified offers ({sum(1 for d in dbg if d[1] == 'unverified')} unverified dropped)")
-    return offs, {"ids": ids, "v": K.VERSION, "offers": offs, "scanned": NOW.isoformat()}
+    leaflets = [{"title": f.get("title"), "from": f.get("offerStartDate"), "to": f.get("offerEndDate"), "url": f.get("flyerUrlAbsolute")} for _, f in flyers]
+    return offs, {"ids": ids, "v": K.VERSION, "offers": offs, "scanned": NOW.isoformat(), "leaflets": leaflets}
 
 
 # ---------------------------------------------------------------- history, usual prices, output
@@ -811,6 +812,13 @@ def main():
         live = [o for o in k_offers if (o.get("valid_from") or "")[:10] <= TODAY]
         STATUS["kaufland_brno"] = {"status": "ok", "offers": len(k_offers), "checked": (scans["kaufland_brno"] or {}).get("scanned") or NOW.isoformat(),
                                    "note": f"leaflet deals read from the leaflet images, only self-checked prices ({len(live)} valid today)"}
+    # Kaufland Kežmarok: the Slovak food leaflet is national (same for Poprad 1020 and Kežmarok) -> read it via the Poprad store
+    kk_offers, scans["kaufland_kezmarok"] = leaflet_scan("kaufland_kezmarok", "kaufland/sk-SK", ("KDZ", "Hyper1"), 1020, "kaufland", "kezmarok", "EUR", "skt",
+                                                          r"kaufland\s*card|s\s*kartou", "Kaufland Card", "Kaufland SK", prev, max_pages=40)
+    all_offers += kk_offers
+    if kk_offers:
+        STATUS["kaufland_kezmarok"] = {"status": "ok", "offers": len(kk_offers), "checked": (scans["kaufland_kezmarok"] or {}).get("scanned") or NOW.isoformat(),
+                                       "note": "Slovak leaflet (national, same as Poprad) read from pictures, only self-checked prices"}
     # Lidl: the website shows only a few food offers -> also read the weekly food leaflet (same platform as Kaufland)
     for city, loc, subs, cur, tk in (("brno", "lidl/cs-CZ", ("Akční letáky",), "CZK", "cz"), ("kezmarok", "lidl/sk-SK", ("Letáky",), "EUR", "skt")):
         lo, scans[f"lidl_{city}"] = leaflet_scan(f"lidl_{city}", loc, subs, None, "lidl", city, cur, tk, r"lidl\s*plus", "Lidl Plus",
@@ -872,7 +880,7 @@ def main():
     def with_data(city, shops):  # a shop counts as covered only when it delivered prices for this city
         return [s for s in shops if any(o["city"] == city and o["shop"] == s for o in all_offers)]
     brno_shops = with_data("brno", ["lidl", "billa", "albert", "kaufland"])
-    for city, currency, shops in (("brno", "CZK", brno_shops), ("kezmarok", "EUR", with_data("kezmarok", ["lidl", "billa"]))):
+    for city, currency, shops in (("brno", "CZK", brno_shops), ("kezmarok", "EUR", with_data("kezmarok", ["lidl", "billa", "kaufland"]))):
         items_out = {}
         ch = history.setdefault(city, {})
         for it in ITEMS:
