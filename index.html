@@ -246,7 +246,7 @@ const T = {
     tHealth: "Health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
     tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip: only +{v} (needs {th}) → stay in the centre",
     lpLabel: "🍽 Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "➡ Cheaper at the other shop (your plan)",
-    noShopData: "No online prices for {s} — check the limits below.", noPrices: "no prices", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
+    noShopData: "No online prices for {s} — check the limits below.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
     boostTitle: "🌰 Daily boosters — food, not pills", boostSub: "small amounts, big help for key fertility nutrients",
     b_brazil: "1 nut a day (max 2) · selenium ♂♀", b_pumpkin: "♂ 30 g · ♀ 20 g a day · zinc, iron", b_fruit: "1 a day each · vit C, folate",
     bfTitle: "🥣 Breakfast for her", bfSub: "price per breakfast · ranked by ♀ fertility nutrients, then price",
@@ -296,7 +296,7 @@ const T = {
     tHealth: "Zdravie", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
     tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu: len +{v} (treba {th}) → ostaň v centre",
     lpLabel: "🍽 Obedy", lpHealth: "Zdravý plán", lpUsual: "Ako zvyčajne", buyThere: "➡ Lacnejšie v druhom obchode (tvoj plán)",
-    noShopData: "Pre {s} nie sú online ceny — riaď sa limitmi nižšie.", noPrices: "bez cien", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko máš v týždennom zozname",
+    noShopData: "Pre {s} nie sú online ceny — riaď sa limitmi nižšie.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko máš v týždennom zozname",
     boostTitle: "🌰 Denné boostery — jedlo, nie tabletky", boostSub: "malé množstvá, veľká pomoc pre kľúčové živiny",
     b_brazil: "1 orech denne (max 2) · selén ♂♀", b_pumpkin: "♂ 30 g · ♀ 20 g denne · zinok, železo", b_fruit: "1 denne každý · vit C, folát",
     bfTitle: "🥣 Raňajky pre ňu", bfSub: "cena za raňajky · zoradené podľa živín pre ♀ plodnosť, potom cena",
@@ -866,7 +866,8 @@ function bfHtml() {
 function weekHtml(wk, inPlan) {
   if (!wk.length) return "";
   const portions = wk.length * 4, comb = cheapestRoute(wk.flatMap((m) => m.parts.map((p) => [p.id, p.qty]))), total = comb ? comb.total : wk.reduce((a, m) => a + m.total, 0);
-  return `<div class="card idea"><h2>${t("weekTitle")}</h2><div class="small" style="margin:-4px 0 4px">${t("weekSub", { n: wk.length })}</div>${wk.map((m, i) => mealCard(m, i, "week")).join("")}
+  const noFish = !wk.some((m) => FISH.includes(m.fam));
+  return `<div class="card idea"><h2>${t("weekTitle")}</h2><div class="small" style="margin:-4px 0 4px">${t("weekSub", { n: wk.length })}</div>${noFish ? `<div class="small" style="color:var(--warn);font-weight:650">🐟 ${t("noFish")}</div>` : ""}${wk.map((m, i) => mealCard(m, i, "week")).join("")}
     ${inPlan ? "" : `<div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b>${t("weekAll")}: ${money(total)} · ${portions} ${t("portions")}</b><span class="per">${money(total / portions)} <span class="tiny" style="font-weight:600">${t("perPortion")}</span></span></div>
     <div style="margin-top:8px"><button class="btn primary" data-weekgo="1">${t("weekGo")}</button></div>`}</div>`;
 }
@@ -1199,7 +1200,7 @@ function renderSettings() {
   const s = state.set, src = PRICES?.sources || {};
   const rows = Object.entries(src).filter(([k]) => k.endsWith("_" + state.city)).map(([k, v]) => {
     const shop = k.split("_")[0], ok = v.status === "ok" && v.offers > 0, leaf = v.status === "leaflet";
-    return `<div class="setrow"><div><b>${SHOP[shop] || shop}</b><div class="tiny muted">${ok ? "" : esc(v.note || "") + " · "}${v.checked ? dtTxt(v.checked) : ""}</div></div><span class="badge ${ok ? "b-good" : leaf ? "b-info" : "b-warn"}">${ok ? t("covered") + " · " + v.offers : leaf ? t("leafOnly") : v.status === "ok" ? t("noPrices") : t("notCovered")}</span></div>`;
+    return `<div class="setrow"><div><b>${SHOP[shop] || shop}</b><div class="tiny muted">${ok && !v.stale ? "" : esc(v.note || "") + " · "}${v.checked ? dtTxt(v.checked) : ""}</div></div><span class="badge ${ok ? "b-good" : leaf ? "b-info" : "b-warn"}">${ok ? t("covered") + " · " + v.offers : leaf ? t("leafOnly") : v.status === "ok" ? t("noPrices") : t("notCovered")}</span></div>`;
   }).join("");
   const wk = ITEMS.filter((it) => it.group !== "drugstore" && it.group !== "extras").map((it) => `<div class="setrow"><span>${esc(iname(it))} <span class="tiny muted">${uName(it.unit)} ${t("perWeek")}</span></span><input type="number" step="0.05" min="0" data-wk="${it.id}" value="${weeklyOf(it)}"></div>`).join("");
   $("setOut").innerHTML = `<div class="card"><h2>${t("settings")}</h2>
