@@ -196,8 +196,8 @@
   },
   {
    "id": "bread",
-   "en": "Bread (Šumava / wholegrain)",
-   "sk": "Chlieb (Šumava / celozrnný)",
+   "en": "Bread (rye-wheat / wholegrain)",
+   "sk": "Chlieb (ražno-pšeničný / celozrnný)",
    "group": "dinner",
    "unit": "kg",
    "weekly": 2.2,
@@ -637,7 +637,7 @@
   {
    "id": "kefir_flav",
    "en": "Kefir (flavoured, for her)",
-   "sk": "Kefír (ochutený)",
+   "sk": "Kefír (ochutený, pre ňu)",
    "group": "breakfast",
    "unit": "l",
    "weekly": 0.5,
@@ -885,8 +885,8 @@
   },
   {
    "id": "turkey",
-   "en": "Turkey breast",
-   "sk": "Morčacie prsia",
+   "en": "Turkey (breast / thigh)",
+   "sk": "Morčacie (prsia / stehno)",
    "group": "extras",
    "unit": "kg",
    "weekly": 0,
