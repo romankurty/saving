@@ -754,7 +754,8 @@ def leaflet_scan(key, client_locale, subs, store_id, shop, city, currency, terms
     ids = sorted(f["id"] for _, f in flyers)
     cache = ((prev or {}).get("scans") or {}).get(key) or {}
     if ids and cache.get("ids") == ids and cache.get("v") == K.VERSION and cache.get("offers") is not None:
-        offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY]
+        # re-check the cached names against today's matching rules (rules may have been tightened since)
+        offs = [o for o in cache["offers"] if (o.get("valid_to") or "9999")[:10] >= TODAY and o["item"] in match_items(o["name"])]
         log(f"{label} scan: leaflets unchanged, reusing {len(offs)} verified offers")
         return offs, {**cache, "offers": offs}
     if not ids:

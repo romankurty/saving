@@ -53,7 +53,7 @@ ITEMS = [
          bounds=(20, 250)),
     dict(id="bread", en="Bread (rye-wheat / wholegrain)", sk="Chlieb (ražno-pšeničný / celozrnný)", group="dinner", unit="kg", weekly=2.2, shelf="fresh", quick=True,
          cz=["chléb šumava", "chléb"], skt=["chlieb"],
-         inc=r"chleb|chlieb|sumava", exc=r"zmrazen|polotovar|rozpek|dopec|toust|toast|rohlik|bageta|strouhank|kruton|chlebic|knacke|tycink|crisp|veka|kaiser|housk|tortill|pita|krekr|bezlep|sendvic|chlebovy|chlebova",
+         inc=r"chleb|chlieb|sumava", exc=r"rozpek|dopec|toust|toast|rohlik|bageta|strouhank|kruton|chlebic|knacke|tycink|crisp|veka|kaiser|housk|tortill|pita|krekr|bezlep|sendvic|chlebovy|chlebova",
          bounds=(25, 200)),
     # ---------------- lunch ----------------
     dict(id="chicken", en="Chicken (fresh)", sk="Kuracie mäso (čerstvé)", group="lunch", unit="kg", weekly=3.0, shelf="fresh", quick=False,
@@ -159,7 +159,7 @@ ITEMS = [
     dict(id="nuts", en="Nuts (raw, unsalted)", sk="Orechy (nesolené)", group="pantry", unit="kg", weekly=0.3, shelf="long", quick=False,
          cz=["vlašské ořechy", "mandle", "kešu", "ořechy"], skt=["vlašské orechy", "mandle", "kešu", "orechy"],
          inc=r"vlassk|mandl|kesu|liskov|lieskov|para orech|pekan|orechy|oriesky|orechova smes|orieskov|makadam",
-         exc=r"oliv|pastik|\bsol\b|sol\.|praz|brusnic|rizling|mlet|solen|salted|chilli|chili|\bmed\b|medov|cokol|karamel|wasabi|bbq|mlek|mliek|napoj|krem|pasta|masl|tycin|susen|musli|muesli|arasid|burske|lupin|cukr|jogurt|nugat|marcip|mouk|muk|dort|kolac|pecivo|olej|platk|strouhan|plnen|salat|salad|pomazank|chlebick|mysli|cereal|kase|flakes|ryzlink|vino|selection|\d+[,.]\d+ ?l\b|vanock|rozink|cukrov|zakusk|stola|stolle",
+         exc=r"rezy|rez\b|tycink|oliv|pastik|\bsol\b|sol\.|praz|brusnic|rizling|mlet|solen|salted|chilli|chili|\bmed\b|medov|cokol|karamel|wasabi|bbq|mlek|mliek|napoj|krem|pasta|masl|tycin|susen|musli|muesli|arasid|burske|lupin|cukr|jogurt|nugat|marcip|mouk|muk|dort|kolac|pecivo|olej|platk|strouhan|plnen|salat|salad|pomazank|chlebick|mysli|cereal|kase|flakes|ryzlink|vino|selection|\d+[,.]\d+ ?l\b|vanock|rozink|cukrov|zakusk|stola|stolle",
          bounds=(150, 900)),
     dict(id="salt", en="Salt", sk="Soľ", group="pantry", unit="kg", weekly=0, shelf="long", quick=False,
          cz=["sůl"], skt=["soľ"],
