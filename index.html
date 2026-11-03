@@ -159,6 +159,10 @@
   .page { display: none; }
   .page.on { display: block; }
   .loading { text-align: center; padding: 40px 0; color: var(--muted); }
+  .cf { font-size: 0.78rem; margin-right: 4px; font-weight: 700; }
+  .cf.est { color: var(--warn); }
+  .tip { margin-top: 10px; background: rgba(255,255,255,.18); border-radius: 12px; padding: 8px 10px; font-size: 0.86rem; font-weight: 650; }
+  .legend { font-size: 0.74rem; color: var(--muted); margin: 4px 0 0; }
   .toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 0.88rem; z-index: 60; opacity: 0; transition: opacity .2s; pointer-events: none; }
   .toast.on { opacity: 1; }
 </style>
@@ -215,7 +219,7 @@ const T = {
     add: "+ List", added: "✓ On list", bought: "✓ Bought", inStockBtn: "✓ In stock",
     meals: "🍽 5 best lunches for health & fertility", perPortion: "/ portion", addMeal: "+ Add to list", calc: "Ingredients & prices",
     goMeal: "Shop just for this", pickMeals: "Which lunch? (tap to choose)", forPortions: "for 4 portions",
-    why: "Why this plan", options: "All options", option: "Option", basket: "Basket", stockup: "Stock-up", effective: "Effective",
+    why: "ℹ Why this plan · all options", options: "All options", option: "Option", basket: "Basket", stockup: "Stock-up", effective: "Effective",
     bestSingle: "Best single shop: {s} — {v}.", addWorth: "Adding {s} saves {v} (≥ {th}) → go.", addNot: "Adding {s} saves only {v} (< {th}) → skip.",
     tripWorth: "Královo Pole trip saves {v} (≥ {th}) → go.", tripNot: "Královo Pole trip saves only {v} (< {th}) → stay in the centre.",
     notCompared: "Not compared: {s} (no open price data).", estNote: "{n} items with estimated price.",
@@ -243,7 +247,8 @@ const T = {
     healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (you eat ~56 %, she ~44 % of a cook; each nutrient max 100 %). ♂: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. ♀: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. 🍽 = raw weight per lunch. Approximate values.",
     extrasTitle: "🥗 Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
     covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "🗞 Kaufland Královo Pole leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "📷 Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "📷 read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done 🎉",
-    tHealth: "Health", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving (needs {th}) → stay in the centre", lunchIncl: "🍽 Lunch plan in this shop: {a}{b}", lunchNext: " · next shop: {b}", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
+    tHealth: "Health", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "📷 = read from the leaflet picture · ≈ = estimate · tap a line for details",
+    tipWait: "Wait till {d}: {i} at {s} saves {v}", tipStock: "Stock up {i} −{p}% at {s} → save {v}", tipExtra: "Healthy deal: {i} −{p}% at {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving (needs {th}) → stay in the centre", lunchIncl: "🍽 Lunch plan in this shop: {a}{b}", lunchNext: " · next shop: {b}", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
     tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip: only +{v} (needs {th}) → stay in the centre",
     lpLabel: "🍽 Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "➡ Cheaper at the other shop (your plan)",
     noShopData: "No online prices for {s} — check the limits below.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
@@ -265,7 +270,7 @@ const T = {
     add: "+ Zoznam", added: "✓ V zozname", bought: "✓ Kúpené", inStockBtn: "✓ V zásobe",
     meals: "🍽 5 najlepších obedov pre zdravie a plodnosť", perPortion: "/ porcia", addMeal: "+ Do zoznamu", calc: "Suroviny a ceny",
     goMeal: "Nakúpiť len na tento obed", pickMeals: "Ktorý obed? (ťukni a vyber)", forPortions: "za 4 porcie",
-    why: "Prečo tento plán", options: "Všetky možnosti", option: "Možnosť", basket: "Košík", stockup: "Zásoby", effective: "Efektívne",
+    why: "ℹ Prečo tento plán · všetky možnosti", options: "Všetky možnosti", option: "Možnosť", basket: "Košík", stockup: "Zásoby", effective: "Efektívne",
     bestSingle: "Najlepší 1 obchod: {s} — {v}.", addWorth: "Pridanie {s} ušetrí {v} (≥ {th}) → choď.", addNot: "Pridanie {s} ušetrí iba {v} (< {th}) → vynechaj.",
     tripWorth: "Cesta do Kráľovho Poľa ušetrí {v} (≥ {th}) → choď.", tripNot: "Cesta do Kráľovho Poľa ušetrí iba {v} (< {th}) → ostaň v centre.",
     notCompared: "Neporovnané: {s} (žiadne otvorené dáta).", estNote: "{n} položiek s odhadovanou cenou.",
@@ -293,7 +298,8 @@ const T = {
     healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (ty zješ ~56 %, ona ~44 % varenia; každá živina max 100 %). ♂: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. ♀: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. 🍽 = surová váha na obed. Približné hodnoty.",
     extrasTitle: "🥗 Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
     covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "🗞 Leták Kaufland Kráľovo Pole", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "📷 Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "📷 prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo 🎉",
-    tHealth: "Zdravie", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "📦 Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory (treba {th}) → ostaň v centre", lunchIncl: "🍽 Obedy z plánu v tomto nákupe: {a}{b}", lunchNext: " · ďalší nákup: {b}", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
+    tHealth: "Zdravie", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "📷 = prečítané z obrázka letáku · ≈ = odhad · ťukni na riadok pre detail",
+    tipWait: "Počkaj do {d}: {i} v {s} ušetrí {v}", tipStock: "Do zásoby {i} −{p}% v {s} → ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% v {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "📦 Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory (treba {th}) → ostaň v centre", lunchIncl: "🍽 Obedy z plánu v tomto nákupe: {a}{b}", lunchNext: " · ďalší nákup: {b}", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
     tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu: len +{v} (treba {th}) → ostaň v centre",
     lpLabel: "🍽 Obedy", lpHealth: "Zdravý plán", lpUsual: "Ako zvyčajne", buyThere: "➡ Lacnejšie v druhom obchode (tvoj plán)",
     noShopData: "Pre {s} nie sú online ceny — riaď sa limitmi nižšie.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko máš v týždennom zozname",
@@ -960,6 +966,21 @@ function regLine(l) {
   const u = usual(l.b.it.id);
   LINES[l.b.it.id] = { shop: l.shop, qty: l.qty, cost: l.cost, est: !!l.est, base: l.est || !u ? l.cost : Math.max(l.cost, u * l.qty), needBase: l.b.base || 0 };
 }
+// how sure is this price: ✓ exact online price · 📷 read from the leaflet picture (self-checked) · ≈ estimate
+function confGlyph(l) {
+  if (!l.o) return `<span class="cf est" title="${t("est")}">≈</span>`;
+  if (l.o.conf === "med") return `<span class="cf scan" title="${t("scanned")}">📷</span>`;
+  return "";
+}
+// one smart tip: the single most valuable thing to do differently today
+function tipHtml(r, lunch) {
+  const tips = [];
+  for (const l of r.rec.lines) { const w = !l.missing && waitFor(l); if (w) tips.push({ v: w.sv, txt: t("tipWait", { d: wdTxt(w.o.valid_from), i: iname(l.b.it), s: SHOP[w.o.shop], v: money(w.sv) }) }); }
+  if (!lunch) for (const d of r.ds) if (d.kind === "stock" && r.rec.shops.includes(d.o.shop) && !day().add[d.it.id] && !boughtToday(d.it.id)) tips.push({ v: d.saving * 0.5, txt: t("tipStock", { i: iname(d.it), p: Math.round(d.d * 100), s: SHOP[d.o.shop], v: money(d.saving) }) });
+  if (!lunch && state.set.extras !== "off") for (const d of r.ds) if (d.kind === "extra" && nearShops().includes(d.o.shop) && !day().add[d.it.id]) tips.push({ v: d.saving * 0.4 + 5, txt: t("tipExtra", { i: iname(d.it), p: Math.round(d.d * 100), s: SHOP[d.o.shop] }) });
+  const best = tips.sort((a, b) => b.v - a.v)[0];
+  return best ? `<div class="tip">💡 ${esc(best.txt)}</div>` : "";
+}
 function lineHtml(l) {
   regLine(l);
   const D = day(), id = l.b.it.id, done = D.done.includes(id), open = OPEN === id, w = done ? null : waitFor(l);
@@ -979,9 +1000,9 @@ function lineHtml(l) {
   }
   return `<div class="li ${done ? "done" : ""}">
     <button class="ck" data-done="${id}" aria-label="done">${done ? "✓" : ""}</button>
-    <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span> ${l.o ? discBadge(l.o) : `<span class="badge b-warn">${t("est")}</span>`} ${wb} ${tag}</div>
-      <div class="sub">${l.o ? esc(l.o.name) : l.refO ? t("estLike") : t("estTypical")}</div></div>
-    <div class="pr">${money(l.cost)}</div>${more}</div>`;
+    <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span> ${l.o ? discBadge(l.o) : ""} ${wb} ${tag}</div>
+      <div class="sub">${l.o ? esc(l.o.name) : `<i>${t("noPriceShort")}</i>`}</div></div>
+    <div class="pr">${confGlyph(l)}${money(l.cost)}</div>${more}</div>`;
 }
 function stockRowHtml(d) {
   const D = day(), onList = !!D.add[d.it.id], key = `${today}|${state.city}|${d.it.id}|stock`, isBought = state.log.some((e) => e.k === key);
@@ -1041,8 +1062,8 @@ function renderPlan() {
   let html = `<div class="card hero"><div class="label">${t("goTo")}</div>
     <div class="go">${route.map((s) => SHOP[s]).join(" → ")}</div>
     <div class="big"><div><b>${money(rec.total)}</b> <span>${t("pay")}</span></div>${lunch ? `<div><b>${money(rec.total / nPortions)}</b> <span>${t("perPortion")}</span></div>` : `<div><b>${money(saved)}</b> <span>${t("saveVs")}</span></div>`}</div>
-    <div class="pills">${route.map((s) => `<span class="pill">🎟 ${appName(s)}</span>`).join("")}${waits ? `<span class="pill">${t("waitPill", { n: waits })}</span>` : ""}</div>
-    <div class="tiny" style="margin-top:6px;opacity:.85">🎟 = ${t("coupons")}</div>${r.trip ? `<div class="tiny" style="margin-top:4px;opacity:.95">🚋 ${t(r.trip.ok ? "tripGo" : r.trip.gain > 0.5 ? "tripSkip" : "tripNone", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>` : ""}</div>`;
+    <div class="pills">${route.map((s) => `<span class="pill">🎟 ${appName(s)} ${t("couponsShort")}</span>`).join("")}${waits ? `<span class="pill">${t("waitPill", { n: waits })}</span>` : ""}</div>
+    ${tipHtml(r, lunch)}${r.trip ? `<div class="tiny" style="margin-top:4px;opacity:.95">🚋 ${t(r.trip.ok ? "tripGo" : r.trip.gain > 0.5 ? "tripSkip" : "tripNone", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>` : ""}</div>`;
   if (lunch) {
     html += `<div class="seg full" id="lwSeg" style="margin-bottom:12px"><button data-lw="0" class="${D.lw ? "" : "on"}">${t("lwToday")}</button><button data-lw="1" class="${D.lw ? "on" : ""}">${t("lwWeek")}</button></div>`;
     if (D.lw) html += weekHtml(weekPlan(), true);
@@ -1055,7 +1076,7 @@ function renderPlan() {
   const sw = swapsFor(rec);
   if (sw.length) html += `<div class="card"><h2>${t("swaps")}</h2>${sw.map((s) => `<div class="addrow"><div><div class="t">${esc(iname(BYID[s.from]))} → ${esc(iname(BYID[s.to]))}</div>
     <div class="m">${money(s.uA)} → ${money(s.uB)} /${uName(BYID[s.to].unit)} · ${t("save")} <b>${money(s.sv)}</b></div></div><button class="btn primary" data-swap="${s.from}|${s.to}|${s.need}">${t("swapBtn")}</button></div>`).join("")}</div>`;
-  html += `<div class="card"><div class="row"><h2 style="margin:0">${t("list")}</h2><button class="btn" id="shareBtn">${t("share")}</button></div>`;
+  html += `<div class="card"><div class="row"><h2 style="margin:0">${t("list")}</h2><button class="btn" id="shareBtn">${t("share")}</button></div><div class="legend">${t("legend")}</div>`;
   const all = rec.lines.filter((l) => !l.missing);
   for (const s of route) {
     const ls = all.filter((l) => l.shop === s);
@@ -1088,9 +1109,8 @@ function renderPlan() {
   if (r.trip) why.push(t(r.trip.ok ? "tripWorth" : "tripNot", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) }));
   if (cd.uncovered?.length) why.push(t("notCompared", { s: cd.uncovered.map((s) => SHOP[s]).join(", ") }));
   if (rec.est) why.push(t("estNote", { n: rec.est }));
-  html += `<details class="card"><summary>${t("why")}</summary><ul class="why">${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>`;
   const sorted = r.opts.slice().sort((a, b) => a.score - b.score);
-  html += `<details class="card"><summary>${t("options")}</summary><div class="tw"><table><thead><tr><th>${t("option")}</th><th class="num">${t("basket")}</th><th class="num">${t("stockup")}</th><th class="num">${t("effective")}</th></tr></thead><tbody>
+  html += `<details class="card"><summary>${t("why")}</summary><ul class="why">${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul><div class="tw" style="margin-top:8px"><table><thead><tr><th>${t("option")}</th><th class="num">${t("basket")}</th><th class="num">${t("stockup")}</th><th class="num">${t("effective")}</th></tr></thead><tbody>
     ${sorted.map((o) => `<tr class="${o === rec ? "best" : ""}"><td>${o.shops.map((s) => SHOP[s]).join(" + ")}${o.est ? ` <span class="badge b-warn">${o.est} ${t("est")}</span>` : ""}</td><td class="num">${money(o.total)}</td><td class="num">${o.bonus > 0.5 ? "−" + money(o.bonus) : "—"}</td><td class="num">${money(o.score)}</td></tr>`).join("")}
     </tbody></table></div></details>`;
   out.innerHTML = html;
