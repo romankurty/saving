@@ -971,8 +971,8 @@
   },
   {
    "id": "spinach",
-   "en": "Spinach (fresh)",
-   "sk": "Špenát (čerstvý)",
+   "en": "Spinach (fresh or frozen)",
+   "sk": "Špenát (čerstvý alebo mrazený)",
    "group": "extras",
    "unit": "kg",
    "weekly": 0,
