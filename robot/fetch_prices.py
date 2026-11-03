@@ -181,8 +181,9 @@ def offer(item_id, shop, city, currency, name, price, unit_price, pack, *, norma
         return None
     if not within_bounds(it, unit_price, currency):
         return None
-    if normal_unit and normal_unit <= unit_price * 1.001:
-        normal_unit = None if not promo else normal_unit
+    # a "normal" price must be above the offer price and plausible (not a per-100 g number, not 6x higher)
+    if normal_unit and (normal_unit <= unit_price * 1.001 or normal_unit > unit_price * 6 or not within_bounds(it, normal_unit, currency)):
+        normal_unit = None
     return {
         "item": item_id, "shop": shop, "city": city, "name": name.strip()[:90], "price": round(price, 2),
         "unit_price": round(unit_price, 2), "pack": round(pack, 4) if pack else None, "weighted": bool(weighted),
@@ -274,6 +275,9 @@ def billa(city, base_url, terms_key, currency):
                     else:
                         continue
                     n_unit = normal_std if normal_std else (unit * normal / cur if normal else None)
+                    # weighed articles sometimes report the regular price per 100 g -> per kg
+                    if weighted and n_unit and n_unit < unit and unit <= n_unit * 10 <= unit * 4:
+                        n_unit = n_unit * 10
                     # price per piece of varying weight (e.g. one sweet potato): trust the per-kg price, buy by weight
                     if p.get("weightPieceArticle") or (pack and per_std and abs(cur / pack - per_std) / per_std > 0.15):
                         weighted = True
@@ -813,8 +817,10 @@ def main():
             if o.get("normal_unit"):
                 o["normal_unit"] = round(o["normal_unit"] * 4, 2)
     hist0 = load(os.path.join(ROOT, "data", "history.json"), {})
-    brno_shops = ["lidl", "billa", "albert"] + (["kaufland"] if k_offers else [])
-    for city, currency, shops in (("brno", "CZK", brno_shops), ("kezmarok", "EUR", ["lidl", "billa"])):
+    def with_data(city, shops):  # a shop counts as covered only when it delivered prices for this city
+        return [s for s in shops if any(o["city"] == city and o["shop"] == s for o in all_offers)]
+    brno_shops = with_data("brno", ["lidl", "billa", "albert", "kaufland"])
+    for city, currency, shops in (("brno", "CZK", brno_shops), ("kezmarok", "EUR", with_data("kezmarok", ["lidl", "billa"]))):
         items_out = {}
         ch = history.setdefault(city, {})
         for it in ITEMS:
@@ -846,6 +852,10 @@ def main():
             for rows in ih.values():
                 obs += [r[2] for r in rows if r[2] and r[0] >= cutoff]
             usual = round(p25(obs), 2) if obs else None
+            # never above the cheapest everyday (non-promo) price you can get today -> no fake "deals"
+            everyday = [o["unit_price"] for o in offs if not o["promo"] and o.get("conf") != "low"]
+            if everyday and (usual is None or min(everyday) < usual):
+                usual = round(min(everyday), 2)
             per_shop = {}
             for o in offs:
                 per_shop.setdefault(o["shop"], [])
@@ -855,7 +865,7 @@ def main():
         cities[city] = {
             "currency": currency,
             "covered": shops,
-            "uncovered": [s for s in ["kaufland", "tesco"] if s not in shops] if city == "brno" else ["kaufland", "tesco", "sintra"],
+            "uncovered": [s for s in (["lidl", "billa", "albert", "kaufland", "tesco"] if city == "brno" else ["lidl", "billa", "kaufland", "tesco", "sintra"]) if s not in shops],
             "partial": ["albert"] + (["kaufland"] if "kaufland" in shops else []) if city == "brno" else [],
             "drug_covered": ["lidl", "billa", "albert", "teta"] if city == "brno" else ["lidl", "billa"],
             "drug_uncovered": ["dm"] if city == "brno" else [],
