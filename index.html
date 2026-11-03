@@ -26,7 +26,7 @@
     :root {
       --bg: #0f1211; --card: #181c1a; --text: #e8ece9; --muted: #9aa39e; --line: #2a302d; --soft: #202523;
       --save: #72d29e; --save-soft: #16301f; --warn: #f0b35a; --warn-soft: #33270e;
-      --btn: #e8ece9; --btn-ink: #121514; --focus: #7fb0ff; --seg-on: #3a423e;
+      --btn: #e8ece9; --btn-ink: #121514; --focus: #7fb0ff; --seg-on: #4b5550;
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -56,6 +56,8 @@
   .seg.mode button { display: flex; flex-direction: column; align-items: center; line-height: 1.15; padding: 7px 4px 6px; font-size: 0.94rem; }
   .seg.mode small { font-size: 0.72rem; font-weight: 500; color: var(--muted); margin-top: 1px; }
   .controls { margin-bottom: 14px; }
+  .opts > summary { font-size: 0.86rem; color: var(--muted); padding: 10px 2px 0; font-weight: 600; }
+  .opts > summary b { color: var(--text); font-weight: 650; }
   .optrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 2px 0; font-size: 0.92rem; font-weight: 600; }
   .optrow .seg button { font-size: 0.82rem; padding: 6px 10px; min-height: 32px; }
 
@@ -117,23 +119,26 @@
   .atline .chip { padding: 5px 11px; min-height: 32px; font-size: 0.84rem; }
   .shop { position: sticky; top: 0; z-index: 2; background: var(--card); display: flex; align-items: baseline; gap: 8px; font-weight: 800; font-size: 1.02rem; margin: 10px -16px 0; padding: 10px 16px 6px; }
   .shop .sum { margin-left: auto; font-size: 0.95rem; font-weight: 750; }
-  .li { display: grid; grid-template-columns: 34px 1fr auto; gap: 0 8px; align-items: start; padding: 11px 0; border-top: 1px solid var(--line); }
+  .li { display: grid; grid-template-columns: 40px 1fr auto; gap: 0 8px; align-items: start; padding: 11px 0; border-top: 1px solid var(--line); }
   .li > div { min-width: 0; }
   .li.done .nm, .li.done .sub, .li.done .pr { opacity: .4; }
   .li.done .nm { text-decoration: line-through; }
-  .ck { width: 44px; height: 44px; margin: -10px 0 -10px -10px; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .ck { width: 56px; min-height: 48px; align-self: stretch; margin: -11px 0 -11px -16px; padding: 9px 0 0 16px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: flex-start; justify-content: flex-start; }
   .ck > span { width: 24px; height: 24px; border-radius: 7px; border: 2px solid color-mix(in srgb, var(--text) 28%, transparent); display: grid; place-items: center; font-size: 0.9rem; font-weight: 800; line-height: 1; }
   .li.done .ck > span { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
   .ico { width: 24px; }
   .nm { font-weight: 650; cursor: pointer; line-height: 1.3; }
-  .sub { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; margin-top: 1px; }
+  .sub { font-size: 0.8rem; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; cursor: pointer; margin-top: 1px; }
   .sub .tag { color: var(--text); font-weight: 600; }
   .pr { text-align: right; font-weight: 700; white-space: nowrap; }
-  .pr .est { color: var(--warn); font-weight: 800; margin-right: 3px; }
-  .qty { font-weight: 500; color: var(--muted); font-size: 0.86rem; margin-left: 5px; }
+  .pr .est { color: var(--muted); font-weight: 800; margin-right: 3px; }
+  .pr .flag { display: table; margin: 4px 0 0 auto; }
+  .qty { white-space: nowrap; font-weight: 500; color: var(--muted); font-size: 0.86rem; margin-left: 5px; }
   .more { grid-column: 2 / 4; margin-top: 8px; background: var(--soft); border-radius: 12px; padding: 10px 12px; font-size: 0.84rem; display: grid; gap: 3px; }
   .more .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .legend { font-size: 0.76rem; color: var(--muted); margin: 10px 0 0; }
+  .legend { font-size: 0.76rem; color: var(--muted); margin: 6px 0 0; }
+  .aisle { font-size: 0.76rem; color: var(--muted); font-weight: 650; padding: 10px 0 2px; }
+  .progress { font-size: 0.8rem; font-weight: 650; color: var(--muted); }
   .sec { font-weight: 750; font-size: 0.92rem; margin: 16px 0 2px; }
   .sec:first-child { margin-top: 0; }
   .sec .muted { font-weight: 500; }
@@ -143,7 +148,7 @@
   .btn.primary { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
   .btn.wide { width: 100%; min-height: 46px; font-size: 0.98rem; margin-top: 12px; }
   .btn.done { background: transparent; color: var(--save); border-color: transparent; }
-  .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--text) 30%, transparent); text-underline-offset: 3px; }
   .btn.quiet { border-color: transparent; background: var(--soft); }
   .acts { display: flex; flex-wrap: wrap; gap: 6px; }
 
@@ -168,7 +173,8 @@
   /* meals */
   .meal { padding: 12px 0; border-top: 1px solid var(--line); }
   .meal:first-of-type, .lead-in + .meal { border-top: 0; }
-  .meal.day { display: grid; grid-template-columns: 42px 1fr; gap: 0 6px; }
+  .meal.day { display: grid; grid-template-columns: 44px 1fr; gap: 0 6px; }
+  .meal .d span { font-weight: 500; }
   .meal .d { font-weight: 750; font-size: 0.86rem; color: var(--muted); padding-top: 1px; }
   .meal .t { font-weight: 700; line-height: 1.3; }
   .meal .per { font-weight: 750; white-space: nowrap; text-align: right; }
@@ -235,7 +241,7 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand"><h1>Grocery</h1><small id="updated">…</small></div>
+    <div class="brand"><h1 id="title">Grocery</h1><small id="updated">…</small></div>
     <div class="seg" id="city"><button data-v="brno">Brno</button><button data-v="kezmarok">Kežmarok</button></div>
     <button class="iconbtn" id="gear" aria-label="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </header>
@@ -243,8 +249,10 @@
   <section class="page" id="p-plan">
     <div class="controls" id="controls">
       <div class="seg full mode" id="mode"><button data-v="quick"><span data-t="quick"></span><small data-t="quickSub"></small></button><button data-v="big"><span data-t="big"></span><small data-t="bigSub"></small></button><button data-v="lunch"><span data-t="lunchMode"></span><small data-t="lunchSub"></small></button></div>
+      <details class="opts" id="opts"><summary id="optsSum"></summary>
       <label class="optrow" id="gymRow"><span data-t="gym"></span><span class="switch"><input type="checkbox" id="gym"><span></span></span></label>
       <div class="optrow" id="lpRow"><span data-t="lpLabel"></span><div class="seg" id="lpSeg"><button data-lp="health" data-t="lpHealth"></button><button data-lp="usual" data-t="lpUsual"></button></div></div>
+      </details>
     </div>
     <div id="planOut"><div class="loading">…</div></div>
   </section>
@@ -269,17 +277,55 @@
 // ============================================================ texts
 const T = {
   en: {
+    onList: "on today's list",
+    amountL: "Amount",
+    inBasket: "In basket",
+    tSet: "Settings",
+    g_extras: "Healthy extras",
+    g_pantry: "Pantry",
+    g_fruit: "Fruit",
+    g_breakfast: "Breakfast",
+    g_lunch: "Lunch",
+    g_dinner: "Dinner & everyday",
+    a_drug: "Drugstore",
+    a_frozen: "Frozen",
+    a_meat: "Meat & fish",
+    a_dairy: "Dairy & eggs",
+    a_dry: "Dry & canned",
+    a_bakery: "Bakery",
+    a_produce: "Fruit & veg",
+    drugLinkM: "toilet paper, toothpaste, shampoo — when cheap",
+    drugLink: "Drugstore",
+    nLeft: "{a} of {b} in basket · {v} left",
+    checkHow0: "Shelf price above the limit? Leave it.",
+    checkHow: "Shelf price above the limit? Leave it for {s}.",
+    checkLimitSum: "up to",
+    checkL: "Check the shelf",
+    saveAt: "save {v} at {s}",
+    deal5: "deals",
+    deal2: "deals",
+    deal1: "deal",
+    forHimS: " (for him)",
+    adds7bf: "adds 7 breakfasts",
+    adds7: "adds 1 week",
+    optsL: "Options",
+    gymOffS: "from home",
+    gymOnS: "from the gym",
+    lpUsualS: "Our usual lunches",
+    lpHealthS: "Health lunches",
+    richIn: "Rich in",
+    ofDay: "of daily needs",
     pricesAt: "Prices {d}",
     from: "from",
-    buyIfShort: "buy if the price is at most",
+    buyIfShort: "buy only up to the limit",
     mealsLinkM: "week plan, nutrients, her breakfast",
-    stockLineM: "{n} deal(s) · pay {p} → save {v}",
-    legendEst: "≈ estimate: check the shelf price.",
-    legendTap: "Tap a line for details.",
+    stockLineM: "{n} {w} · pay {p} → save {v}",
+    legendEst: "≈ estimate, check the shelf",
+    legendTap: "Tick = in your basket · tap a name for details",
     restL: "The rest at",
     inShopL: "You're at",
     herL: "Her",
-    youL: "You",
+    youL: "Him",
     allNutr: "All nutrients",
     nutrLow: "low",
     nutrOk: "all covered",
@@ -294,11 +340,11 @@ const T = {
     leafletTag: "leaflet",
     bone: "on the bone",
     can: "canned",
-    forYou: "for you",
+    forYou: "for him",
     tipL: "Tip",
     activate: "Activate coupons: {a}",
     portionL: "Per portion",
-    savedL: "You save",
+    savedL: "Saved vs usual prices",
     payL: "Pay",
     lunchSub: "ingredients only",
     bigSub: "3–4 days",
@@ -307,21 +353,21 @@ const T = {
     tPlan: "Plan", tDeals: "Deals", tStock: "Stock-up", tPrices: "Prices", tDrug: "Drugstore", settings: "Settings",
     goTo: "Go to", pay: "you pay", save: "save", coupons: "open the app & activate coupons",
     list: "Shopping list", share: "Share", copied: "List copied ✓", addItem: "+ Add item", pickItem: "Tap to add",
-    add: "+ List", added: "✓ On list", bought: "✓ Bought", inStockBtn: "✓ In stock",
-    meals: "Best lunches for health & fertility", perPortion: "/ portion", addMeal: "+ Add to list", calc: "Amounts & where to buy",
-    goMeal: "Shop just for this", pickMeals: "Which lunch? (tap to choose)", forPortions: "for 4 portions",
+    add: "+ List", added: "✓ On list", bought: "Mark bought", inStockBtn: "✓ In stock",
+    meals: "Best lunches for health & fertility", perPortion: "/ portion", addMeal: "+ List", calc: "Amounts & where to buy",
+    goMeal: "Shop just for this", pickMeals: "Which lunches? Tap to choose", forPortions: "for 4 portions",
     why: "Why this route", options: "All options", option: "Option", basket: "Basket", stockup: "Stock-up", effective: "Effective",
     bestSingle: "Best single shop: {s} — {v}.", addWorth: "Adding {s} saves {v} (≥ {th}) → go.", addNot: "Adding {s} saves only {v} (< {th}) → skip.",
     tripWorth: "Kaufland trip saves {v} (≥ {th}) → go.", tripNot: "Kaufland trip saves only {v} (< {th}) → skip it.",
     notCompared: "Not compared: {s} (no open price data).", estNote: "{n} items with estimated price.",
     nothing: "Nothing to buy.", est: "estimate", estLike: "no price here — estimated like Billa +5 %",
-    unitPrice: "Unit price", usual: "regular", valid: "valid", priceOn: "price on", check: "check offer ↗",
-    skip: "Not today", wrong: "Wrong product", restore: "Show hidden products again", hiddenN: "{n} hidden products", healthy: "healthy deal",
+    unitPrice: "Unit price", usual: "usually", valid: "valid", priceOn: "price on", check: "check offer ↗",
+    skip: "Not today", wrong: "Wrong product? Hide it", restore: "Show hidden products again", hiddenN: "{n} hidden products", healthy: "healthy deal",
     waitBadge: "{d} {s} −{v}", waitTxt: "Cheaper from {d} · {s}: {p}", waitBtn: "Wait", waitPill: "{n} cheaper in a few days",
     swaps: "Cheaper swaps", swapBtn: "Swap", atHome: "At home, skipped:",
     stockTitle: "Stock up now", myStock: "My stock", addStock: "+ Add to stock", usedUp: "Used up", daysLeft: "≈ {n} days left",
     inStock: "in stock", noStock: "Nothing in stock yet. Tap ✓ Bought when you stock up.", stockRoute: "{n} stock-up deals on your route · save {v}",
-    mealsLink: "Lunches for health & fertility", protein: "Cheapest protein", proteinUnit: "price per 10 g protein · ≈, as sold",
+    mealsLink: "Lunches for health & fertility", protein: "Cheapest protein", proteinUnit: "price for 10 g of protein · lower is better",
     soon: "Starting soon", none: "No big deals right now.", freshTitle: "Fresh deals this week",
     spent: "spent", saved: "saved", monthNote: "Saved = vs everyday cheapest price. Estimates count 0. From your ticks.",
     atShop: "At {s}", back: "← Plan", buyHere: "Buy here", dontBuy: "Don't buy here", checkShelf: "Check the shelf",
@@ -329,46 +375,84 @@ const T = {
     rhythmLearn: "Learning price rhythm · day {n} of 21", rhythmEvery: "promo every ~{n} days", rhythmNext: "next in ~{n} days",
     rhythmNow: "promo now", rhythmTypical: "typical promo {p}",
     pricesHint: "Cheapest price per unit in each shop. ★ = on deal.", search: "Search",
-    drugHint: "Buy drugstore items only when cheap.", needNow: "Need now",
+    drugHint: "Buy drugstore items only when cheap.", needNow: "Running low? Tap to add to today's list",
     stopTh: "Extra stop must save", tripTh: "Separate trip must save", stockPct: "Stock up from % off", alertPct: "Healthy extras / alert from % off",
     weekly: "My weekly amounts", reset: "Reset", data: "Data", checkedAt: "Prices checked {d}", howWorks: "How it works",
     howText: "A robot reads public prices every morning (+ Wed/Thu evening). The app always takes the cheapest brand per kg / l / piece and compares shop combinations on your route.",
-    onlyHim: "only you", liverWarn: "Liver: only for you, max 1×/week (vitamin A) — not for her while trying for a baby.",
+    onlyHim: "only him", liverWarn: "Liver: only for him, max 1×/week (vitamin A) — not for her while trying for a baby.",
     mealsAim: "% = share of the day's fertility nutrients in 1 lunch. Fish 2 days a week.", healthHow: "What the % means",
-    healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (you eat ~56 %, she ~44 % of a cook; each nutrient max 100 %). You: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. Her: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. Amounts = raw weight per lunch. Approximate values.",
+    healthTxt: "% = share of the daily key fertility nutrients one lunch gives each of you (he eats ~56 %, she ~44 % of a cook; each nutrient max 100 %). Him: zinc, selenium, omega-3 from fish, vitamin D, folate, vitamin C. Her: folate, iron, omega-3, vitamin D, choline, B12, zinc. Lunches under 35 % only fill empty places; then the lowest price per portion wins. Amounts = raw weight per lunch. Approximate values.",
     extrasTitle: "Healthy extras on deal", extrasSet: "Healthy extras", ex_auto: "Auto-add", ex_suggest: "Suggest", ex_off: "Off",
     covered: "covered", notCovered: "not covered", leafOnly: "leaflet only", kLeaf: "Kaufland leaflet", open: "Open", kNoteOff: "Prices are only inside the leaflet images, so the app can't compare them. Check before a big trip.", kNote: "Deals the app could read and double-check from these pages are already in your plan. Open for everything else.", scanned: "read from the leaflet picture — glance at the shelf price", loadErr: "Prices not loaded yet — try again in a minute.", perWeek: "/ week", allDone: "All done ✓",
     tHealth: "Health", meatEq: "per kg of meat, without bones", pantryLeft: "(~{v} stays in the pantry)", freezeP: "freeze in portions (keeps ~3 months)", fewPrices: "Few online prices for {s} — check the limits below.", stopGain: "{s} stop saves {v}",
-    tripNoData: "Kaufland: no prices yet → not compared", restAt: "Buy {n} here → the rest at {s}", modeHint: "Quick = top-up for 1 day · Big = 3–4 days · Lunch = only lunch ingredients", shopFor: "buy", leftover: "some left over", todayPlan: "today's plan", payKeep: "pay {p} → save {v}", lasts: "lasts ~{n} wk",
+    tripNoData: "Kaufland: no prices yet → not compared", restAt: "Buy {n} here → the rest at {s}", modeHint: "Quick = top-up for 1 day · Big = 3–4 days · Lunch = only lunch ingredients", shopFor: "buy", leftover: "some left over", todayPlan: "in week plan", payKeep: "pay {p} → save {v}", lasts: "lasts ~{n} wk",
     stockLine: "Stock up on your route", chipBuy: "Buy {n} · {v}", chipCheck: "{n} items have no online price here: buy if the shelf price is at most the limit", chipThere: "{n} elsewhere", buyLater: "Buy later (cheaper soon)",
-    elseAt: "else at {s}", estPill: "≈ {n} of {m} prices estimated", endsToday: "ends today", add7bf: "+ List (7 breakfasts)", liverShort: "max 1×/wk",
-    folic: "Her: trying for a baby? Folic acid 400 µg a day (NHS).", low30: "30-day low", lastSeen: "≈ everyday price last seen {d}", learnedTag: "learned from your ticks", learnSet: "Learn amounts from my ticks", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "leaflet price · ≈ estimate — check the shelf · tap a line for details",
-    tipWait: "Wait till {d}: {i} · {s} −{v}", tipStock: "Stock up: {i} −{p}% · {s} · save {v}", tipExtra: "Healthy deal: {i} −{p}% · {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving → skip it", lunchIncl: "Includes lunches for {a}{b}", lunchNext: " · {b}: next shop", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only you — she doesn't eat pork", saveVs: "saved vs regular prices",
+    elseAt: "else at {s}", estPill: "≈ {n} of {m} prices estimated", endsToday: "ends today", add7bf: "+ List", liverShort: "max 1×/wk",
+    folic: "Trying for a baby: folic acid 400 µg a day for her (NHS).", low30: "30-day low", lastSeen: "≈ everyday price last seen {d}", learnedTag: "learned from your ticks", learnSet: "Learn amounts from my ticks", couponsShort: "→ coupons", noPriceShort: "no online price — estimate", legend: "leaflet price · ≈ estimate — check the shelf · tap a line for details",
+    tipWait: "Wait till {d}: {i} · {s} −{v}", tipStock: "Stock up on {i} −{p}% at {s}, save {v}", tipExtra: "Healthy deal: {i} −{p}% · {s}", poultry: "poultry", estTypical: "no price online today — typical price", dryEq: "per kg of dry lentils", dealsN: "{n} stock-up deal(s) on your route · save {v}", tripNone: "Kaufland trip: no saving today → skip it.", lunchIncl: "Includes lunch ingredients for {a}{b}", lunchNext: " · {b}: next shop", byHealth: "sorted by health", him: "you", her: "her", onlyHimPork: "only him — she doesn't eat pork", saveVs: "saved vs regular prices",
     tripGo: "Kaufland trip pays off: +{v} (≥ {th}) → go", tripSkip: "Kaufland trip saves only {v} (needs {th}) → skip",
-    lpLabel: "Lunches", lpHealth: "Health plan", lpUsual: "My usual", buyThere: "Cheaper in your other shop",
-    noShopData: "No online prices for {s}.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List (7 days)", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
-    boostTitle: "Food boosters", boostSub: "small daily amounts with a big effect",
-    b_brazil: "1 nut a day (max 2) · selenium", b_pumpkin: "you 30 g, her 20 g a day · zinc, iron", b_fruit: "1 a day for each of you · vit C, folate",
-    bfTitle: "Breakfast for her", bfSub: "her usual first · price per breakfast",
+    lpLabel: "Lunches", lpHealth: "Health plan", lpUsual: "Our usual", buyThere: "Cheaper in your other shop",
+    noShopData: "No online prices for {s}.", noPrices: "no prices", noFish: "no fish price on your route today — add a can of sardines or mackerel anyway", weekAll: "All together", dry: "(dry)", whole: "wholegrain", perDay: "a day for both", add7: "+ List", add4: "+ List (4×)", onDeal: "on deal", bfHave: "all in your weekly list",
+    boostTitle: "Small daily foods", boostSub: "big effect for fertility",
+    b_brazil: "1 nut a day (max 2) · selenium", b_pumpkin: "him 30 g, her 20 g a day · zinc, iron", b_fruit: "1 a day for each of you · vit C, folate",
+    bfTitle: "Breakfast for her", bfSub: "price per breakfast",
     weekTitle: "Lunches for the week", weekSub: "Cook {n}× · each lasts 2 days for both · fish 2 days · legumes 1×",
     weekGo: "Shop for the whole week", portions: "portions", freeze: "freeze", lwToday: "Today", lwWeek: "Whole week", cooksSet: "Lunch cooks per week",
-    barsTitle: "Key nutrients a day — this week's plan", barsLunch: "lunch plan", barsExtra: "rest of the day, from your weekly list (dinner, fruit, nuts, dairy, boosters)", barsHim: "You", barsHer: "Her", gapsTitle: "What's missing → how to add it",
+    barsTitle: "Key nutrients a day — this week's plan", barsLunch: "lunch plan", barsExtra: "rest of the day, from your weekly list (dinner, fruit, nuts, dairy, boosters)", barsHim: "Him", barsHer: "Her", gapsTitle: "What's missing → how to add it",
     fix_o3: "a 2nd fish cook (sardines, mackerel) or sardines on bread", fix_vd: "food can't cover it in winter → vitamin D 10 µg a day, Oct–Mar (NHS); ask your doctor",
     fix_fol: "spinach or broccoli as the veg, avocado", fix_fol_f: "spinach, lentils, avocado · trying for a baby: 400 µg folic acid a day (NHS)",
     fix_fe: "beef + spinach once more a week, with vit C (peppers, kiwi)", fix_zn: "beef instead of eggs or chicken once a week", fix_se: "1 Brazil nut a day", fix_ch: "eggs (2 a day for her)", fix_b12: "fish, eggs, yoghurt", fix_vc: "peppers, kiwi, broccoli",
   },
   sk: {
+    onList: "v dnešnom zozname",
+    amountL: "Množstvo",
+    inBasket: "V košíku",
+    tSet: "Nastavenia",
+    g_extras: "Zdravé extra",
+    g_pantry: "Špajza",
+    g_fruit: "Ovocie",
+    g_breakfast: "Raňajky",
+    g_lunch: "Obedy",
+    g_dinner: "Večere a bežné",
+    a_drug: "Drogéria",
+    a_frozen: "Mrazené",
+    a_meat: "Mäso a ryby",
+    a_dairy: "Mliečne a vajcia",
+    a_dry: "Trvanlivé a konzervy",
+    a_bakery: "Pečivo",
+    a_produce: "Ovocie a zelenina",
+    drugLinkM: "toaletný papier, pasta, šampón — keď je lacno",
+    drugLink: "Drogéria",
+    nLeft: "{a} z {b} v košíku · zostáva {v}",
+    checkHow0: "Cena na regáli vyššia ako limit? Nekupuj.",
+    checkHow: "Cena na regáli vyššia ako limit? Nechaj to na {s}.",
+    checkLimitSum: "najviac",
+    checkL: "Pozri regál",
+    saveAt: "ušetríš {v} v obchode {s}",
+    deal5: "akcií",
+    deal2: "akcie",
+    deal1: "akcia",
+    forHimS: " (pre neho)",
+    adds7bf: "pridá 7 raňajok",
+    adds7: "pridá 1 týždeň",
+    optsL: "Možnosti",
+    gymOffS: "z domu",
+    gymOnS: "z posilňovne",
+    lpUsualS: "Naše bežné obedy",
+    lpHealthS: "Zdravé obedy",
+    richIn: "Bohaté na",
+    ofDay: "denných potrieb",
     pricesAt: "Ceny {d}",
     from: "od",
-    buyIfShort: "kúp, ak cena je najviac",
+    buyIfShort: "kúp len do limitu",
     mealsLinkM: "plán na týždeň, živiny, jej raňajky",
-    stockLineM: "{n} akcie · zaplatíš {p} → ušetríš {v}",
-    legendEst: "≈ odhad: over cenu na regáli.",
-    legendTap: "Ťukni na riadok pre detail.",
-    restL: "Zvyšok v",
-    inShopL: "Si v",
+    stockLineM: "{n} {w} · zaplatíš {p} → ušetríš {v}",
+    legendEst: "≈ odhad, over na regáli",
+    legendTap: "Odškrtni = v košíku · ťukni na názov pre detail",
+    restL: "Zvyšok",
+    inShopL: "Teraz v obchode",
     herL: "Ona",
-    youL: "Ty",
+    youL: "On",
     allNutr: "Všetky živiny",
     nutrLow: "málo",
     nutrOk: "všetko pokryté",
@@ -383,34 +467,34 @@ const T = {
     leafletTag: "leták",
     bone: "s kosťou",
     can: "konzerva",
-    forYou: "pre teba",
+    forYou: "pre neho",
     tipL: "Tip",
     activate: "Aktivuj kupóny: {a}",
     portionL: "Na porciu",
-    savedL: "Ušetríš",
+    savedL: "Ušetríš oproti bežným cenám",
     payL: "Zaplatíš",
     lunchSub: "len suroviny",
     bigSub: "3–4 dni",
     quickSub: "1 deň",
-    quick: "Rýchly", big: "Veľký nákup", lunchMode: "Obed", gym: "Z posilňovne (cez Albert)", imAt: "Som v",
+    quick: "Rýchly", big: "Veľký nákup", lunchMode: "Obed", gym: "Z posilňovne (cez Albert)", imAt: "Som v obchode",
     tPlan: "Plán", tDeals: "Akcie", tStock: "Zásoby", tPrices: "Ceny", tDrug: "Drogéria", settings: "Nastavenia",
-    goTo: "Nakúp v", pay: "zaplatíš", save: "ušetríš", coupons: "otvor aplikáciu a aktivuj kupóny",
+    goTo: "Kam ísť", pay: "zaplatíš", save: "ušetríš", coupons: "otvor aplikáciu a aktivuj kupóny",
     list: "Nákupný zoznam", share: "Zdieľať", copied: "Zoznam skopírovaný ✓", addItem: "+ Pridať položku", pickItem: "Ťukni a pridaj",
-    add: "+ Zoznam", added: "✓ V zozname", bought: "✓ Kúpené", inStockBtn: "✓ V zásobe",
-    meals: "Najlepšie obedy pre zdravie a plodnosť", perPortion: "/ porcia", addMeal: "+ Do zoznamu", calc: "Množstvá a kde kúpiť",
-    goMeal: "Nakúpiť len na tento obed", pickMeals: "Ktorý obed? (ťukni a vyber)", forPortions: "za 4 porcie",
+    add: "+ Zoznam", added: "✓ V zozname", bought: "Označiť kúpené", inStockBtn: "✓ V zásobe",
+    meals: "Najlepšie obedy pre zdravie a plodnosť", perPortion: "/ porcia", addMeal: "+ Zoznam", calc: "Množstvá a kde kúpiť",
+    goMeal: "Nakúpiť len na tento", pickMeals: "Ktoré obedy? Ťukni a vyber", forPortions: "za 4 porcie",
     why: "Prečo táto trasa", options: "Všetky možnosti", option: "Možnosť", basket: "Košík", stockup: "Zásoby", effective: "Efektívne",
     bestSingle: "Najlepší 1 obchod: {s} — {v}.", addWorth: "Pridanie {s} ušetrí {v} (≥ {th}) → choď.", addNot: "Pridanie {s} ušetrí iba {v} (< {th}) → vynechaj.",
     tripWorth: "Cesta do Kauflandu ušetrí {v} (≥ {th}) → choď.", tripNot: "Cesta do Kauflandu ušetrí iba {v} (< {th}) → vynechaj.",
     notCompared: "Neporovnané: {s} (žiadne otvorené dáta).", estNote: "{n} položiek s odhadovanou cenou.",
     nothing: "Netreba nič kupovať.", est: "odhad", estLike: "tu bez ceny — odhad ako Billa +5 %",
     unitPrice: "Cena za jednotku", usual: "bežne", valid: "platí", priceOn: "cena z", check: "overiť akciu ↗",
-    skip: "Dnes nie", wrong: "Zlý produkt", restore: "Znova zobraziť skryté produkty", hiddenN: "{n} skrytých produktov", healthy: "zdravá akcia",
+    skip: "Dnes nie", wrong: "Zlý produkt? Skryť", restore: "Znova zobraziť skryté produkty", hiddenN: "{n} skrytých produktov", healthy: "zdravá akcia",
     waitBadge: "{d} {s} −{v}", waitTxt: "Lacnejšie od {d} · {s}: {p}", waitBtn: "Počkať", waitPill: "{n}× lacnejšie o pár dní",
     swaps: "Lacnejšie náhrady", swapBtn: "Vymeniť", atHome: "Doma, vynechané:",
     stockTitle: "Teraz do zásoby", myStock: "Moje zásoby", addStock: "+ Pridať do zásob", usedUp: "Minuté", daysLeft: "≈ {n} dní",
     inStock: "v zásobe", noStock: "Zatiaľ nič v zásobe. Ťukni ✓ Kúpené, keď nakúpiš do zásoby.", stockRoute: "Do zásoby na trase: {n} · ušetríš {v}",
-    mealsLink: "Obedy pre zdravie a plodnosť", protein: "Najlacnejšie bielkoviny", proteinUnit: "cena za 10 g bielkovín · ≈, ako sa predáva",
+    mealsLink: "Obedy pre zdravie a plodnosť", protein: "Najlacnejšie bielkoviny", proteinUnit: "cena za 10 g bielkovín · nižšia je lepšia",
     soon: "Čoskoro", none: "Teraz žiadne veľké akcie.", freshTitle: "Čerstvé akcie tento týždeň",
     spent: "výdavky", saved: "úspora", monthNote: "Ušetrené = oproti bežnej najlacnejšej cene. Odhady sa nerátajú. Z tvojich odškrtnutí.",
     atShop: "Obchod: {s}", back: "← Plán", buyHere: "Kúp tu", dontBuy: "Tu nekupuj", checkShelf: "Pozri regál",
@@ -418,30 +502,30 @@ const T = {
     rhythmLearn: "Učím sa rytmus cien · deň {n} z 21", rhythmEvery: "akcia každých ~{n} dní", rhythmNext: "ďalšia o ~{n} dní",
     rhythmNow: "akcia teraz", rhythmTypical: "bežná akcia {p}",
     pricesHint: "Najlacnejšia cena za jednotku v každom obchode. ★ = v akcii.", search: "Hľadať",
-    drugHint: "Drogériu kupuj len keď je lacná.", needNow: "Treba teraz",
+    drugHint: "Drogériu kupuj len keď je lacná.", needNow: "Dochádza? Ťukni a pridaj do dnešného zoznamu",
     stopTh: "Ďalšia zastávka musí ušetriť", tripTh: "Samostatná cesta musí ušetriť", stockPct: "Zásoby od % zľavy", alertPct: "Zdravé extra / upozornenie od % zľavy",
     weekly: "Moja týždenná spotreba", reset: "Obnoviť", data: "Dáta", checkedAt: "Ceny overené {d}", howWorks: "Ako to funguje",
     howText: "Robot každé ráno (+ st/št večer) číta verejné ceny. Aplikácia vždy berie najlacnejšiu značku za kg / l / kus a porovná kombinácie obchodov na tvojej trase.",
-    onlyHim: "len ty", liverWarn: "Pečeň: len pre teba, max 1× týždenne (vitamín A) — nie pre ňu, kým sa snažíte o bábätko.",
+    onlyHim: "len on", liverWarn: "Pečeň: len pre neho, max 1× týždenne (vitamín A) — nie pre ňu, kým sa snažíte o bábätko.",
     mealsAim: "% = podiel denných živín pre plodnosť v 1 obede. Ryba 2 dni v týždni.", healthHow: "Čo znamenajú %",
-    healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (ty zješ ~56 %, ona ~44 % varenia; každá živina max 100 %). Ty: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. Ona: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. Množstvá = surová váha na obed. Približné hodnoty.",
+    healthTxt: "% = podiel denných kľúčových živín pre plodnosť, ktorý jeden obed dá každému z vás (on zje ~56 %, ona ~44 % varenia; každá živina max 100 %). On: zinok, selén, omega-3 z rýb, vitamín D, folát, vitamín C. Ona: folát, železo, omega-3, vitamín D, cholín, B12, zinok. Obedy pod 35 % len dopĺňajú prázdne miesta; potom vyhráva najnižšia cena za porciu. Množstvá = surová váha na obed. Približné hodnoty.",
     extrasTitle: "Zdravé extra v akcii", extrasSet: "Zdravé extra", ex_auto: "Pridať auto", ex_suggest: "Navrhnúť", ex_off: "Vypnuté",
     covered: "pokryté", notCovered: "nepokryté", leafOnly: "len leták", kLeaf: "Leták Kaufland", open: "Otvoriť", kNoteOff: "Ceny sú len v obrázkoch letáku, aplikácia ich nevie porovnať. Pozri pred veľkým nákupom.", kNote: "Akcie, ktoré aplikácia vedela z týchto strán prečítať a overiť, sú už v pláne. Ostatné nájdeš v letáku.", scanned: "prečítané z obrázka letáku — skontroluj cenu na regáli", loadErr: "Ceny sa ešte nenačítali — skús o chvíľu.", perWeek: "/ týždeň", allDone: "Hotovo ✓",
     tHealth: "Zdravie", meatEq: "za kg mäsa bez kostí", pantryLeft: "(~{v} zostane v špajze)", freezeP: "zamraz po porciách (vydrží ~3 mesiace)", fewPrices: "Pre {s} málo online cien — riaď sa limitmi nižšie.", stopGain: "Zastávka {s} ušetrí {v}",
-    tripNoData: "Kaufland: zatiaľ bez cien → neporovnané", restAt: "Tu kúp {n} → zvyšok: {s}", modeHint: "Rýchly = na 1 deň · Veľký = na 3–4 dni · Obed = len suroviny na obed", shopFor: "nákup", leftover: "niečo zostane", todayPlan: "dnešný plán", payKeep: "zaplatíš {p} → ušetríš {v}", lasts: "vydrží ~{n} týž.",
+    tripNoData: "Kaufland: zatiaľ bez cien → neporovnané", restAt: "Tu kúp {n} → zvyšok: {s}", modeHint: "Rýchly = na 1 deň · Veľký = na 3–4 dni · Obed = len suroviny na obed", shopFor: "nákup", leftover: "niečo zostane", todayPlan: "v pláne týždňa", payKeep: "zaplatíš {p} → ušetríš {v}", lasts: "vydrží ~{n} týž.",
     stockLine: "Do zásoby na trase", chipBuy: "Kúp {n} · {v}", chipCheck: "{n} položiek tu nemá online cenu: kúp, ak cena na regáli nie je vyššia ako limit", chipThere: "{n} inde", buyLater: "Kúp neskôr (čoskoro lacnejšie)",
-    elseAt: "inak v: {s}", estPill: "≈ {n} z {m} cien je odhad", endsToday: "končí dnes", add7bf: "+ Zoznam (7 raňajok)", liverShort: "max 1×/týž.",
-    folic: "Ona: snažíte sa o bábätko? Kyselina listová 400 µg denne (NHS).", low30: "najnižšia za 30 dní", lastSeen: "≈ bežná cena naposledy {d}", learnedTag: "naučené z odškrtnutí", learnSet: "Učiť sa množstvá z odškrtnutí", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "cena z letáku · ≈ odhad — over na regáli · ťukni na riadok pre detail",
-    tipWait: "Počkaj do {d}: {i} · {s} −{v}", tipStock: "Do zásoby: {i} −{p}% · {s} · ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% · {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: bez úspory → vynechaj", lunchIncl: "Obsahuje obedy na {a}{b}", lunchNext: " · {b}: ďalší nákup", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len ty — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
+    elseAt: "inak v: {s}", estPill: "≈ {n} z {m} cien je odhad", endsToday: "končí dnes", add7bf: "+ Zoznam", liverShort: "max 1×/týž.",
+    folic: "Ak sa snažíte o bábätko: kyselina listová 400 µg denne pre ňu (NHS).", low30: "najnižšia za 30 dní", lastSeen: "≈ bežná cena naposledy {d}", learnedTag: "naučené z odškrtnutí", learnSet: "Učiť sa množstvá z odškrtnutí", couponsShort: "→ kupóny", noPriceShort: "bez online ceny — odhad", legend: "cena z letáku · ≈ odhad — over na regáli · ťukni na riadok pre detail",
+    tipWait: "Počkaj do {d}: {i} · {s} −{v}", tipStock: "Kúp do zásoby {i} −{p}% v obchode {s}, ušetríš {v}", tipExtra: "Zdravá akcia: {i} −{p}% · {s}", poultry: "hydinová", estTypical: "dnes bez online ceny — bežná cena", dryEq: "za kg suchej šošovice", dealsN: "Do zásoby na trase: {n} · ušetríš {v}", tripNone: "Cesta do Kauflandu: dnes bez úspory → vynechaj.", lunchIncl: "Obsahuje suroviny na obedy {a}{b}", lunchNext: " · {b}: ďalší nákup", byHealth: "zoradené podľa zdravia", him: "ty", her: "ona", onlyHimPork: "len on — ona bravčové neje", saveVs: "ušetríš oproti bežným cenám",
     tripGo: "Cesta do Kauflandu sa oplatí: +{v} (≥ {th}) → choď", tripSkip: "Cesta do Kauflandu ušetrí len {v} (treba {th}) → vynechaj",
-    lpLabel: "Obedy", lpHealth: "Zdravý plán", lpUsual: "Môj bežný", buyThere: "Lacnejšie v druhom obchode",
-    noShopData: "Pre {s} nie sú online ceny.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam (7 dní)", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko je v týždennom zozname",
-    boostTitle: "Malé denné doplnky", boostSub: "malé denné množstvá, veľký účinok",
-    b_brazil: "1 orech denne (max 2) · selén", b_pumpkin: "ty 30 g, ona 20 g denne · zinok, železo", b_fruit: "1 denne pre každého · vit C, folát",
-    bfTitle: "Raňajky pre ňu", bfSub: "najprv jej obvyklé · cena za raňajky",
+    lpLabel: "Obedy", lpHealth: "Zdravý plán", lpUsual: "Naše bežné", buyThere: "Lacnejšie v druhom obchode",
+    noShopData: "Pre {s} nie sú online ceny.", noPrices: "bez cien", noFish: "dnes na trase bez ceny rýb — aj tak pridaj konzervu sardiniek alebo makrely", weekAll: "Spolu", dry: "(suché)", whole: "celozrnné", perDay: "denne pre oboch", add7: "+ Zoznam", add4: "+ Zoznam (4×)", onDeal: "v akcii", bfHave: "všetko je v týždennom zozname",
+    boostTitle: "Malé denné potraviny", boostSub: "veľký účinok na plodnosť",
+    b_brazil: "1 orech denne (max 2) · selén", b_pumpkin: "on 30 g, ona 20 g denne · zinok, železo", b_fruit: "1 denne pre každého · vit C, folát",
+    bfTitle: "Raňajky pre ňu", bfSub: "cena za raňajky",
     weekTitle: "Obedy na týždeň", weekSub: "Varíš {n}× · vždy na 2 dni pre oboch · ryba 2 dni · strukoviny 1×",
     weekGo: "Nakúpiť na celý týždeň", portions: "porcií", freeze: "zamraziť", lwToday: "Dnes", lwWeek: "Celý týždeň", cooksSet: "Varení obedov za týždeň",
-    barsTitle: "Kľúčové živiny za deň — plán na tento týždeň", barsLunch: "plán obedov", barsExtra: "zvyšok dňa podľa týždenného zoznamu (večera, ovocie, orechy, mliečne výrobky, extra)", barsHim: "Ty", barsHer: "Ona", gapsTitle: "Čo chýba → čím doplniť",
+    barsTitle: "Kľúčové živiny za deň — plán na tento týždeň", barsLunch: "plán obedov", barsExtra: "zvyšok dňa podľa týždenného zoznamu (večera, ovocie, orechy, mliečne výrobky, extra)", barsHim: "On", barsHer: "Ona", gapsTitle: "Čo chýba → čím doplniť",
     fix_o3: "2. varenie s rybou (sardinky, makrela) alebo sardinky na chlebe", fix_vd: "v zime ho jedlo nepokryje → vitamín D 10 µg denne, okt–mar (NHS); poraď sa s lekárom",
     fix_fol: "špenát alebo brokolica ako zelenina, avokádo", fix_fol_f: "špenát, šošovica, avokádo · ak sa snažíte o dieťa: 400 µg kyseliny listovej denne (NHS)",
     fix_fe: "hovädzie + špenát ešte 1× týždenne, spolu s vitamínom C (paprika, kiwi)", fix_zn: "1× týždenne hovädzie namiesto vajec alebo kuracieho", fix_se: "1 para orech denne", fix_ch: "vajcia (2 denne pre ňu)", fix_b12: "ryby, vajcia, jogurt", fix_vc: "paprika, kiwi, brokolica",
@@ -453,6 +537,29 @@ const APP = { lidl: "Lidl Plus", billa: "Billa card", albert: "Albert app", kauf
 const APP_SK = { billa: "Billa karta", albert: "aplikácia Albert", teta: "aplikácia Teta" };
 const SHARE_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
 const pct = (x) => Math.round(x * 100) + "%";
+// product names as printed; shout-case (all capitals) from some shops is calmed down
+function pname(s) {
+  s = String(s || "").trim(); const letters = s.replace(/[^\p{L}]/gu, "");
+  if (letters.length > 4 && letters === letters.toUpperCase()) s = s.toLowerCase().replace(/(^|[\s(\/-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+// shop-floor order: fruit & veg first, frozen last
+const AISLE = { produce: ["avocado", "paprika", "cucumber", "tomato", "broccoli", "carrot", "onion", "garlic", "bananas", "apples", "sweet_potato", "blueberries", "strawberries", "kiwi", "spinach", "mushrooms", "oranges"],
+  bakery: ["bread"], dairy: ["eggs", "mozzarella", "balkan", "eidam", "butter", "kefir", "kefir_flav", "yoghurt", "cottage"],
+  meat: ["ham", "chicken", "pork", "liver_chicken", "liver_pork", "beef", "salmon", "turkey"], frozen: ["frozen_veg", "chicken_frozen"] };
+const AISLE_ORDER = ["produce", "bakery", "dry", "dairy", "meat", "frozen", "drug"];
+function aisleOf(id) { return Object.keys(AISLE).find((k) => AISLE[k].includes(id)) || (BYID[id]?.group === "drugstore" ? "drug" : "dry"); }
+function aisleHtml(lines, row, idOf = (l) => l.b.it.id) {
+  const D = day(), todo = lines.filter((l) => !D.done.includes(idOf(l))), done = lines.filter((l) => D.done.includes(idOf(l)));
+  const sorted = todo.slice().sort((a, b) => AISLE_ORDER.indexOf(aisleOf(idOf(a))) - AISLE_ORDER.indexOf(aisleOf(idOf(b))));
+  let html = "", last = null;
+  for (const l of sorted) { const a = aisleOf(idOf(l)); if (a !== last) { html += `<div class="aisle">${t("a_" + a)}</div>`; last = a; } html += row(l); }
+  if (done.length) html += `<div class="aisle">${t("inBasket")}</div>` + done.map(row).join("");
+  return html;
+}
+function dealsW(n) { return t(n === 1 ? "deal1" : state.lang === "sk" && n < 5 ? "deal2" : "deal5"); }
+function nextWork(d) { const wd = (x) => new Date(x + "T12:00:00").getDay(); let n = addDays(d, 1); while (wd(n) === 0 || wd(n) === 6) n = addDays(n, 1); return n; }
+function cookRange(i) { return cookDay(i) + "–" + wdTxt(nextWork(cookDate(i))); }
 function appName(s) { return (state.lang === "sk" && APP_SK[s]) || APP[s] || SHOP[s]; }
 const PROTEIN = { chicken: 18, chicken_frozen: 18, turkey: 20, pork: 19, liver_chicken: 17, liver_pork: 21, beef: 20, salmon: 20, tuna: 18,
   eggs: 7, cottage: 11, eidam: 26, balkan: 17, mozzarella: 18, kefir: 3.3, yoghurt: 5, beans: 6, quinoa: 24, sardines: 21, mackerel: 19 }; // g per 100 g/ml as sold; eggs per piece
@@ -895,7 +1002,7 @@ const SHORT = {
     sardines: "Sardines", mackerel: "Mackerel", eggs: "Eggs", quinoa: "Lentils", yoghurt: "plain yoghurt", kefir: "kefir", cottage: "cottage cheese", bread: "rye bread",
     avocado: "avocado", nuts: "nuts", pumpkin_seeds: "pumpkin seeds", brazil_nuts: "Brazil nut", kiwi: "kiwi", oranges: "orange", blueberries: "blueberries", strawberries: "berries", bananas: "banana", apples: "apple", tomato: "tomato",
     rice: "rice", pasta: "pasta", tomato_can: "tomato sauce", sweet_potato: "sweet potatoes", broccoli: "broccoli", frozen_veg: "frozen veg", carrot: "carrots", paprika: "peppers", spinach: "spinach", mushrooms: "mushrooms", sauerkraut: "sauerkraut" },
-  sk: { chicken: "Kuracie", chicken_frozen: "Kuracie", turkey: "Morčacie", pork: "Bravčové", liver_chicken: "Kuracia pečeň", liver_pork: "Bravčová pečeň", beef: "Hovädzie", salmon: "Losos", tuna: "Tuniak",
+  sk: { chicken: "Kuracie mäso", chicken_frozen: "Kuracie", turkey: "Morčacie", pork: "Bravčové", liver_chicken: "Kuracia pečeň", liver_pork: "Bravčová pečeň", beef: "Hovädzie", salmon: "Losos", tuna: "Tuniak",
     sardines: "Sardinky", mackerel: "Makrela", eggs: "Vajcia", quinoa: "Šošovica", yoghurt: "biely jogurt", kefir: "kefír", cottage: "cottage", bread: "ražný chlieb",
     avocado: "avokádo", nuts: "orechy", pumpkin_seeds: "tekvicové semienka", brazil_nuts: "para orech", kiwi: "kiwi", oranges: "pomaranč", blueberries: "čučoriedky", strawberries: "bobule", bananas: "banán", apples: "jablko", tomato: "paradajka",
     rice: "ryža", pasta: "cestoviny", tomato_can: "paradajková omáčka", sweet_potato: "batáty", broccoli: "brokolica", frozen_veg: "mrazená zelenina", carrot: "mrkva", paprika: "paprika", spinach: "špenát", mushrooms: "šampiňóny", sauerkraut: "kyslá kapusta" },
@@ -1075,7 +1182,7 @@ function boostHtml() {
   return `<div class="card"><h2>${t("boostTitle")}</h2><div class="lead-in">${t("boostSub")}</div>${bs.map((b) => {
     const wk = +((b.m + b.f) * 7).toFixed(3), on = !!D.add[b.id];
     return `<div class="addrow"><div><div class="t">${esc(iname(BYID[b.id]))} ${b.c.o ? discBadge(b.c.o) : ""}</div><div class="m">${t(b.k)}</div>
-      <div class="m">${money(b.day)} ${t("perDay")}${b.c.o ? ` · ${SHOP[b.c.o.shop]}` : ""}</div></div>
+      <div class="m">${money(b.day)} ${t("perDay")}${b.c.o ? ` · ${SHOP[b.c.o.shop]}` : ""} · ${t("adds7")}</div></div>
       <button class="btn ${on ? "done" : ""}" data-adddeal="${b.id}" data-qty="${wk}">${on ? t("added") : t("add7")}</button></div>`;
   }).join("")}</div>`;
 }
@@ -1089,9 +1196,9 @@ function bfHtml() {
   return `<div class="card"><h2>${t("bfTitle")}</h2><div class="lead-in">${t("bfSub")}</div>${list.map((b) => {
     const extra = b.parts.filter(([id, q]) => q * 7 - (inWeekly(id) ? weeklyOf(BYID[id]) : 0) > 1e-6), on = extra.length && extra.every(([id]) => D.add[id]);
     return `<div class="meal"><div class="row" style="align-items:flex-start"><div class="t">${b.parts.map(partTxt).join(" + ")}</div><span class="per">${money(b.cost)}</span></div>
-      <div class="hl">${t("herL")} <b>${pct(b.score)}</b> <span class="muted">· ${b.top.join(", ")}</span>${b.deal ? ` <span class="flag s">${t("onDeal")}</span>` : ""}</div>
+      <div class="hl">${t("herL")} <b>${pct(b.score)}</b> <span class="muted">${t("ofDay")} · ${b.top.join(", ")}</span>${b.deal ? ` <span class="flag s">${t("onDeal")}</span>` : ""}</div>
       <div class="small muted" style="margin-top:2px">${b.shops.map((s) => SHOP[s]).join(", ")}${extra.length ? "" : ` · ${t("bfHave")}`}</div>
-      ${extra.length ? `<div style="margin-top:8px"><button class="btn ${on ? "done" : ""}" data-bfadd="${b.i}">${on ? t("added") : t("add7bf")}</button></div>` : ""}</div>`;
+      ${extra.length ? `<div class="acts" style="margin-top:8px;align-items:center"><button class="btn ${on ? "done" : ""}" data-bfadd="${b.i}">${on ? t("added") : t("add7bf")}</button><span class="tiny muted">${t("adds7bf")}</span></div>` : ""}</div>`;
   }).join("")}</div>`;
 }
 function weekHtml(wk, inPlan) {
@@ -1162,11 +1269,12 @@ function low30(o) {
   return (LOW[k] = days.size >= 10 && o.unit_price <= min * 0.98);
 }
 // one flag: ends today (amber) › 30-day low › discount (green)
+// green = a real discount or 30-day low; grey = ends today
 function discBadge(o) {
   const d = discount(o), off = o.promo && d >= 0.05 ? "−" + Math.round(d * 100) + "%" : "";
-  if (o.valid_to && o.valid_to.slice(0, 10) === today) return `<span class="flag w">${off ? off + " · " : ""}${t("endsToday")}</span>`;
-  if (low30(o)) return `<span class="flag s">${t("low30")}</span>`;
-  return off ? `<span class="flag s">${off}</span>` : "";
+  const ends = o.valid_to && o.valid_to.slice(0, 10) === today ? `<span class="flag n">${t("endsToday")}</span>` : "";
+  const main = low30(o) ? `<span class="flag s">${t("low30")}</span>` : off ? `<span class="flag s">${off}</span>` : "";
+  return main + (main && ends ? " " : "") + ends;
 }
 function amountTxt(l) {
   const u = l.b.it.unit, o = l.o || l.refO;
@@ -1189,7 +1297,7 @@ function confGlyph(l) {
 function tipHtml(r, lunch) {
   const tips = [];
   for (const l of r.rec.lines) { const w = !l.missing && waitFor(l); if (w) tips.push({ v: w.sv, txt: t("tipWait", { d: wdTxt(w.o.valid_from), i: iname(l.b.it), s: SHOP[w.o.shop], v: money(w.sv) }) }); }
-  if (!lunch && state.mode !== "quick") for (const d of r.ds) if (d.kind === "stock" && r.rec.shops.includes(d.o.shop) && !day().add[d.it.id] && !boughtToday(d.it.id)) tips.push({ v: d.saving * 0.5, txt: t("tipStock", { i: iname(d.it), p: Math.round(d.d * 100), s: SHOP[d.o.shop], v: money(d.saving) }) });
+  if (!lunch && state.mode !== "quick") for (const d of r.ds) if (d.kind === "stock" && r.rec.shops.includes(d.o.shop) && !day().add[d.it.id] && !boughtToday(d.it.id)) tips.push({ v: d.saving * 0.5, txt: t("tipStock", { i: iname(d.it), p: Math.round(d.d * 100), s: SHOP[d.o.shop], v: money(d.saving) }) + (HIS.includes(d.it.id) ? t("forHimS") : "") });
   if (false) for (const d of r.ds) if (d.kind === "extra" && nearShops().includes(d.o.shop) && !day().add[d.it.id]) tips.push({ v: d.saving * 0.4 + 5, txt: t("tipExtra", { i: iname(d.it), p: Math.round(d.d * 100), s: SHOP[d.o.shop] }) });
   const best = tips.filter((x) => x.v >= minDeal() * 0.5).sort((a, b) => b.v - a.v)[0];
   return best ? `<div class="tip"><b>${t("tipL")}:</b> ${esc(best.txt)}</div>` : "";
@@ -1202,24 +1310,24 @@ function lineHtml(l) {
   if (HIS.includes(id) || (id === "ham" && l.o && !l.whole)) tags.push(t("forYou"));
   if (l.b.auto) tags.push(t("healthy"));
   if (l.o && l.o.conf === "med") tags.push(t("leafletTag"));
-  const flag = w ? `<span class="flag w">${t("cheaperOn", { d: wdTxt(w.o.valid_from) })}</span>` : l.o ? discBadge(l.o) : "";
+  const flag = w ? `<span class="flag n">${t("cheaperOn", { d: wdTxt(w.o.valid_from) })}</span>` : l.o ? discBadge(l.o) : "";
   let more = "";
   if (open) {
     const o = l.o;
-    const unitRow = o ? `${t("unitPrice")}: <b>${money(o.unit_price)}/${uName(l.b.it.unit)}</b>${o.dryeq ? ` <span class="muted">(${t("dryEq")})</span>` : o.edible ? ` <span class="muted">(${t("meatEq")})</span>` : ""}${usual(id) ? ` · ${t("usual")} ${money(usual(id))}` : ""}` : `<span class="warn-t">≈</span> ${t("est")}: ${l.packs && l.refO?.pack ? money(l.paid) + " / " + qtyTxt(l.refO.pack, l.b.it.unit) : money(l.paid) + "/" + uName(l.b.it.unit)}`;
+    const unitRow = o ? `${t("unitPrice")}: <b>${money(o.unit_price)}/${uName(l.b.it.unit)}</b>${o.dryeq ? ` <span class="muted">(${t("dryEq")})</span>` : o.edible ? ` <span class="muted">(${t("meatEq")})</span>` : ""}${usual(id) ? ` · ${t("usual")} ${money(usual(id))}/${uName(l.b.it.unit)}` : ""}` : `<b>≈</b> ${t("est")}: ${l.packs && l.refO?.pack ? money(l.paid) + " / " + qtyTxt(l.refO.pack, l.b.it.unit) : money(l.paid) + "/" + uName(l.b.it.unit)}`;
     const calc = l.packs ? `${l.packs} × ${money(l.paid)} = ${money(l.cost)}` : `${fmtN(l.qty)} ${uName(l.b.it.unit)} × ${money(l.paid)} = ${money(l.cost)}`;
     const rt = rhythmTxt(id);
-    more = `<div class="more"><div>${unitRow}</div><div>${calc}</div>${o ? `<div class="muted">${esc(o.name)} · ${validTxt(o)}${o.card ? " · " + esc(o.card) : ""}${o.url ? ` · <a href="${esc(o.url)}" target="_blank" rel="noopener">${t("check")}</a>` : ""}</div>${o.conf === "med" ? `<div class="muted">${t("scanned")}</div>` : ""}` : ""}
+    more = `<div class="more"><div>${unitRow}</div><div>${calc}</div>${o ? `<div class="muted">${esc(pname(o.name))} · ${validTxt(o)}${o.card ? " · " + esc(o.card) : ""}${o.url ? ` · <a href="${esc(o.url)}" target="_blank" rel="noopener">${t("check")}</a>` : ""}</div>${o.conf === "med" ? `<div class="muted">${t("scanned")}</div>` : ""}` : ""}
       ${w ? `<div><b>${t("waitTxt", { d: dayTxt(w.o.valid_from), s: SHOP[w.o.shop], p: money(w.o.price) })}</b></div>` : ""}${rt ? `<div class="muted">${rt}</div>` : ""}
-      <div class="acts"><button class="btn" data-q="-" data-id="${id}" aria-label="less">−</button><button class="btn" data-q="+" data-id="${id}" aria-label="more">+</button>
+      <div class="acts"><span class="small muted" style="align-self:center">${t("amountL")}</span><button class="btn" data-q="-" data-id="${id}" aria-label="less">−</button><button class="btn" data-q="+" data-id="${id}" aria-label="more">+</button>
       ${w ? `<button class="btn primary" data-skip="${id}">${t("waitBtn")}</button>` : `<button class="btn" data-skip="${id}">${t("skip")}</button>`}
       ${o ? `<button class="btn ghost" data-hide="${esc(hideKey(o))}">${t("wrong")}</button>` : ""}</div></div>`;
   }
   return `<div class="li ${done ? "done" : ""}">
     <button class="ck" data-done="${id}" aria-label="${t("tickL")}"><span>${done ? "✓" : ""}</span></button>
-    <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span> ${flag}</div>
-      <div class="sub">${tags.length ? `<span class="tag">${tags.join(" · ")}</span> · ` : ""}${l.o ? esc(l.o.name) : `<i>${l.seen ? t("lastSeen", { d: dateTxt(l.seen) }) : t("noPriceShort")}</i>`}</div></div>
-    <div class="pr">${l.o ? "" : `<span class="est" title="${t("est")}">≈</span>`}${money(l.cost)}</div>${more}</div>`;
+    <div data-open="${id}"><div class="nm">${esc(iname(l.b.it))}<span class="qty">${amountTxt(l)}</span></div>
+      <div class="sub">${tags.length ? `<span class="tag">${tags.join(" · ")}</span> · ` : ""}${l.o ? esc(pname(l.o.name)) : `<i>${l.seen ? t("lastSeen", { d: dateTxt(l.seen) }) : t("noPriceShort")}</i>`}</div></div>
+    <div class="pr">${l.o ? "" : `<span class="est" title="${t("est")}">≈</span>`}${money(l.cost)}${flag}</div>${more}</div>`;
 }
 function stockRowHtml(d) {
   const D = day(), onList = !!D.add[d.it.id], key = `${today}|${state.city}|${d.it.id}|stock`, isBought = state.log.some((e) => e.k === key);
@@ -1231,20 +1339,20 @@ function stockRowHtml(d) {
     <div class="m">${t("payL")} ${money(d.cost)} · <b class="save-t">${t("save")} ${money(d.saving)}</b></div>
     <div class="m">${info}${rt ? "<br>" + rt : ""}</div></div>
     <div class="acts"><button class="btn ${onList ? "done" : ""}" data-adddeal="${d.it.id}" data-qty="${d.qty}">${onList ? t("added") : t("add")}</button>
-    <button class="btn ${isBought ? "done" : "ghost"}" data-bought="${d.it.id}">${isBought ? t("inStockBtn") : t("bought")}</button></div></div>`;
+    <button class="btn ${isBought ? "done" : ""}" data-bought="${d.it.id}">${isBought ? t("inStockBtn") : t("bought")}</button></div></div>`;
 }
 function forN(n) { return state.lang === "sk" ? `za ${n} ${n === 1 ? "porciu" : n < 5 ? "porcie" : "porcií"}` : `for ${n} portion${n === 1 ? "" : "s"}`; }
 function mealCard(m, k, mode, chosen) {
   const lines = (m.rec?.lines || []).map((l) => `<div class="row"><span>${amountTxt(l)} ${esc(shortName(l.b.it.id).toLowerCase())} · ${SHOP[l.shop]}${l.o ? "" : ` <span class="warn-t">≈</span>`}</span><span>${money(l.cost)}</span></div>`).join("");
   const liver = m.parts.some((p) => p.id.startsWith("liver"));
-  const hl = m.forHer ? `${t("youL")} <b>${pct(m.h.m)}</b> · ${t("herL")} <b>${pct(m.h.f)}</b>` : `${t("youL")} <b>${pct(m.h.m)}</b> · <span class="warn-t" style="font-weight:650">${t(m.fam === "pork" ? "onlyHimPork" : "onlyHim")}</span>`;
+  const hl = m.forHer ? `${t("youL")} <b>${pct(m.h.m)}</b> · ${t("herL")} <b>${pct(m.h.f)}</b> <span class="muted">${t("ofDay")}</span>` : `${t("youL")} <b>${pct(m.h.m)}</b> <span class="muted">${t("ofDay")}</span> · <span class="warn-t" style="font-weight:650">${t(m.fam === "pork" ? "onlyHimPork" : "onlyHim")}</span>`;
   const flags = (mode === "week" && needsFreeze(m, k) ? ` <span class="flag n">${t("freeze")}</span>` : "") + (mode === "pick" && k === 0 && m.inPlan ? ` <span class="flag n">${t("todayPlan")}</span>` : "");
   const left = m.total > (m.used || m.total) * 1.15 ? ` (${t("leftover")})` : "";
   const body = `<div class="row" style="align-items:flex-start"><div class="t">${esc(mealName(m))}${flags}</div><span class="per">${money(m.per)}<small>${t("perPortion")}</small></span></div>
-    <div class="hl">${hl}${m.h.top.length ? ` <span class="muted">· ${m.h.top.join(", ")}</span>` : ""}</div>${liver ? `<div class="small warn-t" style="margin-top:3px">${t("liverWarn")}</div>` : ""}
-    <details><summary>${t("calc")}</summary><div><div>${portionTxt(m)}</div><div class="muted">${t("shopFor")} ${money(m.total)}${left} · ${mealWhere(m)}</div><div class="calc">${lines}</div></div></details>
-    ${mode ? "" : `<div class="acts" style="margin-top:8px"><button class="btn" data-meal="${k}">${t("addMeal")}</button><button class="btn ghost" data-mealgo="${k}">${t("goMeal")}</button></div>`}`;
-  if (mode === "week") return `<div class="meal day"><div class="d">${cookDay(k)}</div><div>${body}</div></div>`;
+    <div class="hl">${hl}</div>${liver ? `<div class="small warn-t" style="margin-top:3px">${t("liverWarn")}</div>` : ""}
+    <details><summary>${t("calc")}</summary><div>${m.h.top.length ? `<div><b>${t("richIn")}:</b> ${m.h.top.join(", ")}</div>` : ""}<div>${portionTxt(m)}</div><div class="muted">${t("shopFor")} ${money(m.total)}${left} · ${mealWhere(m)}</div><div class="calc">${lines}</div></div></details>
+    ${mode ? "" : `<div class="acts" style="margin-top:8px"><button class="btn" data-meal="${k}">${t("addMeal")}</button><button class="btn" data-mealgo="${k}">${t("goMeal")}</button></div>`}`;
+  if (mode === "week") return `<div class="meal day"><div class="d">${cookDay(k)}<br><span>${wdTxt(nextWork(cookDate(k)))}</span></div><div>${body}</div></div>`;
   if (mode === "pick") return `<div class="meal pick ${chosen ? "on" : ""}" data-mealpick="${k}"><span class="ck"><span>${chosen ? "✓" : ""}</span></span><div>${body}</div></div>`;
   return `<div class="meal">${body}</div>`;
 }
@@ -1269,6 +1377,11 @@ function renderPlan() {
   $("gymRow").style.display = state.city === "brno" ? "" : "none";
   $("lpRow").style.display = state.mode === "big" ? "" : "none";
   $("lpSeg").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.lp === (state.set.lunchPlan || "health")));
+  const opt = [];
+  if (state.mode === "big") opt.push(t(state.set.lunchPlan === "usual" ? "lpUsualS" : "lpHealthS"));
+  if (state.city === "brno") opt.push(t(state.gym ? "gymOnS" : "gymOffS"));
+  $("opts").style.display = opt.length ? "" : "none";
+  $("optsSum").innerHTML = `${t("optsL")}: <b>${opt.join(" · ")}</b>`;
   if (!PRICES) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
   if (state.at && groceryShops().includes(state.at)) return renderInShop(out);
   const r = decide(); LAST = r;
@@ -1280,14 +1393,13 @@ function renderPlan() {
   // the slip: where to go, what you pay, what you save — then at most a few short notes
   const foot = [], tip = tipHtml(r, lunch);
   if (tip) foot.push(tip);
+  let lunchNote = "";
   if (healthLunch()) {
     const wk = weekPlan(), inside = (i) => daysBetween(today, cookDate(i)) < horizon();
     const inN = wk.map((m, i) => i).filter(inside), rest = wk.map((m, i) => i).filter((i) => !inside(i));
-    if (wk.length && inN.length) foot.push(`<div class="m">${t("lunchIncl", { a: inN.map((i) => cookDay(i)).join(" + "), b: rest.length ? t("lunchNext", { b: rest.map((i) => cookDay(i)).join(" + ") }) : "" })}</div>`);
+    if (wk.length && inN.length) lunchNote = `<div class="legend">${t("lunchIncl", { a: inN.map(cookRange).join(", "), b: rest.length ? t("lunchNext", { b: rest.map(cookRange).join(", ") }) : "" })}</div>`;
   }
-  for (const x of r.steps.filter((x) => x.ok)) foot.push(`<div class="m">${t("stopGain", { s: SHOP[x.added], v: money(x.shown) })}</div>`);
-  if (r.trip) foot.push(`<div class="m">${t(r.trip.ok ? "tripGo" : "tripSkip", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>`);
-  else if (!groceryShops().includes("kaufland") && state.mode === "big") foot.push(`<div class="m">${t("tripNoData")}</div>`);
+  if (r.trip && r.trip.ok) foot.push(`<div class="m">${t("tripGo", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) })}</div>`);
   if (rec.est) foot.push(`<div class="m">${t("estPill", { n: rec.est, m: rec.lines.filter((l) => !l.missing).length })}</div>`);
   const apps = route.filter((s) => APP[s]).map(appName);
   if (apps.length) foot.push(`<div class="m">${t("activate", { a: apps.join(", ") })}</div>`);
@@ -1305,19 +1417,21 @@ function renderPlan() {
   const sw = swapsFor(rec);
   if (sw.length) html += `<div class="card"><h2>${t("swaps")}</h2>${sw.map((s) => `<div class="addrow"><div><div class="t">${esc(iname(BYID[s.from]))} → ${esc(iname(BYID[s.to]))}</div>
     <div class="m">${money(s.uA)} → ${money(s.uB)} /${uName(BYID[s.to].unit)} · <b class="save-t">${t("save")} ${money(s.sv)}</b></div></div><button class="btn" data-swap="${s.from}|${s.to}|${s.need}">${t("swapBtn")}</button></div>`).join("")}</div>`;
-  html += `<div class="card"><div class="listhead"><h2>${t("list")}</h2><button class="btn ghost" id="shareBtn">${SHARE_ICO} ${t("share")}</button></div>${atChips()}`;
   const all = rec.lines.filter((l) => !l.missing);
+  html += `<div class="card"><div class="listhead"><h2>${t("list")}</h2><button class="btn ghost" id="shareBtn" style="text-decoration:none">${SHARE_ICO} ${t("share")}</button></div>${atChips()}
+    <div class="legend">${t("legendTap")}${all.some((l) => !l.o) ? " · " + t("legendEst") : ""}</div>${lunchNote}`;
   for (const s of route) {
     const ls = all.filter((l) => l.shop === s);
     if (!ls.length) continue;
-    html += `<div class="shop">${SHOP[s]}<span class="sum">${money(ls.reduce((a, l) => a + l.cost, 0))}</span></div>`;
-    html += ls.map(lineHtml).join("");
+    const nd = ls.filter((l) => D.done.includes(l.b.it.id)).length, sum = ls.reduce((a, l) => a + l.cost, 0), left = ls.filter((l) => !D.done.includes(l.b.it.id)).reduce((a, l) => a + l.cost, 0);
+    html += `<div class="shop">${SHOP[s]}<span class="sum">${nd ? `<span class="progress">${t("nLeft", { a: nd, b: ls.length, v: money(left) })}</span>` : money(sum)}</span></div>`;
+    html += aisleHtml(ls, lineHtml);
   }
   if (!all.length) html += `<div class="empty">${t("nothing")}</div>`;
   if (all.length && all.every((l) => D.done.includes(l.b.it.id))) html += `<div class="note" style="text-align:center;font-size:1rem;font-weight:700">${t("allDone")}</div>`;
   if (r.home.length) html += `<div class="note">${t("atHome")} ${r.home.map((id) => esc(iname(BYID[id]))).join(", ")}</div>`;
   const inList = new Set(rec.lines.map((l) => l.b.it.id));
-  html += `<div class="row" style="margin-top:10px;align-items:flex-start"><button class="btn quiet" id="addItemBtn">${t("addItem")}</button><div class="legend" style="margin:0;text-align:right">${all.some((l) => !l.o) ? t("legendEst") + "<br>" : ""}${t("legendTap")}</div></div>`;
+  html += `<div style="margin-top:12px"><button class="btn quiet" id="addItemBtn">${t("addItem")}</button></div>`;
   if (ADDING) html += `<div class="note">${t("pickItem")}</div><div class="chips">${ITEMS.filter((it) => it.group !== "drugstore" && !inList.has(it.id)).map((it) => `<button class="chip" data-additem="${it.id}">${esc(iname(it))}</button>`).join("")}</div>`;
   html += `</div>`;
   if (!lunch && state.mode !== "quick" && state.set.extras === "suggest") {
@@ -1330,14 +1444,16 @@ function renderPlan() {
   const links = [];
   if (!lunch) {
     const onRoute = state.mode === "quick" ? [] : r.ds.filter((d) => d.kind === "stock" && route.includes(d.o.shop) && !D.add[d.it.id]);
-    if (onRoute.length) links.push(`<button class="linkrow" data-p="stock"><span>${t("stockLine")}<span class="m">${t("stockLineM", { n: onRoute.length, p: money(onRoute.reduce((a, d) => a + d.cost, 0)), v: money(onRoute.reduce((a, d) => a + d.saving, 0)) })}</span></span><span class="arrow">›</span></button>`);
+    if (onRoute.length) links.push(`<button class="linkrow" data-p="stock"><span>${t("stockLine")}<span class="m">${t("stockLineM", { n: onRoute.length, w: dealsW(onRoute.length), p: money(onRoute.reduce((a, d) => a + d.cost, 0)), v: money(onRoute.reduce((a, d) => a + d.saving, 0)) })}</span></span><span class="arrow">›</span></button>`);
     links.push(`<button class="linkrow" data-p="health"><span>${t("mealsLink")}<span class="m">${t("mealsLinkM")}</span></span><span class="arrow">›</span></button>`);
+    links.push(`<button class="linkrow" data-p="prices" data-pv="drug"><span>${t("drugLink")}<span class="m">${t("drugLinkM")}</span></span><span class="arrow">›</span></button>`);
   }
   const mh = monthHtml(); if (mh) links.push(mh);
   const cd = cityData(), why = [];
   why.push(t("bestSingle", { s: SHOP[r.bestSingle.shops[0]], v: money(r.bestSingle.total) }));
   r.steps.forEach((s) => why.push(t(s.ok ? "addWorth" : "addNot", { s: SHOP[s.added], v: money(Math.max(0, s.gain)), th: money(s.need ?? th.stop) })));
-  if (r.trip) why.push(t(r.trip.ok ? "tripWorth" : "tripNot", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) }));
+  if (r.trip) why.push(r.trip.gain <= 0 ? t("tripNone") : t(r.trip.ok ? "tripWorth" : "tripNot", { v: money(Math.max(0, r.trip.gain)), th: money(th.trip) }));
+  else if (!groceryShops().includes("kaufland") && state.mode === "big") why.push(t("tripNoData"));
   if (cd.uncovered?.length) why.push(t("notCompared", { s: cd.uncovered.map((s) => SHOP[s]).join(", ") }));
   if (rec.est) why.push(t("estNote", { n: rec.est }));
   const sorted = r.opts.slice().sort((a, b) => a.score - b.score);
@@ -1363,25 +1479,34 @@ function renderInShop(out) {
     } else { check.push({ b, pl }); continue; } // no price here: buy if the shelf price is at most the plan price
     if (!D.done.includes(b.it.id) && waitFor(line)) later.push(line); else buy.push(line);
   }
+  // you'll go to the plan shop anyway for some items → buy there whatever is cheaper there too
+  const visiting = new Set(there.map((x) => x.pl.shop));
+  for (const arr of [buy, later]) for (let i = arr.length - 1; i >= 0; i--) {
+    const line = arr[i], pl = byId[line.b.it.id];
+    if (!pl || line === pl || pl.est || !visiting.has(pl.shop) || D.done.includes(line.b.it.id)) continue;
+    const sv = valueOf(line, line.b.need) - valueOf(pl, line.b.need);
+    if (sv > minSave() * 0.1) { arr.splice(i, 1); there.push({ b: line.b, pl, sv }); }
+  }
   LAST = { rec: { shops: [at], lines: buy, total: buy.reduce((a, l) => a + l.cost, 0) }, bask: r.bask };
   const sumBuy = LAST.rec.total, noData = !(cityData()?.covered || []).includes(at) || !ITEMS.some((it) => offersFor(it.id, at).length);
   const restShop = Object.entries(there.concat(check).reduce((a, x) => { if (!x.pl.est && x.pl.shop !== at) a[x.pl.shop] = (a[x.pl.shop] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1])[0];
   const foot = [];
-  if (check.length) foot.push(`<div>${t("chipCheck", { n: check.length })}</div>`);
+  if (check.length) foot.push(`<div>${restShop ? t("checkHow", { s: SHOP[restShop[0]] }) : t("checkHow0")}</div>`);
   if (noData) foot.push(`<div class="m">${t("noShopData", { s: SHOP[at] })}</div>`);
   if (APP[at]) foot.push(`<div class="m">${t("activate", { a: appName(at) })}</div>`);
   let html = `<div class="slip"><div class="top"><div><div class="lbl">${t("inShopL")}</div><div class="go">${SHOP[at]}</div></div><button class="btn" data-at="${at}">${t("back")}</button></div>
     <div class="lead pay"><span>${t("buyHere")} · ${buy.length}</span><i></i><b>${money(sumBuy)}</b></div>
+    ${check.length ? `<div class="lead"><span>${t("checkL")} · ${check.length}</span><i></i><b>≤ ${money(check.reduce((a, x) => a + x.pl.cost, 0))}</b></div>` : ""}
     ${restShop ? `<div class="lead"><span>${t("restL")}</span><i></i><b>${SHOP[restShop[0]]}</b></div>` : ""}
     ${foot.length ? `<div class="foot">${foot.join("")}</div>` : ""}</div>`;
   html += `<div class="card">${atChips()}`;
-  if (buy.length) html += `<div class="sec">${t("buyHere")}</div>` + buy.map(lineHtml).join("");
+  if (buy.length) html += `<div class="sec">${t("buyHere")}</div>` + aisleHtml(buy, lineHtml);
   if (later.length) html += `<div class="sec">${t("buyLater")}</div>` + later.map(lineHtml).join("");
   if (there.length) {
     html += `<div class="sec">${t("buyThere")}</div>`;
     const by = {}; for (const x of there) (by[x.pl.shop] = by[x.pl.shop] || []).push(x);
     for (const [shop, xs] of Object.entries(by)) html += `<div class="li"><div></div><div><div class="nm">${SHOP[shop]}</div>
-      <div class="small muted">${xs.map((x) => esc(iname(x.b.it)) + (x.sv ? ` <b class="save-t">+${money(x.sv)}</b>` : "")).join(" · ")}</div></div><div class="pr"></div></div>`;
+      <div class="small muted">${xs.map((x) => esc(iname(x.b.it)) + (x.sv ? ` <span class="save-t">(${t("save")} ${money(x.sv)})</span>` : "")).join(", ")}</div></div><div class="pr"></div></div>`;
   }
   if (check.length) {
     const row = (x) => {
@@ -1390,8 +1515,7 @@ function renderInShop(out) {
       return `<div class="li ${done ? "done" : ""}"><button class="ck" data-done="${x.b.it.id}" aria-label="${t("tickL")}"><span>${done ? "✓" : ""}</span></button><div><div class="nm">${esc(iname(x.b.it))}<span class="qty">${amountTxt(x.pl)}</span></div>
         <div class="sub">${x.b.it.id === "ham" && x.pl.whole ? `<span class="tag">${t("poultry")}</span> · ` : ""}${t("buyIf", { p: money(u) + "/" + uName(x.b.it.unit) })}${x.pl.est || (restShop && x.pl.shop === restShop[0]) ? "" : ` · ${t("elseAt", { s: SHOP[x.pl.shop] })}`}</div></div><div class="pr">≤ ${money(x.pl.cost)}</div></div>`;
     };
-    html += `<div class="sec">${t("checkShelf")}</div>` + check.slice(0, 5).map(row).join("");
-    if (check.length > 5) html += `<details style="margin-top:6px"><summary class="small">+ ${check.length - 5}</summary>${check.slice(5).map(row).join("")}</details>`;
+    html += `<div class="sec">${t("checkL")} <span class="muted">· ${t("buyIfShort")}</span></div>` + aisleHtml(check, row, (x) => x.b.it.id);
   }
   if (!r.bask.length) html += `<div class="empty">${t("nothing")}</div>`;
   if (r.home.length) html += `<div class="note">${t("atHome")} ${r.home.map((id) => esc(iname(BYID[id]))).join(", ")}</div>`;
@@ -1424,7 +1548,8 @@ function renderDeals() {
   if (top.length) html += `<div class="card"><h2>${t("protein")}</h2><div class="lead-in">${t("proteinUnit")}</div>${top.map((r, i) => `<div class="prow"><div class="row" style="align-items:flex-start"><span><b>${esc(iname(r.it))}</b> <span class="small muted">${SHOP[r.o.shop]}${r.him ? " · " + t("forYou") : ""}</span>${r.it.id.startsWith("liver") ? ` <span class="flag w">${t("liverShort")}</span>` : ""}</span><b class="${i === 0 ? "save-t" : ""}">${money(r.v)}</b></div></div>`).join("")}</div>`;
   const kl = state.city === "brno" ? (PRICES.kaufland_leaflets || []) : (PRICES.scans?.kaufland_kezmarok?.leaflets || []);
   if (kl.length) html += `<div class="card"><h2>${t("kLeaf")}</h2><div class="lead-in">${t(groceryShops().includes("kaufland") ? "kNote" : "kNoteOff")}</div>${kl.map((f) => `<div class="row" style="padding:5px 0"><span>${dateTxt(f.from)}–${dateTxt(f.to)}</span><a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>`).join("")}</div>`;
-  out.innerHTML = html || `<div class="card empty">${t("none")}</div>`;
+  html += `<div class="card group"><button class="linkrow" data-p="prices" data-pv="drug"><span>${t("drugLink")}<span class="m">${t("drugLinkM")}</span></span><span class="arrow">›</span></button></div>`;
+  out.innerHTML = html;
 }
 function stockStep(it) { const w = weeklyOf(it); return it.unit === "ks" ? Math.max(1, Math.round(w / 2) || 1) : w > 0 ? Math.max(0.1, +(w / 2).toFixed(2)) : 0.25; }
 function renderStock() {
@@ -1453,14 +1578,14 @@ function renderPrices() {
   const q = normTxt($("q").value || ""), shops = groceryShops();
   let html = `<div class="note" style="margin:-4px 2px 10px">${t("pricesHint")}</div>`;
   for (const g of ["dinner", "lunch", "breakfast", "fruit", "pantry", "extras"]) {
-    const its = ITEMS.filter((it) => it.group === g && (!q || normTxt(iname(it)).includes(q) || normTxt(it.en).includes(q)));
+    const its = ITEMS.filter((it) => it.group === g && (!q || normTxt(iname(it)).includes(q) || normTxt(it.en).includes(q)) && shops.some((s) => offersFor(it.id, s).some((o) => o.conf !== "low")));
     if (!its.length) continue;
-    html += `<div class="card">` + its.map((it) => {
+    html += `<div class="card"><h2>${t("g_" + g)}</h2>` + its.map((it) => {
       const cells = shops.map((s) => ({ s, o: offersFor(it.id, s).filter((o) => o.conf !== "low").sort((a, b) => a.unit_price - b.unit_price)[0] })).filter((c) => c.o).sort((a, b) => a.o.unit_price - b.o.unit_price);
       const rt = rhythmTxt(it.id), u = uName(it.unit);
       return `<div class="prow"><div class="row"><b>${esc(iname(it))}</b><span class="tiny muted">${t("usual")} ${money(usual(it.id))}/${u}</span></div>
         <div class="small">${cells.length ? cells.map((c, i) => `<span class="${i === 0 ? "save-t" : "muted"}" style="${i === 0 ? "font-weight:750" : ""}">${SHOP[c.s]} ${money(c.o.unit_price)}${c.o.promo && (!usual(it.id) || c.o.unit_price < usual(it.id)) ? "★" : ""}</span>`).join(" · ") : "—"}</div>
-        ${cells[0] ? `<div class="tiny muted">${esc(cells[0].o.name.slice(0, 60))}</div>` : ""}${rt ? `<div class="tiny muted">${rt}</div>` : ""}</div>`;
+        ${cells[0] ? `<div class="tiny muted">${esc(pname(cells[0].o.name).slice(0, 60))}</div>` : ""}${rt ? `<div class="tiny muted">${rt}</div>` : ""}</div>`;
     }).join("") + `</div>`;
   }
   out.innerHTML = html;
@@ -1470,13 +1595,13 @@ function renderDrug() {
   if (!PRICES) { out.innerHTML = `<div class="card empty">${t("loadErr")}</div>`; return; }
   const its = ITEMS.filter((it) => it.group === "drugstore"), dun = cityData().drug_uncovered || [];
   let html = `<div class="card"><div class="small muted">${t("drugHint")}${dun.length ? " " + t("notCompared", { s: dun.map((x) => SHOP[x]).join(", ") }) : ""}</div><div class="small" style="margin-top:10px;font-weight:650">${t("needNow")}:</div>
-    <div class="chips">${its.map((it) => `<button class="chip ${state.drugLow.includes(it.id) ? "on" : ""}" data-dlow="${it.id}">${esc(iname(it))}</button>`).join("")}</div></div><div class="card">`;
+    <div class="chips">${its.map((it) => `<button class="chip ${day().add[it.id] ? "on" : ""}" data-dadd="${it.id}">${esc(iname(it))}</button>`).join("")}</div></div><div class="card">`;
   for (const it of its) {
     const offs = offersFor(it.id).sort((a, b) => a.unit_price - b.unit_price);
-    html += `<div class="sec">${esc(iname(it))}${state.drugLow.includes(it.id) ? ` <span class="flag n">${t("needNow")}</span>` : ""}</div>`;
+    html += `<div class="sec">${esc(iname(it))}${day().add[it.id] ? ` <span class="flag n">${t("onList")}</span>` : ""}</div>`;
     if (!offs.length) { html += `<div class="empty">—</div>`; continue; }
     const per = []; for (const o of offs) if (!per.some((x) => x.shop === o.shop)) per.push(o);
-    html += per.slice(0, 2).map((o, i) => `<div class="deal"><div class="row"><div class="t">${SHOP[o.shop]} <span class="${i === 0 && !TRIP.includes(o.shop) ? "save-t" : ""}">${money(o.price)}</span>${o.pack ? ` <span class="muted" style="font-weight:500">/ ${qtyTxt(o.pack, it.unit)}</span>` : ""}</div>${discBadge(o)}</div><div class="m">${money(o.unit_price)}/${uName(it.unit)} · ${esc(o.name)}${o.promo ? " · " + validTxt(o) : ""}</div></div>`).join("");
+    html += per.slice(0, 2).map((o, i) => `<div class="deal"><div class="row"><div class="t">${SHOP[o.shop]} <span class="${i === 0 ? "save-t" : ""}">${money(o.unit_price)}/${uName(it.unit)}</span></div>${discBadge(o)}</div><div class="m">${money(o.price)}${o.pack ? ` / ${qtyTxt(o.pack, it.unit)}` : ""} · ${esc(pname(o.name))}${o.promo ? " · " + validTxt(o) : ""}</div></div>`).join("");
   }
   out.innerHTML = html + `</div>`;
 }
@@ -1495,7 +1620,7 @@ function renderSettings() {
     <div class="setrow"><span>${t("tripTh")} (Kežmarok, €)</span><input type="number" data-set="tripKk" value="${s.tripKk}"></div>
     <div class="setrow"><span>${t("stockPct")}</span><input type="number" data-set="stockPct" value="${s.stockPct}"></div>
     <div class="setrow"><span>${t("alertPct")}</span><input type="number" data-set="alertPct" value="${s.alertPct}"></div>
-    <div class="setrow"><span>${t("learnSet")}</span><div class="seg">${["on", "off"].map((v) => `<button data-learn="${v}" class="${(state.set.learn !== false) === (v === "on") ? "on" : ""}">${t(v === "on" ? "onL" : "offL")}</button>`).join("")}</div></div>
+    <label class="setrow"><span>${t("learnSet")}</span><span class="switch"><input type="checkbox" id="learnSw" ${state.set.learn !== false ? "checked" : ""}><span></span></span></label>
     <div class="setrow"><span>${t("cooksSet")}</span><input type="number" min="2" max="5" data-set="cooks" value="${s.cooks}"></div>
     <div class="setrow"><span>${t("extrasSet")}</span><div class="seg" id="extrasSeg">${["auto", "suggest", "off"].map((v) => `<button data-ex="${v}" class="${s.extras === v ? "on" : ""}">${t("ex_" + v)}</button>`).join("")}</div></div>
     <div style="margin-top:8px"><button class="btn" id="resetSet">${t("reset")}</button></div></div>
@@ -1505,6 +1630,7 @@ function renderSettings() {
     <div class="card"><h2>${t("howWorks")}</h2><div class="small">${t("howText")}</div></div>`;
   $("setOut").querySelectorAll("input[data-set]").forEach((el) => el.addEventListener("change", () => { state.set[el.dataset.set] = +el.value; MEAL_CACHE = null; save(); renderAll(); }));
   $("setOut").querySelectorAll("input[data-wk]").forEach((el) => el.addEventListener("change", () => { state.weekly[el.dataset.wk] = Math.max(0, +el.value); save(); renderPlan(); renderStock(); }));
+  $("learnSw").onchange = (e) => { state.set.learn = e.target.checked; save(); renderAll(); };
   $("resetSet").onclick = () => { state.set = { ...DEFAULTS }; MEAL_CACHE = null; save(); renderAll(); };
   $("resetWk").onclick = () => { state.weekly = {}; save(); renderAll(); };
   if ($("unhide")) $("unhide").onclick = () => { state.hide = []; MEAL_CACHE = null; save(); renderAll(); };
@@ -1519,6 +1645,7 @@ function renderChrome() {
   document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.toggle("on", b.dataset.p === state.tab));
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("on", p.id === "p-" + state.tab));
   $("q").placeholder = t("search");
+  $("title").textContent = t({ plan: "tPlan", health: "tHealth", deals: "tDeals", stock: "tStock", prices: "tPrices", set: "tSet" }[state.tab] || "tPlan");
   if (PRICES) $("updated").textContent = t("pricesAt", { d: dtTxt(PRICES.generated) });
 }
 function renderAll() { renderChrome(); renderPlan(); renderHealth(); renderDeals(); renderStock(); renderPrices(); renderDrug(); renderSettings(); }
@@ -1569,7 +1696,7 @@ document.addEventListener("click", (e) => {
   const seg = b.closest(".seg");
   if (seg && b.dataset.v && ["lang", "city", "mode"].includes(seg.id)) { state[seg.id] = b.dataset.v; OPEN = null; MEAL_CACHE = null; save(); renderAll(); return; }
   if (b.id === "gear") { state.tab = state.tab === "set" ? "plan" : "set"; save(); renderChrome(); window.scrollTo(0, 0); return; }
-  if (b.dataset.p) { state.tab = b.dataset.p; save(); renderChrome(); window.scrollTo(0, 0); return; }
+  if (b.dataset.p) { state.tab = b.dataset.p; if (b.dataset.pv) { state.pv = b.dataset.pv; renderPrices(); } save(); renderChrome(); window.scrollTo(0, 0); return; }
   if (b.dataset.at) { state.at = state.at === b.dataset.at ? null : b.dataset.at; OPEN = null; save(); renderPlan(); window.scrollTo(0, 0); return; }
   if (b.dataset.done) { tick(b.dataset.done); save(); renderPlan(); renderStock(); return; }
   if (b.dataset.open) { OPEN = OPEN === b.dataset.open ? null : b.dataset.open; renderPlan(); return; }
@@ -1651,6 +1778,11 @@ document.addEventListener("click", (e) => {
     save(); renderAll(); return;
   }
   if (b.dataset.pv) { state.pv = b.dataset.pv; save(); renderPrices(); return; }
+  if (b.dataset.dadd) {
+    const id = b.dataset.dadd, it = BYID[id];
+    if (D.add[id]) delete D.add[id]; else { D.add[id] = it.unit === "ks" ? 1 : 0.05; D.skip = D.skip.filter((x) => x !== id); }
+    save(); renderDrug(); renderPlan(); return;
+  }
   if (b.dataset.dlow) { const id = b.dataset.dlow; state.drugLow = state.drugLow.includes(id) ? state.drugLow.filter((x) => x !== id) : state.drugLow.concat(id); save(); renderDrug(); return; }
 });
 $("gym").addEventListener("change", (e) => { state.gym = e.target.checked; MEAL_CACHE = null; save(); renderPlan(); renderHealth(); renderDeals(); });
