@@ -882,6 +882,17 @@ def main():
             o["pack"] = round(o["pack"] / f, 4) if o.get("pack") else o.get("pack")
             if o.get("normal_unit"):
                 o["normal_unit"] = round(o["normal_unit"] * f, 2)
+    # chicken / turkey on the bone: compare per kg of MEAT (about 70 % of the weight is meat)
+    BONE = re.compile(r"stehn|ctvrt|stvrt|kridl|kridel|cele kure|kure cele|kurca cel|cely kur|s kost|na kosti|drumstick|trup|skelet")
+    BONELESS = re.compile(r"rizk|rezn|filet|prsa|prsia|prsni|bez kost|vykosten|platk|nudl|kostk")
+    for o in all_offers:
+        if o["item"] in ("chicken", "chicken_frozen", "turkey") and not o.get("edible") and BONE.search(norm(o["name"])) and not BONELESS.search(norm(o["name"])):
+            o["edible"] = 0.7
+            o["unit_price"] = round(o["unit_price"] / 0.7, 2)
+            if o.get("pack"):
+                o["pack"] = round(o["pack"] * 0.7, 4)
+            if o.get("normal_unit"):
+                o["normal_unit"] = round(o["normal_unit"] / 0.7, 2)
     def with_data(city, shops):  # a shop counts as covered only when it delivered prices for this city
         return [s for s in shops if any(o["city"] == city and o["shop"] == s for o in all_offers)]
     brno_shops = with_data("brno", ["lidl", "billa", "albert", "kaufland"])

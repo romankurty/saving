@@ -137,7 +137,7 @@ ITEMS = [
          cz=["máslo"], skt=["maslo"],
          inc=r"\bmaslo\b", exc=r"arasid|araš|burak|bylink|cesnek|cesnak|pomazank|rostlin|prepust|ghi|ghee|kokos|kakao|mandl|kesu|liskov|orech|sezam|tycink|susenk|pecivo|croissant|rohlik|kremov|slehack|bambuck|telov|pletov|kosmet",
          bounds=(80, 600)),
-    dict(id="kefir", en="Kefir (plain)", sk="Kefír (biely)", group="breakfast", unit="l", weekly=2.0, shelf="fresh", quick=False,
+    dict(id="kefir", en="Kefir (plain)", sk="Kefír (natur)", group="breakfast", unit="l", weekly=2.0, shelf="fresh", quick=False,
          cz=["kefír"], skt=["kefír"],
          inc=r"\bkefir", exc=r"rozne druhy|ruzne druhy|jogurt|jahod|boruv|cucorie|visn|visen|mango|ovoc|vanil|banan|malin|brosk|kokos|cokol|ochucen|jablk|hrusk|merunk|marhul|lesni|lesne|cerstv[ay] ovoce|zrna|zrnk|syr|tycink",
          bounds=(20, 200)),
