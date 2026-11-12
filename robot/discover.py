@@ -1,4 +1,4 @@
-"""Discovery run 42: exact fields (seller, VIN, list price, discount, instalments) per source."""
+"""Discovery run 43: listing formats + pagination + seller fields."""
 import json
 import re
 import time
@@ -44,92 +44,73 @@ def nxt(t):
     return json.loads(m.group(1)) if m else {}
 
 
-def snip(t, pat, n=2, w=900):
+def snip(t, pat, n=1, w=1500):
     for m in list(re.finditer(pat, t))[:n]:
-        s = t[max(0, m.start() - w // 3): m.start() + w]
-        print("  …" + re.sub(r"\s+", " ", s) + "…")
+        print("  …" + re.sub(r"\s+", " ", t[max(0, m.start() - w // 4): m.start() + w]) + "…")
 
 
-# --- autobazar.eu
-t = get("https://www.autobazar.eu/vysledky-nove-auta/")
-j = nxt(t)
-pp = j.get("props", {}).get("pageProps", {})
-print("pageProps keys:", list(pp.keys()))
-ir = pp.get("initialRecords", {})
-print("initialRecords keys:", list(ir.keys()), {k: ir[k] for k in ir if k != "data"})
-print("RECORD:", json.dumps(ir.get("data", [{}])[0], ensure_ascii=False)[:3500])
-hrefs = sorted(set(re.findall(r'href="(/vysledky-nove-auta/[^"]+)"', t)))
-print("filter hrefs:", hrefs[:25])
-q = j.get("query") or {}
-print("query:", q, "page:", j.get("page"))
+# autobazar: all keys, filter object, price filter attempt, detail advertisement object
+t = get("https://www.autobazar.eu/vysledky-nove-auta/?category=30900")
+pp = nxt(t).get("props", {}).get("pageProps", {})
+rec = pp["initialRecords"]["data"][0]
+print("ALL KEYS:", sorted(rec.keys()))
+print("filter:", json.dumps(pp.get("filter"), ensure_ascii=False)[:1500])
+print("newCarsQuery:", json.dumps(pp.get("newCarsQuery"), ensure_ascii=False)[:800])
+print("total:", pp["initialRecords"]["total"], "maxPage:", pp.get("maxPage"))
+print("conditions:", sorted({(r.get("condition"), r.get("mileage") is not None and r.get("mileage") > 100) for r in pp["initialRecords"]["data"]}))
+print("subjectTypes:", sorted({r.get("userSubjectType") for r in pp["initialRecords"]["data"]}))
+for q in ["?category=30900&priceTo=20000", "?category=30900&price-to=20000", "?category=30900&cenaDo=20000", "?category=30900&priceFrom=0&priceTo=20000&sort=price"]:
+    tt = get("https://www.autobazar.eu/vysledky-nove-auta/" + q)
+    p2 = nxt(tt).get("props", {}).get("pageProps", {})
+    ds = p2.get("initialRecords", {}).get("data", [])
+    print("  ", q, "total", p2.get("initialRecords", {}).get("total"), "prices", [d.get("finalPrice") for d in ds[:8]])
 d = get("https://www.autobazar.eu/detail-nove-auto/peugeot-3008-business-hybrid-145k-e-dcs6/AmF_toQd7UB/")
-dj = nxt(d)
-dpp = dj.get("props", {}).get("pageProps", {})
-print("detail pageProps keys:", list(dpp.keys()))
-txt = json.dumps(dpp, ensure_ascii=False)
-for k in ["vin", "VIN", "seller", "dealer", "company", "user", "ico", "advertiser", "contact"]:
-    for m in list(re.finditer(r'"([^"]*%s[^"]*)"\s*:\s*("[^"]{0,80}"|\{[^{}]{0,300}\}|\d+|null|true|false)' % k, txt))[:3]:
-        print("   ", m.group(0)[:300])
+adv = nxt(d).get("props", {}).get("pageProps", {}).get("advertisement", {})
+print("ADV KEYS:", sorted(adv.keys()) if isinstance(adv, dict) else type(adv))
+for k in ("user", "seller", "company", "dealer", "contact", "client", "subject"):
+    if isinstance(adv, dict) and k in adv:
+        print("  ", k, json.dumps(adv[k], ensure_ascii=False)[:900])
+print("  adv sample:", json.dumps({k: v for k, v in adv.items() if not isinstance(v, (list, dict))}, ensure_ascii=False)[:1500] if isinstance(adv, dict) else "")
 
-# --- Hyundai official
-t = get("https://skladove.hyundai.sk/ponuky/model/i30/_sort/cheapest")
-snip(t, r"/ponuka/hyundai-", 2, 1400)
-print("pagination:", sorted(set(re.findall(r'href="([^"]*(?:page|strana|_page)[^"]*)"', t)))[:8])
-t = get("https://skladove.hyundai.sk/ponuka/hyundai-i30/6091")
-snip(t, r"Akciová ponuka", 1, 2500)
-print("VIN:", re.findall(r"VIN[^<]{0,40}<[^>]*>[^<]{0,40}", t)[:3])
+# Kia listing (Inertia/Livewire?)
+t = get("https://www.kiaihned.sk/vozidla?model=K4")
+m = re.search(r'data-page="([^"]+)"', t)
+if m:
+    import html
+    pg = json.loads(html.unescape(m.group(1)))
+    print("KIA page props:", list(pg.get("props", {}).keys()))
+    print(json.dumps(pg.get("props"), ensure_ascii=False)[:2500])
+else:
+    snip(t, r"€", 2, 1200)
+    print("kia api-ish:", sorted(set(re.findall(r'["\'](/api/[^"\']+|/vozidla[^"\']*\?[^"\']*page[^"\']*)["\']', t)))[:10])
 
-# --- Stellantis platform
-t = get("https://peugeot.skladovevozidla.sk/skladove-vozidla")
-snip(t, r"EUR s DPH", 1, 1800)
-print("detail links:", sorted(set(re.findall(r'href="(https?://peugeot\.skladovevozidla\.sk/[^"]*detail-vozidla[^"]*)"', t)))[:5])
-sm = get("https://peugeot.skladovevozidla.sk/sitemap.xml")
-locs = re.findall(r"<loc>([^<]+)</loc>", sm)
-print("sitemap locs:", len(locs), locs[:3], [l for l in locs if "detail" in l][:3])
-det = [l for l in locs if "detail-vozidla" in l]
-if det:
-    t = get(det[0])
-    snip(t, r"EUR s DPH", 2, 1500)
-    print("VIN:", re.findall(r"VIN[^<]{0,30}(?:<[^>]*>\s*){0,3}[A-HJ-NPR-Z0-9]{17}", t)[:2])
-    snip(t, r"[Ss]plátk|RPMN|akontác", 2, 900)
+# Hyundai listing pagination
+t = get("https://skladove.hyundai.sk/ponuky/_sort/cheapest")
+print("hyundai found:", re.findall(r"Nájdených vozidiel:\s*(\d+)", t), "cards:", len(re.findall(r'class="o-bx__header__name__title', t)))
+print("hy paging:", sorted(set(re.findall(r'(?:href|data-url|data-href)="([^"]*(?:strana|page|ponuky/[^"]*\d)[^"]*)"', t)))[:10])
+snip(t, r"o-bx__spec__list", 1, 1600)
+t2 = get("https://skladove.hyundai.sk/ponuky/_sort/cheapest/_page/2")
+print("page2 cards:", len(re.findall(r'class="o-bx__header__name__title', t2)))
+t3 = get("https://skladove.hyundai.sk/ponuky/_sort/cheapest?page=2")
+print("page=2 cards:", len(re.findall(r'class="o-bx__header__name__title', t3)), re.findall(r'href="/ponuka/[^"]+"', t3)[:3])
 
-# --- Kia official
-sm = get("https://kiaihned.sk/sitemap.xml")
-locs = re.findall(r"<loc>([^<]+)</loc>", sm)
-print("kia sitemap:", len(locs), locs[:5])
-veh = [l for l in locs if "/vozidla/" in l]
-print("vehicle urls:", len(veh), veh[:3])
-if veh:
-    t = get(veh[0])
-    snip(t, r"€", 2, 1500)
-    snip(t, r"[Ss]plátk|RPMN|akontác|[Ff]inanc", 2, 700)
-    print("ldjson:", [re.sub(r"\s+", " ", x)[:700] for x in re.findall(r'<script type="application/ld\+json"[^>]*>(.*?)</script>', t, re.S)][:2])
+# Stellantis listing cards + pagination
+t = get("https://peugeot.skladovevozidla.sk/skladove-vozidla/vysledky-hladania")
+print("pg cards:", len(re.findall(r"detail-vozidla", t)), "paging:", sorted(set(re.findall(r'href="([^"]*page=\d+[^"]*)"', t)))[:6])
+snip(t, r"EUR s DPH", 1, 2200)
+t = get("https://peugeot.skladovevozidla.sk/skladove-vozidla/vysledky-hladania?page=2")
+print("pg2 cards:", len(re.findall(r"detail-vozidla", t)))
 
-# --- Mazda official
-sm = get("https://www.mazdaihned.sk/sitemap.xml")
-locs = re.findall(r"<loc>([^<]+)</loc>", sm)
-print("mazda sitemap:", len(locs), locs[:5])
-veh = [l for l in locs if "/Mazda/" in l]
-if veh:
-    t = get(veh[0])
-    snip(t, r"Cena s DPH", 1, 1500)
-
-# --- Dacia official
-sm = get("https://skladove-vozidla.dacia.sk/sitemap.xml")
-locs = re.findall(r"<loc>([^<]+)</loc>", sm)
-print("dacia sitemap:", len(locs), locs[:6])
-t = get("https://skladove-vozidla.dacia.sk/?filters=status:1&limit=10")
+# Dacia detail
+t = get("https://skladove-vozidla.dacia.sk/jogger-expression-tce-110-7-miest-v83974/")
 snip(t, r"€", 3, 900)
-print("dacia links:", sorted(set(re.findall(r'href="([^"]*(?:vozidl|vehicle|detail)[^"]*)"', t)))[:8])
+print("dacia VIN:", re.findall(r"[A-HJ-NPR-Z0-9]{17}", t)[:3])
 
-# --- Mitsubishi official
+# Mazda listing pages
+t = get("https://www.mazdaihned.sk/")
+print("mazda cards:", len(re.findall(r"stock-list-item-content", t)), "paging:", sorted(set(re.findall(r'href="([^"]*(?:page|strana|first=)[^"]*)"', t)))[:6])
+
+# Mitsubishi
 t = get("https://www.mitsubishi-motors.sk/nakup-vozidla/skladove-vozidla/")
-snip(t, r"zaujem-o-vozidlo", 1, 1500)
-
-# --- Škoda + Toyota authorised dealer lists
-for u in ["https://www.skoda-auto.sk/predajcovia", "https://www.skoda-auto.sk/vyhladavanie-predajcu", "https://www.toyota.sk/predajne-a-servisne-miesta",
-          "https://www.skoda-auto.sk/ponuka/akcie", "https://www.skoda-auto.sk/ponuka/financovanie"]:
-    t = get(u)
-    tx = re.sub(r"<script.*?</script>|<style.*?</style>|<[^>]+>", " ", t, flags=re.S)
-    print("  text:", re.sub(r"\s+", " ", tx)[:900])
+snip(t, r"zaujem-o-vozidlo/\d+", 2, 1300)
 print("\nDONE")
