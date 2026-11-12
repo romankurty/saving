@@ -281,6 +281,9 @@ def kia():
                 monthly = num((re.search(r"od\s*([\d  .,]+)\s*€/mes", c) or [None, None])[1])
                 dealer = H.unescape((re.search(r'description-md text-kia-100">\s*([^<]+?)\s*</p>\s*<p class="inline-flex', c) or [None, ""])[1])
                 city = H.unescape((re.search(r"icon-pin[^>]*></i><span>([^<,]+)", c) or [None, ""])[1]).strip()
+                if re.search(r"vyber si", norm(city)):
+                    city = ""
+                    dealer = "Sklad importéra Kia (vyberieš si predajcu)" if re.search(r"importer", norm(dealer)) else dealer
                 tags = text(c)
                 mm = re.match(r"Kia\s+(.+?)\s+(?:HB|SW|\d)", title + " 0")
                 model_name = (mm.group(1) if mm else re.sub(r"^Kia\s+", "", title).split(" ")[0]).title().replace("Xceed", "XCeed").replace("Ev", "EV")
@@ -802,8 +805,11 @@ def cross_check():
             pairs += 1
             a, b = offs[0], ab[0]
             agree = abs(a["price"] - b["price"]) <= max(150, 0.015 * a["price"])
+            a["twin"] = {"url": b["url"], "src": b["src"], "price": b["price"], "agree": agree}
+            b["twin"] = {"url": a["url"], "src": a["src"], "price": a["price"], "agree": agree}
             for o in lst:
-                o["twin"] = {"url": (b if o is a else a)["url"], "src": (b if o is a else a)["src"], "price": (b if o is a else a)["price"], "agree": agree}
+                if o is not a and o is not b:
+                    o["dup"] = True
             # keep one card: the official one (it carries the dealer's authorisation by definition); show the lower price with both links
             b["dup"] = True
             a["dealer"] = a.get("dealer") or b.get("dealer")
@@ -905,7 +911,14 @@ def main():
             o.pop("checked", None)
         for k in [k for k, v in o.items() if v in (None, [], False, "")]:
             del o[k]
-    data = {"generated": NOW.isoformat(timespec="minutes"), "count": len(keep), "dropped_implausible": dropped,
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import caraudit
+        aud = caraudit.audit(keep, n=40, get=lambda u: get(u, tries=1), log=log)
+    except Exception as e:  # noqa: BLE001
+        log("!! audit failed:", type(e).__name__, e)
+        aud = None
+    data = {"generated": NOW.isoformat(timespec="minutes"), "count": len(keep), "dropped_implausible": dropped, "audit": aud,
             "sources": {k: {"status": v[0], "offers": v[1]} for k, v in STATUS.items()}, "offers": keep}
     with open(os.path.join(OUT, "offers.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
