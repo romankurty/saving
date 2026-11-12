@@ -418,45 +418,50 @@ def stellantis():
                     if page == 1 and sec == sections[0]:
                         STATUS[key] = ("blocked", 0)
                     break
-                links = list(dict.fromkeys(re.findall(r'href="(' + re.escape(base) + r'/[^"]*detail-vozidla/[^"]+/(\d+))"', t)))
-                new = [l for l in links if l[1] not in seen]
-                if not new:
+                # split the page into cards: each card starts at the first link to its own detail page
+                firsts, ids_order = {}, []
+                for m in re.finditer(r'href="(' + re.escape(base) + r'/[^"]*detail-vozidla/[^"]+/(\d+))"', t):
+                    if m.group(2) not in firsts:
+                        firsts[m.group(2)] = (m.start(), m.group(1))
+                        ids_order.append(m.group(2))
+                new_ids = [i for i in ids_order if i not in seen]
+                if not new_ids:
                     break
-                for url, did in new:
+                for k, did in enumerate(ids_order):
+                    if did in seen:
+                        continue
                     seen.add(did)
-                    i = t.find(url)
-                    c = t[max(0, i - 3500): i + 3000]
-                    # the card around the first link: dealer line, old price, price, monthly, financing price, fuel, kW
+                    start, url = firsts[did]
+                    end = firsts[ids_order[k + 1]][0] if k + 1 < len(ids_order) else start + 9000
+                    c = re.sub(r"<!--.*?-->", "", t[start:end], flags=re.S)
                     path = url.split("/detail-vozidla/")[1].split("/")
                     model, body_s, slug = (path[1] if len(path) > 1 else ""), (path[2] if len(path) > 2 else ""), (path[3] if len(path) > 3 else "")
-                    seg = c[c.rfind("fa-location-dot") if "fa-location-dot" in c[:3600] else 0:]
-                    dealer_line = text((re.search(r"fa-location-dot[^>]*></i>(.*?)</div>", c, re.S) or [None, ""])[1])
-                    old = num((re.search(r"old-price[^>]*>\s*([\d  .]+)\s*EUR", seg) or [None, None])[1])
+                    h4 = text((re.search(r"<h4[^>]*>(.*?)</h4>", c, re.S) or [None, ""])[1])
+                    dealer_line = text((re.search(r"fa-location-dot[^>]*>\s*</i>\s*(.*?)</(?:div|span)>", c, re.S) or [None, ""])[1])
+                    old = num((re.search(r"(?:old-price|line-through)[^>]*>\s*([\d  .]+)\s*EUR", c) or [None, None])[1])
                     pr = num((re.search(re.escape(url) + r'"[^>]*>\s*<span[^>]*>\s*([\d  .]+)\s*EUR', c) or [None, None])[1])
-                    after = c[c.find(url):]
-                    monthly = num((re.search(r"Mesačná splátka od:.*?>\s*([\d  .,]+)\s*€", after, re.S) or [None, None])[1])
-                    finp = num((re.search(r"Cena pri financov\w+:.*?>\s*([\d  .,]+)\s*€", after, re.S) or [None, None])[1])
-                    kw = num((re.search(r"(\d{2,3})\s*kW", after) or [None, None])[1])
-                    km = num((re.search(r"([\d  .]+)\s*km\b", after[:2500]) or [None, None])[1])
-                    fuel_s = text((re.search(r'list-fuel"></span>.*?<span class="whitespace-nowrap">(.*?)</span>', after, re.S) or [None, ""])[1])
+                    monthly = num((re.search(r"Mesačná splátka od:.*?>\s*([\d  .,]+)\s*€", c, re.S) or [None, None])[1])
+                    finp = num((re.search(r"Cena pri financov\w+:.*?>\s*([\d  .,]+)\s*€", c, re.S) or [None, None])[1])
+                    kw = num((re.search(r"(\d{2,3})\s*kW", c) or [None, None])[1])
+                    km = num((re.search(r">\s*([\d  .]+)\s*km\s*<", c) or [None, None])[1])
+                    yr = (re.search(r">\s*(20\d\d)\s*<", c) or [None, None])[1]
+                    fuel_s = text((re.search(r'list-fuel"></span>.*?<span class="whitespace-nowrap">(.*?)</span>', c, re.S) or [None, ""])[1]) or text((re.search(r"<span>\s*(benz[íi]n|nafta|diesel|elektro|hybrid[^<]*|lpg[^<]*)\s*</span>", c, re.I) or [None, ""])[1])
+                    gear_s = text((re.search(r">\s*((?:Manuálna|Automatická)[^<]*)<", c) or [None, ""])[1])
                     if body_s in ("uzitkove", "nakladne"):
                         continue
-                    words = [w for w in slug.split("-") if w and norm(w) not in (norm(brand), norm(model), "peugeot", "citroen", "fiat", "jeep", "alfa", "romeo", "ds")]
-                    title = f"{brand} {model.replace('-', ' ').upper() if len(model) <= 4 else model.replace('-', ' ').title()} " + " ".join(w.upper() if re.match(r"^[a-z]{1,4}\d*$", w) and len(w) <= 4 else w for w in words)
+                    title = f"{brand} {model.replace('-', ' ').upper() if len(model) <= 4 else model.replace('-', ' ').title()} {h4 or slug.replace('-', ' ')}"
+                    title = re.sub(r"\s+", " ", title)
                     demo = "predvadz" in sec or "jazden" in sec
                     if demo and (km is None or km > 15000):
                         continue  # used car, not demo
                     if pr is None and finp:
                         pr = finp
-                    cash = pr
-                    flags = []
-                    if finp and pr and finp < pr - 1:
-                        flags.append("fin_cheaper")
+                    flags = ["fin_cheaper"] if finp and pr and finp < pr - 1 else []
                     add({"id": f"st:{key}:{did}", "src": key, "off": True, "url": url, "brand": brand, "model": model.replace("-", " ").upper() if len(model) <= 4 else model.replace("-", " ").title(),
-                         "title": title, "body": classify(BODY, body_s + " " + slug, None), "fuel": classify(FUEL, fuel_s + " " + slug, "petrol"), "mhev": mild(slug),
-                         "gear": "auto" if re.search(r"eat\d|edcs|dct|edct|at\d|\bat\b|automat|cvt", norm(slug)) else "man", "kw": kw, "km": km,
-                         "cond": "demo" if demo else "new", "price": cash, "list": old, "fin_price": finp if finp and pr and finp < pr - 1 else None, "monthly": monthly,
-                         "dealer": re.split(r",", dealer_line)[0].strip() or None, "city": (dealer_line.split(",")[-1].strip() if "," in dealer_line else None), "auth": True, "flags": flags})
+                         "title": title, "body": body_of(brand, model.replace("-", " "), title + " " + body_s) or classify(BODY, body_s + " " + slug, None), "fuel": classify(FUEL, fuel_s + " " + slug + " " + h4, "petrol"), "mhev": mild(slug + " " + h4),
+                         "gear": "auto" if ("Automat" in gear_s or re.search(r"eat\d|edcs|dct|edct|at\d|\bat\b|automat|cvt", norm(slug + " " + h4))) else "man", "kw": kw, "km": km, "year": yr,
+                         "cond": "demo" if demo else "new", "price": pr, "list": old, "fin_price": finp if finp and pr and finp < pr - 1 else None, "monthly": monthly,
+                         "dealer": dealer_line.split(",")[0].strip() or None, "city": (dealer_line.split(",")[-1].strip() if "," in dealer_line else None), "auth": True, "flags": flags})
         STATUS[key] = ("ok", len(seen))
         log(brand, len(seen))
 
