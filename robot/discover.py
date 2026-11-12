@@ -49,33 +49,29 @@ def snip(t, pat, n=1, w=1500):
         print("  …" + re.sub(r"\s+", " ", t[max(0, m.start() - w // 4): m.start() + w]) + "…")
 
 
-# autobazar: all keys, filter object, price filter attempt, detail advertisement object
-t = get("https://www.autobazar.eu/vysledky-nove-auta/?category=30900")
-pp = nxt(t).get("props", {}).get("pageProps", {})
-rec = pp["initialRecords"]["data"][0]
-print("ALL KEYS:", sorted(rec.keys()))
-print("filter:", json.dumps(pp.get("filter"), ensure_ascii=False)[:1500])
-print("newCarsQuery:", json.dumps(pp.get("newCarsQuery"), ensure_ascii=False)[:800])
-print("total:", pp["initialRecords"]["total"], "maxPage:", pp.get("maxPage"))
-print("conditions:", sorted({(r.get("condition"), r.get("mileage") is not None and r.get("mileage") > 100) for r in pp["initialRecords"]["data"]}))
-print("subjectTypes:", sorted({r.get("userSubjectType") for r in pp["initialRecords"]["data"]}))
-for q in ["?category=30900&priceTo=20000", "?category=30900&price-to=20000", "?category=30900&cenaDo=20000", "?category=30900&priceFrom=0&priceTo=20000&sort=price"]:
-    tt = get("https://www.autobazar.eu/vysledky-nove-auta/" + q)
+import sys
+if True:
+    t = get("https://www.autobazar.eu/vysledky-nove-auta/?category=30900&priceTo=20000")
+    pp = nxt(t).get("props", {}).get("pageProps", {})
+    for r in pp["initialRecords"]["data"][:3]:
+        print("USER:", json.dumps(r.get("user"), ensure_ascii=False)[:700], "| cond", r.get("condition"), r.get("mileage"), r.get("vehicleInStock"), r.get("additionalInformation"))
+    print("maxPage", pp.get("maxPage"), "total", pp["initialRecords"]["total"])
+    tt = get("https://www.autobazar.eu/vysledky-nove-auta/?category=30900&priceFrom=20000&priceTo=60000")
     p2 = nxt(tt).get("props", {}).get("pageProps", {})
-    ds = p2.get("initialRecords", {}).get("data", [])
-    print("  ", q, "total", p2.get("initialRecords", {}).get("total"), "prices", [d.get("finalPrice") for d in ds[:8]])
-d = get("https://www.autobazar.eu/detail-nove-auto/peugeot-3008-business-hybrid-145k-e-dcs6/AmF_toQd7UB/")
-adv = nxt(d).get("props", {}).get("pageProps", {}).get("advertisement", {})
-print("ADV KEYS:", sorted(adv.keys()) if isinstance(adv, dict) else type(adv))
-for k in ("user", "seller", "company", "dealer", "contact", "client", "subject"):
-    if isinstance(adv, dict) and k in adv:
-        print("  ", k, json.dumps(adv[k], ensure_ascii=False)[:900])
-print("  adv sample:", json.dumps({k: v for k, v in adv.items() if not isinstance(v, (list, dict))}, ensure_ascii=False)[:1500] if isinstance(adv, dict) else "")
-
+    print("20-60k total", p2["initialRecords"]["total"], "maxPage", p2.get("maxPage"))
+# autobazar: all keys, filter object, price filter attempt, detail advertisement object
+t = ""
+pp = {} if True else nxt(t).get("props", {}).get("pageProps", {})
+rec = {}
 # Kia listing (Inertia/Livewire?)
 t = get("https://www.kiaihned.sk/vozidla?model=K4")
 m = re.search(r'data-page="([^"]+)"', t)
-if m:
+for mm in re.finditer(r'(wire:snapshot|x-data|data-props|wire:initial-data)="([^"]{200,})"', t):
+    print("KIA attr", mm.group(1), mm.group(2)[:1500])
+    break
+print("kia cards:", len(set(re.findall(r'/vozidla/([A-HJ-NPR-Z0-9]{17})/', t))), "paging:", sorted(set(re.findall(r'(?:href|wire:click)="([^"]*(?:page|gotoPage|nextPage)[^"]*)"', t)))[:6])
+snip(t, r"/vozidla/[A-HJ-NPR-Z0-9]{17}/", 1, 2000)
+if False:
     import html
     pg = json.loads(html.unescape(m.group(1)))
     print("KIA page props:", list(pg.get("props", {}).keys()))
