@@ -594,6 +594,52 @@ def autobazar_details():
                 o["fin"] = c["fin"]
 
 
+# ---------------------------------------------------------------- boot space (Cebia guides: litres per version)
+def slug(s):
+    s = norm(s).replace("&", " ").replace("'", "")
+    return re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+
+
+def space():
+    """Boot volume per model from cebia.cz guides ('Objem kufru'), newest generation table, cached 30 days."""
+    sp = load("space.json", {})
+    models = {}
+    for o in OFFERS:
+        if o.get("model"):
+            models[norm(o["brand"]) + "|" + norm(o["model"])] = (o["brand"], o["model"])
+    fetched = 0
+    for key, (brand, model) in sorted(models.items()):
+        e = sp.get(key)
+        if e and (NOW.date() - dt.date.fromisoformat(e.get("fetched", "2000-01-01"))).days < 30:
+            continue
+        if fetched >= 120:
+            break
+        b = slug(brand).replace("mercedes-benz", "mercedes")
+        m = slug(re.sub(r"^(nov[ýéá]|new)\s+", "", model, flags=re.I))
+        found = None
+        for cand in dict.fromkeys([m, m.replace("-", ""), m.split("-")[0]]):
+            url = f"https://www.cebia.cz/pruvodce/objem-kufru-{b}-{cand}"
+            t = get(url, tries=1)
+            fetched += 1
+            if t and "<table" in t:
+                found = (url, t)
+                break
+        if not found:
+            sp[key] = {"fetched": TODAY, "rows": []}
+            continue
+        url, t = found
+        tab = re.search(r"<table.*?</table>", t, re.S).group(0)
+        rows = []
+        for tr in re.findall(r"<tr.*?</tr>", tab, re.S):
+            cells = [text(c) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
+            if len(cells) >= 2 and re.fullmatch(r"\d{2,4}", cells[1].replace(" ", "")):
+                rows.append([cells[0], int(cells[1].replace(" ", "")), int(cells[2].replace(" ", "")) if len(cells) > 2 and re.fullmatch(r"\d{3,4}", cells[2].replace(" ", "")) else None])
+        sp[key] = {"fetched": TODAY, "src": url, "rows": rows[:30]}
+    with open(os.path.join(OUT, "space.json"), "w", encoding="utf-8") as f:
+        json.dump(sp, f, ensure_ascii=False, separators=(",", ":"))
+    log("space: models", len(models), "pages fetched", fetched, "with data", sum(1 for k in models if sp.get(k, {}).get("rows")))
+
+
 # ---------------------------------------------------------------- double check + output
 def cross_check():
     by_vin = {}
@@ -642,6 +688,10 @@ def main():
         except Exception as e:  # noqa: BLE001
             log("!! details failed:", fn.__name__, type(e).__name__, e)
     log("detail pages used:", detail_used)
+    try:
+        space()
+    except Exception as e:  # noqa: BLE001
+        log("!! space failed:", type(e).__name__, e)
     cross_check()
     keep = [o for o in OFFERS if not o.get("dup") and sanity(o)]
     dropped = len(OFFERS) - len(keep)
