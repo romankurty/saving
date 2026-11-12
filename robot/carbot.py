@@ -319,12 +319,50 @@ def kia_details(limit=80):
                 except Exception:  # noqa: BLE001
                     pass
                 yr = (re.search(r'"(?:model_year|year|production_year)":"?(\d{4})', t2) or [None, None])[1]
-                c = {"price": o["price"], "fetched": TODAY, "fin": fin_from_text(legal), "year": yr}
+                c = {"price": o["price"], "fetched": TODAY, "fin": fin_from_text(legal), "year": yr, "boot": boot_from(text(t))}
                 CACHE[o["id"]] = c
         if c:
             if c.get("fin"):
                 o["fin"] = c["fin"]
+            if c.get("boot"):
+                o["boot"], o["boot_src"] = c["boot"], "off"
             o["year"] = o.get("year") or c.get("year")
+    # one official page per Kia version that has no boot figure yet (boot depends on model + body + fuel)
+    known = {boot_key(o) for o in OFFERS if o["src"] == "kia" and o.get("boot")}
+    extra = 0
+    for o in sorted([o for o in OFFERS if o["src"] == "kia" and not o.get("boot")], key=lambda o: o["price"]):
+        k = boot_key(o)
+        if k in known or extra >= 30:
+            continue
+        t = get(o["url"])
+        extra += 1
+        b = boot_from(text(t)) if t else None
+        if b:
+            known.add(k)
+            c = CACHE.setdefault(o["id"], {"price": o["price"], "fetched": TODAY})
+            c["boot"] = b
+    table = {}
+    for o in OFFERS:
+        if o["src"] == "kia" and o.get("boot"):
+            table.setdefault(boot_key(o), (o["boot"], o["url"]))
+    for o in OFFERS:
+        if o["src"] == "kia" and not o.get("boot") and boot_key(o) in table:
+            o["boot"], o["boot_src"], o["boot_url"] = table[boot_key(o)][0], "off_same", table[boot_key(o)][1]
+    log("kia boot figures:", len(table), "versions;", sum(1 for o in OFFERS if o["src"] == "kia" and o.get("boot")), "offers; extra pages", extra)
+
+
+def boot_key(o):
+    return (norm(o.get("model")), o.get("body"), o.get("fuel"), "4x4" if re.search(r"awd|4x4|4wd", norm(o.get("title"))) else "")
+
+
+def boot_from(tt):
+    """'Batožinový priestor [l] 255 / 1 010' on official technical data pages -> [255, 1010]"""
+    m = re.search(r"Batožinový priestor[^\d]{0,60}?(\d[\d ]{1,5})(?:\s*/\s*(\d[\d ]{2,6}))?", tt or "")
+    if not m:
+        return None
+    a = int(m.group(1).replace(" ", "").replace(" ", ""))
+    b = int(m.group(2).replace(" ", "").replace(" ", "")) if m.group(2) else None
+    return [a, b] if 80 <= a <= 2500 else None
 
 
 # ---------------------------------------------------------------- Hyundai (official)
@@ -519,7 +557,7 @@ def mitsubishi():
 
 
 # ---------------------------------------------------------------- Dacia + Mazda (official, detail pages from sitemaps, cached)
-def sitemap_details(key, sitemap, pat, parse, limit=220, max_age=2):
+def sitemap_details(key, sitemap, pat, parse, limit=220, max_age=2, ver=1):
     sm = get(sitemap)
     if sm is None:
         STATUS[key] = ("blocked", 0)
@@ -531,6 +569,8 @@ def sitemap_details(key, sitemap, pat, parse, limit=220, max_age=2):
     for u in urls:
         ck = key + ":" + u
         c = CACHE.get(ck)
+        if c and c.get("v", 1) != ver:
+            c = None
         age = (NOW.date() - dt.date.fromisoformat(c["fetched"])).days if c else 99
         if (not c or age >= max_age) and fetched < limit:
             t = get(u)
@@ -539,6 +579,7 @@ def sitemap_details(key, sitemap, pat, parse, limit=220, max_age=2):
                 c = parse(u, t)
                 if c:
                     c["fetched"] = TODAY
+                    c["v"] = ver
                     CACHE[ck] = c
         if c and c.get("price") and (NOW.date() - dt.date.fromisoformat(c["fetched"])).days <= 4:
             o = dict(c["o"])
@@ -570,19 +611,29 @@ def dacia_parse(u, t):
 
 def mazda_parse(u, t):
     og = H.unescape((re.search(r'<meta property="og:title" content="([^"]+)"', t) or [None, ""])[1])
-    pr = num((re.search(r'class="model-price"[^>]*>([^<]+)', t) or [None, None])[1])
+    f = dict(re.findall(r"\b(condition|tachometr|made_date|car_status)=([^,\s]+)", t))
+    km = num(f.get("tachometr")) or 0
+    if f.get("condition") not in (None, "1") and (km > 10000 or (num(f.get("made_date")) or 0) < NOW.year - 2):
+        return {"skip": "used", "price": None}
+    i = t.find('class="sale"')
+    sale = text(t[i:i + 4000]) if i >= 0 else ""
+    pr = num((re.search(r"Cena so zľavou\s*([\d  ]+)\s*€", sale) or re.search(r"Cena v €\s*([\d  ]+)\s*€", sale)
+              or re.search(r"za cenu\s*([\d  ]+)\s*€", t) or [None, None])[1])
+    lst = num((re.search(r"Pôvodná cena\s*([\d  ]+)\s*€", sale) or [None, None])[1])
     ld = num((re.search(r'"price":\s*"(\d+)"', t) or [None, None])[1])
     seller = (re.search(r'"seller":\s*\{\s*"@type":\s*"Organization",\s*"name":\s*"([^"]+)"', t) or [None, None])[1]
     vin = (re.search(r"\b([A-HJ-NPR-Z0-9]{17})\b", t) or [None, None])[1]
     m = re.search(r"/Mazda/([^/]+)/", u)
-    model = m.group(1).replace("-", " ").upper().replace("MAZDA ", "") if m else ""
-    model = {"2": "2", "3": "3"}.get(model, model)
+    model = urllib.parse.unquote(m.group(1)).replace("Mazda ", "") if m else ""
     if not pr:
         return None
-    flags = ["price_mismatch"] if ld and abs(ld - pr) > 50 else []
-    return {"price": pr, "o": {"src": "mazda", "off": True, "url": u, "brand": "Mazda", "model": model.title() if not re.match(r"^(CX|MX)", model) else model, "title": og or ("Mazda " + model),
+    # the portal shows the price incl. the 369 € preparation fee; the structured data leaves it out
+    flags = ["price_mismatch"] if ld and not (0 <= pr - ld <= 400) else []
+    cond = "new" if f.get("condition", "1") == "1" else "demo"
+    return {"price": pr, "o": {"src": "mazda", "off": True, "url": u, "brand": "Mazda", "model": model, "title": og or ("Mazda " + model), "list": lst if lst and lst > pr else None,
+            "km": km or None, "year": num(f.get("made_date")),
             "body": body_of("Mazda", model, og), "fuel": classify(FUEL, og, "petrol"), "mhev": mild(og) or "m hybrid" in norm(og),
-            "gear": "auto" if re.search(r"\b\d?at\b|automat|aut\.", norm(og)) else "man", "cond": "new", "dealer": seller, "auth": True, "vin": vin, "flags": flags}}
+            "gear": "auto" if re.search(r"\b\d?at\b|automat|aut\.", norm(og)) else "man", "cond": cond, "dealer": seller, "auth": True, "vin": vin, "flags": flags}}
 
 
 def dacia():
@@ -590,7 +641,7 @@ def dacia():
 
 
 def mazda():
-    sitemap_details("mazda", "https://www.mazdaihned.sk/sitemap.xml", r"/Mazda/[^/]+/[a-z0-9]+/$", mazda_parse)
+    sitemap_details("mazda", "https://www.mazdaihned.sk/sitemap.xml", r"/Mazda/[^/]+/[a-z0-9]+/$", mazda_parse, limit=240, ver=2)
 
 
 # ---------------------------------------------------------------- autobazar.eu (all brands, authorised-dealer check)
@@ -704,8 +755,9 @@ def autobazar_details():
                 m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', t, re.S)
                 adv = json.loads(m.group(1)).get("props", {}).get("pageProps", {}).get("advertisement", {}) if m else {}
                 desc = (adv.get("description") or "") + " " + (adv.get("noteForBuyer") or "")
+                tv = adv.get("minimumTrunkVolume")
                 c = {"price": o["price"], "fetched": TODAY, "cond": conditions(desc), "cons": adv.get("consumptionCombined"), "text": desc[:500],
-                     "fin": fin_from_text(desc)}
+                     "fin": fin_from_text(desc), "boot": [int(tv), adv.get("maximumTrunkVolume")] if isinstance(tv, (int, float)) and 80 <= tv <= 2500 else None}
                 CACHE[o["id"]] = c
         if c:
             o["flags"] = sorted(set(o.get("flags", []) + c.get("cond", [])))
@@ -713,6 +765,8 @@ def autobazar_details():
                 o["cons"] = c["cons"]
             if c.get("fin"):
                 o["fin"] = c["fin"]
+            if c.get("boot") and not o.get("boot"):
+                o["boot"], o["boot_src"] = c["boot"], "dealer"
 
 
 # ---------------------------------------------------------------- official leasing / financing promotions (quoted, with link)
@@ -777,6 +831,9 @@ def space():
         if o.get("model"):
             models[norm(o["brand"]) + "|" + norm(o["model"])] = (o["brand"], o["model"])
     fetched = 0
+    idx = get("https://www.cebia.cz/pruvodce") or ""
+    have = set(re.findall(r'href="/pruvodce/objem-kufru-([a-z0-9-]+)"', idx))
+    log("cebia guides listed:", len(have))
     for key, (brand, model) in sorted(models.items()):
         e = sp.get(key)
         if e and e.get("v") == 3 and (NOW.date() - dt.date.fromisoformat(e.get("fetched", "2000-01-01"))).days < (30 if e.get("rows") else 7):
@@ -787,6 +844,8 @@ def space():
         m = slug(re.sub(r"^(nov[ýéá]|new)\s+", "", model, flags=re.I))
         found = None
         for cand in dict.fromkeys([m, m.replace("-", ""), m.split("-")[0]]):
+            if have and f"{b}-{cand}" not in have:
+                continue
             url = f"https://www.cebia.cz/pruvodce/objem-kufru-{b}-{cand}"
             t = get(url, tries=1)
             fetched += 1
