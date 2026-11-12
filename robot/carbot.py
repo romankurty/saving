@@ -285,8 +285,10 @@ def kia():
                     city = ""
                     dealer = "Sklad importéra Kia (vyberieš si predajcu)" if re.search(r"importer", norm(dealer)) else dealer
                 tags = text(c)
-                mm = re.match(r"Kia\s+(.+?)\s+(?:HB|SW|\d)", title + " 0")
-                model_name = (mm.group(1) if mm else re.sub(r"^Kia\s+", "", title).split(" ")[0]).title().replace("Xceed", "XCeed").replace("Ev", "EV")
+                rest = norm(re.sub(r"^Kia\s+", "", title, flags=re.I))
+                known = sorted(MODEL_BODY["kia"], key=len, reverse=True)
+                hit = next((k for k in known if rest.startswith(k + " ") or rest == k), None)
+                model_name = (hit or rest.split(" ")[0]).title().replace("Xceed", "XCeed").replace("Ev", "EV")
                 model_name = re.sub(r"\s+(Hev|Phev|Hybrid|Plug-In.*)$", "", model_name, flags=re.I)
                 add({"id": "kia:" + vin, "src": "kia", "off": True, "url": url, "brand": "Kia", "model": model_name, "title": title,
                      "body": body_of("Kia", model_name, title), "fuel": classify(FUEL, title, "petrol"), "mhev": mild(title),
@@ -649,6 +651,12 @@ def autobazar():
             continue
         bmap[x] = {b}
         used.add(b)
+    loose = sorted(((c / nx[x]) * (c / nb[b]), x, b, c) for (x, b), c in nxb.items() if c >= 2)
+    for sc, x, b, c in reversed(loose):
+        if x in bmap or b in used or c / nx[x] < 0.25:
+            continue
+        bmap[x] = {b}
+        used.add(b)
     log("authorised-brand map:", {k: (sorted(v), nx.get(k)) for k, v in sorted(bmap.items())})
     log("brands without a learned id:", sorted(x for x in nx if x not in bmap))
     out = []
@@ -771,7 +779,7 @@ def space():
     fetched = 0
     for key, (brand, model) in sorted(models.items()):
         e = sp.get(key)
-        if e and e.get("v") == 2 and (NOW.date() - dt.date.fromisoformat(e.get("fetched", "2000-01-01"))).days < (30 if e.get("rows") else 7):
+        if e and e.get("v") == 3 and (NOW.date() - dt.date.fromisoformat(e.get("fetched", "2000-01-01"))).days < (30 if e.get("rows") else 7):
             continue
         if fetched >= 120:
             break
@@ -786,20 +794,40 @@ def space():
                 found = (url, t)
                 break
         if not found:
-            sp[key] = {"fetched": TODAY, "rows": [], "v": 2}
+            sp[key] = {"fetched": TODAY, "rows": [], "v": 3}
             continue
         url, t = found
         tab = re.search(r"<table.*?</table>", t, re.S).group(0)
         rows = []
         def litres(c):
-            m = re.search(r"\d[\d ]{1,5}", (c or "").replace("\xa0", " "))
+            m = re.search(r"\d[\d ]{1,5}", (c or "").replace("\xa0", " ").replace("&nbsp;", " "))
             v = int(m.group(0).replace(" ", "")) if m else None
             return v if v and 100 <= v <= 3500 else None
-        for tr in re.findall(r"<tr.*?</tr>", tab, re.S):
-            cells = [text(c) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
-            if len(cells) >= 2 and litres(cells[1]) and not re.search(r"^\d", cells[0]):
-                rows.append([cells[0], litres(cells[1]), litres(cells[2]) if len(cells) > 2 else None])
-        sp[key] = {"fetched": TODAY, "src": url, "rows": rows[:30], "v": 2}
+        trs = [[text(c) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)] for tr in re.findall(r"<tr.*?</tr>", tab, re.S)]
+        trs = [r for r in trs if r]
+        hdr = [norm(c) for c in trs[0]] if trs else []
+        def col(*keys, avoid=()):
+            for i, h in enumerate(hdr):
+                if any(k in h for k in keys) and not any(x in h for x in avoid):
+                    return i
+            return None
+        base_i = col("zakladn", "objem kufru", "objem", avoid=("sklop",))
+        fold_i = col("sklop")
+        year_i = col("vyrob", "rok")
+        data = trs[1:] if base_i is not None else trs
+        if base_i is None:
+            base_i = 1
+        cur = [r for r in data if year_i is not None and len(r) > year_i and re.search(r"nyni|dnes|soucasnost|sucasnost", norm(r[year_i]))]
+        if not cur and data:
+            def gen(name):
+                m = re.search(r"\(([ivx]+)\.? ?generac|\b([ivx]{1,4})\b", norm(name))
+                return (m.group(1) or m.group(2)) if m else None
+            g0 = gen(data[0][0])
+            cur = [r for r in data if gen(r[0]) == g0] if g0 else data[:4]
+        for r in cur:
+            if len(r) > base_i and litres(r[base_i]) and not re.match(r"^\d", r[0]):
+                rows.append([r[0], litres(r[base_i]), litres(r[fold_i]) if fold_i is not None and len(r) > fold_i else None])
+        sp[key] = {"fetched": TODAY, "src": url, "rows": rows[:30], "v": 3}
     with open(os.path.join(OUT, "space.json"), "w", encoding="utf-8") as f:
         json.dump(sp, f, ensure_ascii=False, separators=(",", ":"))
     log("space: models", len(models), "pages fetched", fetched, "with data", sum(1 for k in models if sp.get(k, {}).get("rows")))
