@@ -162,7 +162,7 @@ const T = {
     relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026. Objem kufra: sprievodca Cebia (pre danú verziu, najnovšia generácia).",
     notCovered: "Nečítame (zakazujú robotov): sklady VW, Audi, Seat, Cupra, Suzuki. Ich autá vidíš cez autorizovaných predajcov na autobazar.eu.",
     promos: "Leasing a akcie značiek (oficiálne stránky)", promosNote: "Citované priamo z oficiálnych stránok značiek. Operatívny leasing (paušál) a 0 % financovanie môžu byť výhodnejšie ako kúpa — porovnaj celkovú sumu za celé obdobie na odkaze.",
-    loadErr: "Ponuky sa nepodarilo načítať. Skontroluj pripojenie.", tSet: "Nastavenia", tList: "Autá",
+    sameN: "{n} rovnaké kusy", loadErr: "Ponuky sa nepodarilo načítať. Skontroluj pripojenie.", tSet: "Nastavenia", tList: "Autá",
   },
   en: {
     checked: "Offers checked {d}", budget: "Budget", upTo: "up to {v}", any: "no limit", body: "Body", allBodies: "All",
@@ -193,7 +193,7 @@ const T = {
     relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026. Boot volume: Cebia guide (matching version, newest generation).",
     notCovered: "Not read (they forbid robots): VW, Audi, Seat, Cupra and Suzuki stock sites. Their cars appear via authorised dealers on autobazar.eu.",
     promos: "Brand leasing & promotions (official sites)", promosNote: "Quoted from the brands' official pages. Operating lease (flat monthly) and 0 % financing can beat buying — compare the total over the whole term on the link.",
-    loadErr: "Couldn't load offers. Check the connection.", tSet: "Settings", tList: "Cars",
+    sameN: "{n} identical cars", loadErr: "Couldn't load offers. Check the connection.", tSet: "Settings", tList: "Cars",
   },
 };
 
@@ -357,7 +357,7 @@ function offerHtml(o, extra) {
     rows.push(`<div class="row"><span>${t("cash")}</span><b>${eur(o.price)}</b></div>`);
     if (o.list) rows.push(`<div class="row"><span>${t("listP")}</span><span>${eur(o.list)}</span></div>`);
     if (o.low30) rows.push(`<div class="row"><span>${t("lowest30", { v: "" }).replace(/:\s*$/, "")}</span><span>${eur(o.low30)}</span></div>`);
-    if (f.total) {
+    if (f.total && f.total > o.price * 0.85) {
       const ins = f.months && (f.ins_month || f.pfs_month) ? f.months * ((f.ins_month || 0) + (f.pfs_month || 0)) : 0;
       rows.push(`<div>${t(f.rpmn ? "finTotal" : "finTotalNoR", { t: eur(f.total), r: String(f.rpmn).replace(".", state.lang === "sk" ? "," : "."), d: eur(Math.max(0, f.total - ins - o.price)) })}${ins ? " " + t("finIns", { v: eur(ins) }) : ""}</div>`);
     }
@@ -377,7 +377,7 @@ function offerHtml(o, extra) {
     <div class="facts">
       <div>${esc(meta)}</div>
       <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} —</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${dec(r.s)}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
-      <div>${esc(o.dealer || "")}${o.city ? (o.dealer ? ", " : "") + esc(o.city) : ""}</div>
+      <div>${esc(o.dealer || "")}${o.city ? (o.dealer ? ", " : "") + esc(o.city) : ""}${o.n > 1 ? ` <span class="muted">· ${t("sameN", { n: o.n })}</span>` : ""}</div>
       <div class="small">${ver}</div>
       ${fin.length ? `<div class="small">${fin.join(" · ")}</div>` : ""}
     </div>

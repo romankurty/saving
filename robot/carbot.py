@@ -140,6 +140,22 @@ MODEL_BODY = {
     "hyundai": {"i10": "hatch", "i20": "hatch", "i30": "hatch", "bayon": "suv", "kona": "suv", "tucson": "suv", "santa fe": "suv", "ioniq 5": "suv", "ioniq 6": "sedan", "ioniq 9": "suv", "inster": "hatch", "staria": "mpv"},
     "kia": {"picanto": "hatch", "stonic": "suv", "ceed": "hatch", "xceed": "suv", "k4": "hatch", "seltos": "suv", "sportage": "suv", "niro": "suv", "sorento": "suv", "ev2": "suv", "ev3": "suv", "ev4": "hatch", "ev5": "suv", "ev6": "suv", "ev9": "suv"},
     "mitsubishi": {"asx": "suv", "colt": "hatch", "space": "hatch", "eclipse": "suv", "outlander": "suv", "grandis": "suv"},
+    "peugeot": {"208": "hatch", "2008": "suv", "308": "hatch", "3008": "suv", "408": "hatch", "5008": "suv", "rifter": "mpv"},
+    "citroen": {"c3 aircross": "suv", "c3": "hatch", "c4 x": "hatch", "c4": "hatch", "c5 aircross": "suv", "c5 x": "estate", "berlingo": "mpv"},
+    "fiat": {"500": "hatch", "500c": "coupe", "600": "suv", "grande panda": "hatch", "panda": "hatch", "tipo": "hatch", "doblo": "mpv"},
+    "jeep": {"avenger": "suv", "compass": "suv", "renegade": "suv"}, "alfa romeo": {"junior": "suv", "tonale": "suv", "stelvio": "suv", "giulia": "sedan"},
+    "skoda": {"fabia": "hatch", "scala": "hatch", "kamiq": "suv", "octavia": "hatch", "karoq": "suv", "kodiaq": "suv", "superb": "sedan", "elroq": "suv", "enyaq": "suv", "epiq": "suv"},
+    "volkswagen": {"polo": "hatch", "golf": "hatch", "t-cross": "suv", "taigo": "suv", "t-roc": "suv", "tiguan": "suv", "id.3": "hatch", "id.4": "suv", "id.5": "suv", "id.7": "sedan", "passat": "estate", "touran": "mpv"},
+    "seat": {"ibiza": "hatch", "arona": "suv", "leon": "hatch", "ateca": "suv", "tarraco": "suv"}, "cupra": {"formentor": "suv", "born": "hatch", "leon": "hatch", "terramar": "suv", "tavascan": "suv"},
+    "toyota": {"aygo": "hatch", "yaris cross": "suv", "yaris": "hatch", "corolla cross": "suv", "corolla": "hatch", "c-hr": "suv", "rav4": "suv", "bz4x": "suv", "urban cruiser": "suv", "proace city verso": "mpv"},
+    "dacia": {"sandero": "hatch", "duster": "suv", "jogger": "mpv", "bigster": "suv", "spring": "hatch", "logan": "sedan"},
+    "renault": {"clio": "hatch", "captur": "suv", "symbioz": "suv", "austral": "suv", "arkana": "suv", "megane": "suv", "rafale": "suv", "scenic": "suv", "5": "hatch", "4": "suv", "espace": "suv"},
+    "opel": {"corsa": "hatch", "frontera": "suv", "mokka": "suv", "astra": "hatch", "grandland": "suv", "zafira": "mpv"},
+    "ford": {"puma": "suv", "focus": "hatch", "kuga": "suv", "explorer": "suv", "capri": "suv", "mustang mach-e": "suv", "tourneo": "mpv"},
+    "suzuki": {"swift": "hatch", "ignis": "hatch", "vitara": "suv", "s-cross": "suv", "across": "suv", "swace": "estate", "jimny": "suv"},
+    "mazda": {"2": "hatch", "3": "hatch", "cx-3": "suv", "cx-30": "suv", "cx-5": "suv", "cx-60": "suv", "cx-80": "suv", "mx-30": "suv", "cx-6e": "suv", "6e": "sedan"},
+    "mg": {"mg3": "hatch", "3": "hatch", "zs": "suv", "hs": "suv", "mg4": "hatch", "4": "hatch", "mg5": "estate", "s5": "suv"}, "nissan": {"micra": "hatch", "juke": "suv", "qashqai": "suv", "x-trail": "suv", "ariya": "suv", "leaf": "hatch"},
+    "honda": {"jazz": "hatch", "civic": "hatch", "hr-v": "suv", "zr-v": "suv", "cr-v": "suv"}, "byd": {"dolphin": "hatch", "atto 2": "suv", "atto 3": "suv", "seal u": "suv", "seal": "sedan", "sealion": "suv"},
 }
 NOT_CAR = r"topolino|\bami\b|rocks-e|furgon|\bvan\b|cargo|pv5|uzitkov|úžitkov|chassis|valn[ií]k|boxer|jumper|ducato|kasten|podvozok|pick-?up|l200|ranger"
 
@@ -187,7 +203,7 @@ def fin_from_text(s):
     m = re.search(r"[ÚU]rokov[áa] sadzba(?: je)?:?\s*(\d+(?:[.,]\d+)?)\s*%", n)
     if m:
         f["rate"] = float(m.group(1).replace(",", "."))
-    m = re.search(r"celkov[áa] (?:čiastka|suma)[^0-9€]{0,120}?([\d  .,]{4,})\s*€", n, re.I)
+    m = re.search(r"celkov[áa] (?:čiastka|suma|splatn[áa] suma)[^0-9€.]{0,90}?(?:zaplati\w*|splati\w*|uhradi\w*)[^0-9€]{0,80}?([\d  .,]{4,})\s*€", n, re.I)
     if m:
         f["total"] = num(m.group(1))
     m = re.search(r"havarijn\w+ poisten\w+ je vo v[ýy][šs]ke\s*([\d  .,]+)\s*€", n)
@@ -524,40 +540,50 @@ def autobazar():
     if not recs:
         STATUS[key] = ("blocked", 0)
         return []
-    # learn which authorised-brand id means which brand (most common brand of that dealer's offers)
-    co = {}
+    # learn which authorised-brand id means which brand, dealer by dealer:
+    # for brand X, the id that most of X's authorised dealers carry and few others do
+    dealers = {}
     for r in recs.values():
-        ad = (r.get("user") or {}).get("authorizedDealer") or {}
-        if ad.get("isAuthorized"):
-            for b in ad.get("brands") or []:
-                co.setdefault(b, {}).setdefault(r.get("brandValue"), 0)
-                co[b][r.get("brandValue")] += 1
-    bmap = {}
-    for b, cnt in co.items():
-        tot = sum(cnt.values())
-        best = max(cnt.items(), key=lambda x: x[1])
-        # a brand id must explain ≥ 60 % of the authorised dealers' offers carrying it, or be the dealer's only brand
-        bmap.setdefault(best[0], set())
-        if best[1] >= 3 and best[1] / tot >= 0.6:
-            bmap[best[0]].add(b)
-    log("authorised-brand map:", {k: sorted(v) for k, v in bmap.items() if v})
+        u = r.get("user") or {}
+        ad = u.get("authorizedDealer") or {}
+        if not ad.get("isAuthorized") or not u.get("id"):
+            continue
+        d = dealers.setdefault(u["id"], {"ids": set(ad.get("brands") or []), "brands": set()})
+        d["brands"].add(r.get("brandValue"))
+    nb, nx, nxb = {}, {}, {}
+    for d in dealers.values():
+        for b in d["ids"]:
+            nb[b] = nb.get(b, 0) + 1
+        for x in d["brands"]:
+            nx[x] = nx.get(x, 0) + 1
+            for b in d["ids"]:
+                nxb[(x, b)] = nxb.get((x, b), 0) + 1
+    scored = sorted(((c / nx[x]) * (c / nb[b]), x, b, c) for (x, b), c in nxb.items() if c >= 2)
+    bmap, used = {}, set()
+    for sc, x, b, c in reversed(scored):
+        if x in bmap or b in used or c / nx[x] < 0.3:
+            continue
+        bmap[x] = {b}
+        used.add(b)
+    log("authorised-brand map:", {k: (sorted(v), nx.get(k)) for k, v in sorted(bmap.items())})
+    log("brands without a learned id:", sorted(x for x in nx if x not in bmap))
     out = []
     for r in recs.values():
         u = r.get("user") or {}
         ad = u.get("authorizedDealer") or {}
         brand = r.get("brandValue")
         ids = set(ad.get("brands") or [])
+        name_has_brand = bool(re.search(r"\b" + re.escape(norm(brand or "~").split()[0]) + r"\b", norm(u.get("displayName", ""))))
         if ad.get("isAuthorized") and bmap.get(brand):
-            auth = bool(ids & bmap[brand])
-        elif ad.get("isAuthorized") and re.search(norm(brand or "~"), norm(u.get("displayName", ""))):
+            auth = bool(ids & bmap[brand]) or name_has_brand
+        elif ad.get("isAuthorized") and name_has_brand:
             auth = True
         else:
             auth = False
         cond = {30923: "new", 30924: "demo", 30925: "demo"}.get(r.get("condition"), "new")
         title = r.get("title") or ""
-        body = AB_BODY.get(norm(r.get("bodyworkValue") or ""), None) or classify(BODY, title, "other")
-        if body == "suv" and re.search(r"kombi|combi|sportswagon|touring|variant|\bsw\b", norm(title)):
-            body = "estate"
+        known = body_of(brand or "", r.get("carModelValue") or "", title, None)
+        body = known or AB_BODY.get(norm(r.get("bodyworkValue") or ""), None) or "other"
         fuel_s = r.get("fuelValue") or ""
         fuel = "phev" if "plug" in norm(fuel_s + title) else "hybrid" if "hybrid" in norm(fuel_s) else classify(FUEL, fuel_s, "petrol")
         o = {"id": "ab:" + r["id"], "src": key, "off": False, "url": f"https://www.autobazar.eu/detail-nove-auto/{r.get('sefName')}/{r['id']}/",
@@ -779,6 +805,22 @@ def main():
                 keep += lst
                 log("  kept stale offers from", src, len(lst))
     keep.sort(key=lambda o: o["price"])
+    # financing total must be what you pay in total — a figure below the price is the loan amount, not the total
+    for o in keep:
+        f = o.get("fin")
+        if f and f.get("total") and f["total"] < 0.85 * o["price"]:
+            f.pop("total", None)
+    # identical cars at the same dealer (same version, price, condition) → one line with a count
+    grouped, seen = [], {}
+    for o in keep:
+        k = (o["brand"], norm(o.get("model") or ""), norm(o.get("title") or ""), round(o["price"]), norm(o.get("dealer") or ""), o["cond"], o["src"])
+        if k in seen and not o.get("twin"):
+            seen[k]["n"] = seen[k].get("n", 1) + 1
+            continue
+        seen[k] = o
+        grouped.append(o)
+    log("grouped identical offers:", len(keep), "→", len(grouped))
+    keep = grouped
     for o in keep:  # keep the file small for phones: drop fields the app doesn't use
         o.pop("img", None)
         if o.get("checked") and not o.get("stale"):
