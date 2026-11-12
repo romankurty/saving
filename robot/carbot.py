@@ -767,7 +767,7 @@ def space():
     fetched = 0
     for key, (brand, model) in sorted(models.items()):
         e = sp.get(key)
-        if e and (NOW.date() - dt.date.fromisoformat(e.get("fetched", "2000-01-01"))).days < 30:
+        if e and e.get("v") == 2 and (NOW.date() - dt.date.fromisoformat(e.get("fetched", "2000-01-01"))).days < (30 if e.get("rows") else 7):
             continue
         if fetched >= 120:
             break
@@ -782,16 +782,20 @@ def space():
                 found = (url, t)
                 break
         if not found:
-            sp[key] = {"fetched": TODAY, "rows": []}
+            sp[key] = {"fetched": TODAY, "rows": [], "v": 2}
             continue
         url, t = found
         tab = re.search(r"<table.*?</table>", t, re.S).group(0)
         rows = []
+        def litres(c):
+            m = re.search(r"\d[\d ]{1,5}", (c or "").replace("\xa0", " "))
+            v = int(m.group(0).replace(" ", "")) if m else None
+            return v if v and 100 <= v <= 3500 else None
         for tr in re.findall(r"<tr.*?</tr>", tab, re.S):
             cells = [text(c) for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
-            if len(cells) >= 2 and re.fullmatch(r"\d{2,4}", cells[1].replace(" ", "")):
-                rows.append([cells[0], int(cells[1].replace(" ", "")), int(cells[2].replace(" ", "")) if len(cells) > 2 and re.fullmatch(r"\d{3,4}", cells[2].replace(" ", "")) else None])
-        sp[key] = {"fetched": TODAY, "src": url, "rows": rows[:30]}
+            if len(cells) >= 2 and litres(cells[1]) and not re.search(r"^\d", cells[0]):
+                rows.append([cells[0], litres(cells[1]), litres(cells[2]) if len(cells) > 2 else None])
+        sp[key] = {"fetched": TODAY, "src": url, "rows": rows[:30], "v": 2}
     with open(os.path.join(OUT, "space.json"), "w", encoding="utf-8") as f:
         json.dump(sp, f, ensure_ascii=False, separators=(",", ":"))
     log("space: models", len(models), "pages fetched", fetched, "with data", sum(1 for k in models if sp.get(k, {}).get("rows")))
