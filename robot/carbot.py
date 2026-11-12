@@ -193,6 +193,9 @@ def fin_from_text(s):
     m = re.search(r"havarijn\w+ poisten\w+ je vo v[ýy][šs]ke\s*([\d  .,]+)\s*€", n)
     if m:
         f["ins_month"] = num(m.group(1))
+    m = re.search(r"poisten\w+ finan[čc]nej straty je vo v[ýy][šs]ke\s*([\d  .,]+)\s*€", n)
+    if m:
+        f["pfs_month"] = num(m.group(1))
     return f
 
 
@@ -594,6 +597,50 @@ def autobazar_details():
                 o["fin"] = c["fin"]
 
 
+# ---------------------------------------------------------------- official leasing / financing promotions (quoted, with link)
+PROMO_PAGES = [
+    ("Škoda", "https://www.skoda-auto.sk/ponuka/financovanie"), ("Škoda", "https://www.skoda-auto.sk/ponuka/akcie"), ("Škoda", "https://www.skoda-auto.sk/ponuka/skoda-bonus"),
+    ("Hyundai", "https://www.hyundai.com/sk/sk/aktualna-ponuka/akciove-ponuky.html"), ("Hyundai", "https://www.hyundai.com/sk/sk/predaj/financovanie/prehlad-financovania.html"),
+    ("Toyota", "https://www.toyota.sk/nakup-a-ponuky/akciove-ponuky"),
+    ("Dacia", "https://www.dacia.sk/financovanie/akciove-ponuky.html"), ("Dacia", "https://www.dacia.sk/akciove-ponuky.html"),
+    ("Renault", "https://www.renault.sk/financovanie/akciove-ponuky.html"),
+    ("Peugeot", "https://www.peugeot.sk/nasa-ponuka/akciove-ponuky-nove-vozidla/peugeot-pausal.html"), ("Peugeot", "https://www.peugeot.sk/nasa-ponuka/akciove-ponuky-nove-vozidla.html"),
+    ("Opel", "https://www.opel.sk/offers/offers-overview.html"),
+    ("Fiat", "https://www.fiat.sk/akciove-ponuky/fiat-operativny-leasing"), ("Fiat", "https://www.fiat.sk/akciove-ponuky"),
+    ("Jeep", "https://www.jeep.sk/akciove-ponuky/operativny-leasing"),
+    ("Mitsubishi", "https://www.mitsubishi-motors.sk/akciova-ponuka/"),
+    ("Seat", "https://www.seat.sk/vyber-vozidla-a-konfiguracia/akcie-a-ponuky/akcie-a-ponuky"), ("Cupra", "https://www.cupraofficial.sk/nove-vozidla/akcie-a-ponuky"),
+    ("BYD", "https://www.byd.com/sk/akcna-ponuka"), ("Nissan", "https://www.nissan.sk/ponuka/hybridne-vozidla-nove.html"),
+]
+PROMO_PAT = re.compile(r"(?:(?:od|len|už od|za)\s*\d[\d  ]*(?:,\d+)?\s*€\s*(?:/|za|mesa[čc]ne|mes)\s*(?:mes\w*)?|0\s*%\s*(?:úrok|navýšen|akontác)\w*|operatívn\w* (?:leasing|lízing)|paušál\w*|bonus\w*\s*(?:až\s*)?\d[\d  ]*\s*€|zvýhodnen\w*\s*(?:až\s*)?\d[\d  ]*\s*€|RPMN\s*\d)", re.I)
+
+
+def promos():
+    out = []
+    for brand, url in PROMO_PAGES:
+        t = get(url, tries=1)
+        if not t:
+            continue
+        title = text((re.search(r"<title>(.*?)</title>", t, re.S) or [None, ""])[1])[:90]
+        tx = text(re.sub(r"<(nav|header|footer)\b.*?</\1>", " ", t, flags=re.S))
+        snips = []
+        for m in PROMO_PAT.finditer(tx):
+            a0 = max(0, tx.rfind(". ", 0, m.start()) + 2, m.start() - 160)
+            b0 = tx.find(". ", m.end())
+            b0 = min(b0 + 1 if b0 >= 0 else len(tx), m.end() + 160)
+            sn = tx[a0:b0].strip(" .,-")
+            if len(sn) < 25 or any(sn[:60] in x or x[:60] in sn for x in snips) or re.search(r"cookie|súhlas|newsletter", sn, re.I):
+                continue
+            snips.append(sn)
+            if len(snips) >= 4:
+                break
+        if snips:
+            out.append({"brand": brand, "url": url, "title": title, "snips": snips, "checked": NOW.isoformat(timespec="minutes")})
+    with open(os.path.join(OUT, "promos.json"), "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+    log("promos:", len(out), "pages with leasing/financing offers")
+
+
 # ---------------------------------------------------------------- boot space (Cebia guides: litres per version)
 def slug(s):
     s = norm(s).replace("&", " ").replace("'", "")
@@ -688,6 +735,10 @@ def main():
         except Exception as e:  # noqa: BLE001
             log("!! details failed:", fn.__name__, type(e).__name__, e)
     log("detail pages used:", detail_used)
+    try:
+        promos()
+    except Exception as e:  # noqa: BLE001
+        log("!! promos failed:", type(e).__name__, e)
     try:
         space()
     except Exception as e:  # noqa: BLE001

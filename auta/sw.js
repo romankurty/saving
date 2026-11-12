@@ -1,6 +1,6 @@
 // Service worker for the car app: network first (newest offers), cached copy when offline.
 var CACHE = 'auta-v1';
-var CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './data/offers.json', './data/space.json'];
+var CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './data/offers.json', './data/space.json', './data/promos.json'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(CORE).catch(function () {}); }).then(function () { return self.skipWaiting(); }));
 });
