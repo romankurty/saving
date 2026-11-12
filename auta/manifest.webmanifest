@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "Autá — najlepšie ponuky",
+  "short_name": "Autá",
+  "description": "Nové, skladové a predvádzacie autá na Slovensku od autorizovaných predajcov, zoradené podľa ceny.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eceeec",
+  "theme_color": "#eceeec",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

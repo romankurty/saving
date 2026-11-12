@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autá</title>
+<meta name="theme-color" content="#eceeec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1211" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Autá">
+<style>
+  /* One colour = one meaning: ink = action/selected, green = money saved / verified, amber = check this. */
+  :root {
+    --bg: #eceeec; --card: #ffffff; --text: #1a1f1c; --muted: #646d69; --line: #e0e4e1; --soft: #f2f4f2;
+    --save: #1b7546; --save-soft: #e1f2e8; --warn: #9a5200; --warn-soft: #fbefdc;
+    --btn: #1a1f1c; --btn-ink: #ffffff; --focus: #2a6fdb; --seg-on: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1211; --card: #181c1a; --text: #e8ece9; --muted: #9aa39e; --line: #2a302d; --soft: #202523;
+      --save: #72d29e; --save-soft: #16301f; --warn: #f0b35a; --warn-soft: #33270e;
+      --btn: #e8ece9; --btn-ink: #121514; --focus: #7fb0ff; --seg-on: #4b5550;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-variant-numeric: tabular-nums; -webkit-text-size-adjust: 100%; }
+  button { font: inherit; color: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: calc(10px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  header.top { display: flex; align-items: center; gap: 10px; margin: 2px 0 12px; }
+  .brand { flex: 1; min-width: 0; }
+  .brand h1 { font-size: 1.25rem; margin: 0; font-weight: 800; letter-spacing: -0.01em; }
+  .brand small { display: block; color: var(--muted); font-size: 0.76rem; }
+  .iconbtn { border: 0; background: transparent; border-radius: 12px; width: 42px; height: 42px; display: grid; place-items: center; cursor: pointer; color: var(--muted); }
+  .iconbtn svg { width: 22px; height: 22px; }
+  .iconbtn.on { color: var(--text); background: color-mix(in srgb, var(--text) 9%, transparent); }
+  .card { background: var(--card); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 4px; font-weight: 750; }
+  .muted { color: var(--muted); }
+  .small { font-size: 0.86rem; }
+  .tiny { font-size: 0.76rem; }
+  .save-t { color: var(--save); }
+  .warn-t { color: var(--warn); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .lbl { font-size: 0.8rem; font-weight: 650; color: var(--muted); margin: 10px 0 6px; }
+  .lbl:first-child { margin-top: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 2px; }
+  .chips.scroll::-webkit-scrollbar { display: none; }
+  .chip { border: 1px solid var(--line); background: var(--card); font-size: 0.88rem; padding: 7px 12px; border-radius: 999px; cursor: pointer; font-weight: 650; min-height: 36px; white-space: nowrap; }
+  .chip.on { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+  .seg { display: inline-flex; background: color-mix(in srgb, var(--text) 7%, transparent); border-radius: 12px; padding: 3px; gap: 2px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font-size: 0.86rem; font-weight: 650; padding: 7px 12px; border-radius: 9px; cursor: pointer; min-height: 34px; }
+  .seg button.on { background: var(--seg-on); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .switch { position: relative; width: 48px; height: 29px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch span { position: absolute; inset: 0; background: color-mix(in srgb, var(--text) 18%, transparent); border-radius: 999px; cursor: pointer; transition: .15s; }
+  .switch span::after { content: ""; position: absolute; width: 23px; height: 23px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .switch input:checked + span { background: var(--btn); }
+  .switch input:checked + span::after { transform: translateX(19px); background: var(--btn-ink); }
+  .setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 0.92rem; }
+  .setrow:first-of-type { border-top: 0; }
+  details > summary { cursor: pointer; list-style: none; font-weight: 650; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::after { content: ""; display: inline-block; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin: 0 0 3px 8px; }
+  details[open] > summary::after { transform: rotate(-135deg); margin-bottom: -1px; }
+  .filters > summary { padding: 2px 0; }
+  .summary { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 4px 2px 10px; }
+  .summary b { font-size: 1.02rem; }
+  select { font: inherit; font-size: 0.88rem; font-weight: 650; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; min-height: 36px; }
+  /* offer card */
+  .offer { background: var(--card); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+  .offer .head { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: start; cursor: pointer; }
+  .offer .name { font-weight: 800; font-size: 1.05rem; line-height: 1.25; }
+  .offer .trim { color: var(--muted); font-size: 0.84rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .offer .price { text-align: right; font-weight: 800; font-size: 1.22rem; white-space: nowrap; }
+  .offer .off { text-align: right; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+  .facts { margin-top: 8px; display: grid; gap: 3px; font-size: 0.86rem; }
+  .facts .k { color: var(--muted); }
+  .stars { letter-spacing: 1px; font-size: 0.82rem; }
+  .flag { display: inline-block; font-size: 0.74rem; font-weight: 750; padding: 1px 6px; border-radius: 6px; white-space: nowrap; vertical-align: 1px; }
+  .flag.s { color: var(--save); background: var(--save-soft); }
+  .flag.w { color: var(--warn); background: var(--warn-soft); }
+  .flag.n { color: var(--muted); background: var(--soft); }
+  .note-w { margin-top: 6px; font-size: 0.82rem; font-weight: 650; color: var(--warn); }
+  .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .btn { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 7px 12px; font-size: 0.86rem; font-weight: 650; cursor: pointer; min-height: 38px; color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .btn.primary { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+  .btn.ghost { border-color: transparent; background: transparent; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--text) 30%, transparent); }
+  .more { margin-top: 10px; background: var(--soft); border-radius: 12px; padding: 10px 12px; font-size: 0.84rem; display: grid; gap: 4px; }
+  .more .row { align-items: flex-start; }
+  .more b { font-weight: 700; }
+  .checked { margin-top: 8px; font-size: 0.74rem; color: var(--muted); }
+  .others { margin: -4px 0 12px; padding: 0 6px; }
+  .empty { color: var(--muted); padding: 10px 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  td, th { text-align: left; padding: 6px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.74rem; border-top: 0; }
+  td.num { text-align: right; white-space: nowrap; }
+  .page { display: none; }
+  .page.on { display: block; }
+  .loading { text-align: center; padding: 40px 0; color: var(--muted); }
+  ul.plain { margin: 4px 0 0; padding-left: 18px; }
+  ul.plain li { margin: 3px 0; font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1 id="title">Autá</h1><small id="updated">…</small></div>
+    <button class="iconbtn" id="gear" aria-label="Nastavenia a zdroje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </header>
+
+  <section class="page on" id="p-list">
+    <div class="card" id="filtersCard"></div>
+    <div class="summary" id="summary"></div>
+    <div id="list"><div class="loading">…</div></div>
+  </section>
+
+  <section class="page" id="p-set"><div id="setOut"></div></section>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ------------------------------------------------------------------ texts
+const T = {
+  sk: {
+    checked: "Ponuky skontrolované {d}", budget: "Rozpočet", upTo: "do {v}", any: "bez limitu", body: "Karoséria", allBodies: "Všetky",
+    b_estate: "Kombi", b_suv: "SUV", b_hatch: "Hatchback", b_mpv: "MPV / 7 miest", b_sedan: "Sedan", b_coupe: "Kupé / kabrio", b_other: "Iné",
+    filters: "Ďalšie filtre", sort: "Zoradiť", s_price: "Najnižšia cena", s_disc: "Najväčšia zľava", s_space: "Najviac kufra za euro", s_rel: "Najspoľahlivejšie", s_monthly: "Najnižšia splátka", s_new: "Najnovšie ponuky",
+    brands: "Značky", fuel: "Palivo", f_petrol: "Benzín", f_hybrid: "Hybrid", f_phev: "Plug-in hybrid", f_ev: "Elektro", f_diesel: "Diesel", f_lpg: "LPG / CNG",
+    gear: "Prevodovka", g_man: "Manuál", g_auto: "Automat", cond: "Stav", c_new: "Nové", c_demo: "Predvádzacie", minBoot: "Kufor aspoň", minRel: "Spoľahlivosť aspoň",
+    onlyAuth: "Len autorizovaní predajcovia", onlyTwice: "Len overené 2 zdrojmi (rovnaké VIN)", hideFin: "Skryť ceny platné len s financovaním", onlyOfficial: "Len oficiálne sklady značiek",
+    onePerModel: "Najlacnejší kus z každého modelu", resetF: "Zrušiť filtre", nOffers: "{n} ponúk", from: "od {v}", none: "Žiadna ponuka nespĺňa filtre. Skús vyšší rozpočet alebo menej filtrov.",
+    disc: "−{v} ({p} %)", vsList: "oproti cenníkovej cene {v}", boot: "Kufor", seats: "{n} miest", rel: "Spoľahlivosť", relNone: "bez dát",
+    dealer: "Predajca", auth: "autorizovaný predajca {b}", notAuth: "neoverený predajca", verified2: "Overené 2 zdrojmi: rovnaké VIN, cena sedí", verified2diff: "2 zdroje (rovnaké VIN), ale cena sa líši: {v}",
+    official: "Oficiálny sklad značky {b}", portal: "autobazar.eu · predajca overený portálom", open: "Otvoriť ponuku", open2: "2. zdroj",
+    seenSince: "v ponuke od {d}", checkedAt: "skontrolované {d}", dropped: "zlacnené o {v}", stale: "zdroj dnes nedostupný — údaj zo včera",
+    fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie",
+    monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %) — o {d} viac ako v hotovosti", finTotalNoR: "Pri financovaní zaplatíš spolu {t} — o {d} viac ako v hotovosti",
+    finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
+    cash: "Cena v hotovosti", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
+    relWhy: "Prečo {s}/5: majitelia (What Car? 2026, autá do 5 rokov) {w} %{tuv}{note}", relTuv: " · TÜV 2026 dlhodobo: {v} % závažných chýb", relNoData: "Pre túto značku nie sú dostupné nezávislé dáta 2026.",
+    bootSrc: "objem kufra podľa výrobcu (pri sklopených sedadlách viac)", bootNone: "objem kufra: neoverený",
+    moreOf: "+ {n} ďalších {m}", lessOf: "Skryť ďalšie", fewer: "",
+    set: "Nastavenia a zdroje", lang: "Jazyk", sources: "Zdroje dát", src_ok: "{n} ponúk", src_blocked: "zakazuje robotov — nečítame", src_error: "dnes nedostupné",
+    how: "Ako overujeme", how1: "Oficiálne sklady značiek (Kia, Hyundai, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi): ponúkajú len autorizovaní predajcovia.",
+    how2: "autobazar.eu: zobrazujeme len predajcov, ktorých portál overil ako autorizovaných pre danú značku.",
+    how3: "Rovnaké auto (VIN) na oficiálnom sklade aj na portáli = overené 2 zdrojmi; porovnáme ceny.",
+    how4: "Ceny nižšie o viac ako 45 % oproti cenníku vyraďujeme ako nevierohodné.",
+    how5: "Podmienky ceny (len s financovaním, výkup, IČO) čítame z popisu ponuky; vždy over na odkaze.",
+    how6: "Údaje sa obnovujú 2× denne (ráno a poobede).",
+    relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026.",
+    notCovered: "Nečítame (zakazujú robotov): sklady VW, Audi, Seat, Cupra, Suzuki. Ich autá vidíš cez autorizovaných predajcov na autobazar.eu.",
+    loadErr: "Ponuky sa nepodarilo načítať. Skontroluj pripojenie.", tSet: "Nastavenia", tList: "Autá",
+  },
+  en: {
+    checked: "Offers checked {d}", budget: "Budget", upTo: "up to {v}", any: "no limit", body: "Body", allBodies: "All",
+    b_estate: "Estate", b_suv: "SUV", b_hatch: "Hatchback", b_mpv: "MPV / 7 seats", b_sedan: "Sedan", b_coupe: "Coupé / convertible", b_other: "Other",
+    filters: "More filters", sort: "Sort", s_price: "Lowest price", s_disc: "Biggest discount", s_space: "Most boot per euro", s_rel: "Most reliable", s_monthly: "Lowest instalment", s_new: "Newest offers",
+    brands: "Brands", fuel: "Fuel", f_petrol: "Petrol", f_hybrid: "Hybrid", f_phev: "Plug-in hybrid", f_ev: "Electric", f_diesel: "Diesel", f_lpg: "LPG / CNG",
+    gear: "Gearbox", g_man: "Manual", g_auto: "Automatic", cond: "Condition", c_new: "New", c_demo: "Demo", minBoot: "Boot at least", minRel: "Reliability at least",
+    onlyAuth: "Authorised dealers only", onlyTwice: "Only double-checked (same VIN in 2 sources)", hideFin: "Hide prices valid only with financing", onlyOfficial: "Official brand stock only",
+    onePerModel: "Cheapest car of each model", resetF: "Clear filters", nOffers: "{n} offers", from: "from {v}", none: "No offer matches. Try a higher budget or fewer filters.",
+    disc: "−{v} ({p} %)", vsList: "vs list price {v}", boot: "Boot", seats: "{n} seats", rel: "Reliability", relNone: "no data",
+    dealer: "Dealer", auth: "authorised {b} dealer", notAuth: "unverified dealer", verified2: "Double-checked: same VIN in 2 sources, price matches", verified2diff: "2 sources (same VIN), but price differs: {v}",
+    official: "Official {b} stock", portal: "autobazar.eu · dealer verified by the portal", open: "Open offer", open2: "2nd source",
+    seenSince: "listed since {d}", checkedAt: "checked {d}", dropped: "price cut {v}", stale: "source unavailable today — yesterday's data",
+    fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing",
+    monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %) — {d} more than cash", finTotalNoR: "With financing you pay {t} in total — {d} more than cash",
+    finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
+    cash: "Cash price", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
+    relWhy: "Why {s}/5: owners (What Car? 2026, cars up to 5 years) {w} %{tuv}{note}", relTuv: " · TÜV 2026 long-term: {v} % major defects", relNoData: "No independent 2026 data for this brand.",
+    bootSrc: "boot volume per manufacturer (more with seats folded)", bootNone: "boot volume: not verified",
+    moreOf: "+ {n} more {m}", lessOf: "Hide others", fewer: "",
+    set: "Settings & sources", lang: "Language", sources: "Data sources", src_ok: "{n} offers", src_blocked: "forbids robots — not read", src_error: "unavailable today",
+    how: "How we verify", how1: "Official brand stock sites (Kia, Hyundai, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi) list authorised dealers only.",
+    how2: "autobazar.eu: we show only dealers the portal verified as authorised for that brand.",
+    how3: "Same car (VIN) on an official site and on the portal = double-checked; prices compared.",
+    how4: "Prices more than 45 % below the list price are dropped as implausible.",
+    how5: "Price conditions (financing only, trade-in, company) are read from the offer text; always confirm on the link.",
+    how6: "Data refreshes twice a day (morning and afternoon).",
+    relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026.",
+    notCovered: "Not read (they forbid robots): VW, Audi, Seat, Cupra and Suzuki stock sites. Their cars appear via authorised dealers on autobazar.eu.",
+    loadErr: "Couldn't load offers. Check the connection.", tSet: "Settings", tList: "Cars",
+  },
+};
+
+// ------------------------------------------------------------------ reliability (brand level, sourced) + model notes
+// w = What Car? Reliability Survey 2026 brand score (owners, cars ≤ 5 years); tuv = TÜV Report 2026 brand defect rate at 10–11 years
+const REL = {
+  "Suzuki": { w: 97.8 }, "Honda": { w: 95.8 }, "Mini": { w: 95.4 }, "Alfa Romeo": { w: 94.0 }, "Tesla": { w: 93.8, adj: -1, note: { sk: "TÜV: Model 3/Y medzi najhoršími", en: "TÜV: Model 3/Y among the worst" } },
+  "Opel": { w: 93.6 }, "Kia": { w: 93.5, tuv: 28.3, adj: -0.5 }, "Peugeot": { w: 92.8 }, "MG": { w: 92.0 }, "Mazda": { w: 91.6 }, "Dacia": { w: 91.2 }, "Lexus": { w: 90.7 },
+  "Škoda": { w: 90.6, tuv: 23.0, adj: 0.5 }, "Citroën": { w: 90.3 }, "Hyundai": { w: 90.3, tuv: 27.2, adj: -0.5 }, "Porsche": { w: 89.9 }, "Toyota": { w: 89.7, tuv: 22.0, adj: 0.5 },
+  "Seat": { w: 89.6 }, "BMW": { w: 89.5, tuv: 25.1 }, "Volvo": { w: 88.7 }, "Mercedes-Benz": { w: 88.6, tuv: 18.5, adj: 0.5 }, "Ford": { w: 88.4, tuv: 25.3 }, "Renault": { w: 88.1, tuv: 28.9, adj: -0.5 },
+  "Nissan": { w: 87.8 }, "Cupra": { w: 87.3 }, "Fiat": { w: 86.0 }, "Volkswagen": { w: 85.9, tuv: 22.4, adj: 0.5 }, "Jaguar": { w: 85.8 }, "Audi": { w: 85.0, tuv: 19.2, adj: 0.5 }, "Land Rover": { w: 84.9 },
+};
+const RELM = { // model-level evidence that moves the brand score
+  "mazda|2": { adj: 0.5, sk: "TÜV 2026: najmenej závad zo všetkých áut (2,9 %, 2–3 roky)", en: "TÜV 2026: fewest defects of all cars (2.9 %, 2–3 years)" },
+  "toyota|yaris cross": { adj: 0.5, sk: "TÜV 2026: 3,2 % závad (2–3 roky, top); ADAC: slabá 12V batéria 2021–23, od 11/2024 väčšia", en: "TÜV 2026: 3.2 % defects (2–3 years, top); ADAC: weak 12V battery 2021–23, bigger since 11/2024" },
+  "toyota|yaris": { adj: 0, sk: "ADAC 2026: poruchy 12V batérie 2021–23, od 11/2024 väčšia batéria", en: "ADAC 2026: 12V battery faults 2021–23, bigger battery since 11/2024" },
+  "skoda|fabia": { adj: 0.5, sk: "ADAC 2026: medzi najspoľahlivejšími malými autami", en: "ADAC 2026: among the most reliable small cars" },
+  "volkswagen|t-roc": { adj: 0.5, sk: "TÜV 2026: víťaz triedy SUV (4–5 a 6–7 rokov); What Car? nad 90 %", en: "TÜV 2026: SUV class winner (4–5 and 6–7 years); What Car? above 90 %" },
+  "volkswagen|polo": { adj: 0.5, sk: "What Car? 2026: nad 90 %", en: "What Car? 2026: above 90 %" },
+  "volkswagen|tiguan": { adj: -0.5, sk: "What Car? 2026: najhorší model prieskumu", en: "What Car? 2026: lowest-scoring model" },
+  "hyundai|i30": { adj: 0, sk: "TÜV 2026: 6,6 % závad (2–3 roky, priemer 6,5 %)", en: "TÜV 2026: 6.6 % defects (2–3 years, average 6.5 %)" },
+  "dacia|spring": { adj: -1, sk: "TÜV 2026: 13,0 % závad (2–3 roky, medzi najhoršími)", en: "TÜV 2026: 13.0 % defects (2–3 years, among the worst)" },
+  "skoda|enyaq": { adj: -0.5, sk: "TÜV 2026: 9,1 % závad (2–3 roky, nadpriemer)", en: "TÜV 2026: 9.1 % defects (2–3 years, above average)" },
+  "suzuki|swift": { adj: 0, sk: "What Car? 2026: predošlá generácia 100 %", en: "What Car? 2026: previous generation 100 %" },
+  "suzuki|vitara": { adj: 0, sk: "What Car? 2026: 97,6 %", en: "What Car? 2026: 97.6 %" },
+  "suzuki|s-cross": { adj: -0.5, sk: "What Car? 2026: 93,4 %", en: "What Car? 2026: 93.4 %" },
+  "kia|niro": { adj: 0.5, sk: "What Car? 2026: nad 99 %", en: "What Car? 2026: above 99 %" },
+  "kia|ev6": { adj: -1, sk: "What Car? 2026: vysoký podiel porúch", en: "What Car? 2026: high fault rate" },
+  "mazda|cx-5": { adj: 0.5, sk: "What Car? 2026: 95,3 % (predošlá gen.)", en: "What Car? 2026: 95.3 % (previous gen.)" },
+  "peugeot|2008": { adj: 0.5, sk: "What Car? 2026: 95,2 %", en: "What Car? 2026: 95.2 %" },
+  "mg|hs": { adj: -0.5, sk: "What Car? 2026: 88,3 %", en: "What Car? 2026: 88.3 %" },
+};
+
+// ------------------------------------------------------------------ boot space (litres, VDA, rear seats up) — manufacturer data
+// key: brand|model[|estate]; s = seats (default 5)
+const SPACE = window.SPACE || {};
+
+// ------------------------------------------------------------------ state
+const LS = "auta-v1";
+const DEF = { lang: /^(sk|cs)/i.test(navigator.language || "") ? "sk" : "en", max: 20000, bodies: ["estate", "suv", "hatch"], brands: [], fuels: [], gears: [], conds: [], minBoot: 0, minRel: 0,
+  onlyAuth: true, onlyTwice: false, hideFin: false, onlyOfficial: false, onePer: true, sort: "price", tab: "list" };
+let state = { ...DEF };
+try { Object.assign(state, JSON.parse(localStorage.getItem(LS) || "{}")); } catch (e) {}
+const save = () => { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} };
+const t = (k, v) => { let s = (T[state.lang] || T.sk)[k] ?? T.sk[k] ?? k; if (v) for (const [a, b] of Object.entries(v)) s = s.split("{" + a + "}").join(b); return s; };
+const loc = () => (state.lang === "sk" ? "sk-SK" : "en-GB");
+const eur = (v) => v == null ? "—" : Math.round(v).toLocaleString(loc()).replace(/,/g, " ") + " €";
+const dtTxt = (iso) => { try { const d = new Date(iso); return d.toLocaleDateString(loc(), { day: "numeric", month: "numeric" }) + " " + d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" }); } catch (e) { return iso; } };
+const dTxt = (iso) => { try { return new Date(iso + "T12:00:00").toLocaleDateString(loc(), { day: "numeric", month: "numeric" }); } catch (e) { return iso; } };
+const nrm = (s) => String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+let DATA = null, OPEN = null, EXPAND = new Set();
+
+// ------------------------------------------------------------------ derived values
+function relOf(o) {
+  const b = REL[o.brand];
+  if (!b) return null;
+  let s = b.w >= 95 ? 5 : b.w >= 93 ? 4.5 : b.w >= 91 ? 4 : b.w >= 89.5 ? 3.5 : b.w >= 88 ? 3 : b.w >= 86 ? 2.5 : 2;
+  s += b.adj || 0;
+  const mk = Object.keys(RELM).filter((k) => { const [br, m] = k.split("|"); return nrm(o.brand) === br && (" " + nrm(o.model) + " ").includes(" " + m + " ") && !(m === "yaris" && /cross/.test(nrm(o.model))); }).sort((a, b) => b.length - a.length)[0];
+  const mm = mk ? RELM[mk] : null;
+  if (mm) s += mm.adj;
+  s = Math.max(1, Math.min(5, Math.round(s * 2) / 2));
+  return { s, w: b.w, tuv: b.tuv, note: mm ? mm[state.lang] || mm.sk : (b.note ? b.note[state.lang] : "") };
+}
+function spaceOf(o) {
+  const b = nrm(o.brand), m = nrm(o.model);
+  const est = o.body === "estate" ? "|estate" : "";
+  return SPACE[b + "|" + m + est] || SPACE[b + "|" + m] || null;
+}
+function discount(o) { return o.list && o.list > o.price ? o.list - o.price : 0; }
+function finExtra(o) { const f = o.fin; return f && f.total ? f.total - o.price : null; }
+
+// ------------------------------------------------------------------ filtering
+function filtered() {
+  const all = DATA.offers;
+  return all.filter((o) => {
+    if (state.max && o.price > state.max) return false;
+    if (state.bodies.length && !state.bodies.includes(o.body || "other")) return false;
+    if (state.brands.length && !state.brands.includes(o.brand)) return false;
+    if (state.fuels.length && !state.fuels.includes(o.fuel)) return false;
+    if (state.gears.length && !state.gears.includes(o.gear)) return false;
+    if (state.conds.length && !state.conds.includes(o.cond)) return false;
+    if (state.onlyAuth && !o.auth) return false;
+    if (state.onlyOfficial && !o.off) return false;
+    if (state.onlyTwice && !(o.twin && o.twin.agree)) return false;
+    if (state.hideFin && (o.flags || []).includes("fin")) return false;
+    if (state.minBoot) { const sp = spaceOf(o); if (!sp || sp.l < state.minBoot) return false; }
+    if (state.minRel) { const r = relOf(o); if (!r || r.s < state.minRel) return false; }
+    return true;
+  });
+}
+function sorted(list) {
+  const key = {
+    price: (o) => o.price,
+    disc: (o) => -(discount(o) / (o.list || o.price)),
+    space: (o) => { const sp = spaceOf(o); return sp ? o.price / sp.l : 1e9; },
+    rel: (o) => { const r = relOf(o); return (r ? -r.s : 0) * 1e6 + o.price; },
+    monthly: (o) => (o.fin && o.fin.monthly) || o.monthly || 1e9,
+    new: (o) => -Date.parse(o.first || "2000-01-01"),
+  }[state.sort] || ((o) => o.price);
+  return list.slice().sort((a, b) => key(a) - key(b) || a.price - b.price);
+}
+
+// ------------------------------------------------------------------ rendering
+function chip(label, on, attrs) { return `<button class="chip ${on ? "on" : ""}" ${attrs}>${esc(label)}</button>`; }
+function renderFilters() {
+  const budgets = [15000, 18000, 20000, 22000, 25000, 30000, 35000, 40000, 50000];
+  const bodies = ["estate", "suv", "hatch", "mpv", "sedan", "coupe"];
+  const brands = [...new Set((DATA?.offers || []).map((o) => o.brand))].sort((a, b) => a.localeCompare(b));
+  const nf = state.brands.length + state.fuels.length + state.gears.length + state.conds.length + (state.minBoot ? 1 : 0) + (state.minRel ? 1 : 0) + (state.onlyTwice ? 1 : 0) + (state.hideFin ? 1 : 0) + (state.onlyOfficial ? 1 : 0) + (state.onlyAuth ? 0 : 1);
+  const wasOpen = $("moreF")?.open;
+  $("filtersCard").innerHTML = `
+    <div class="lbl">${t("budget")}</div>
+    <div class="chips scroll">${budgets.map((b) => chip(t("upTo", { v: (b / 1000) + " 000 €" }), state.max === b, `data-max="${b}"`)).join("")}${chip(t("any"), !state.max, `data-max="0"`)}</div>
+    <div class="lbl">${t("body")}</div>
+    <div class="chips">${bodies.map((b) => chip(t("b_" + b), state.bodies.includes(b), `data-body="${b}"`)).join("")}</div>
+    <details class="filters" id="moreF" ${wasOpen ? "open" : ""} style="margin-top:12px"><summary class="small">${t("filters")}${nf ? ` (${nf})` : ""}</summary>
+      <div class="lbl">${t("brands")}</div><div class="chips">${brands.map((b) => chip(b, state.brands.includes(b), `data-brand="${esc(b)}"`)).join("")}</div>
+      <div class="lbl">${t("fuel")}</div><div class="chips">${["petrol", "hybrid", "phev", "ev", "diesel", "lpg"].map((f) => chip(t("f_" + f), state.fuels.includes(f), `data-fuel="${f}"`)).join("")}</div>
+      <div class="lbl">${t("gear")}</div><div class="chips">${["man", "auto"].map((g) => chip(t("g_" + g), state.gears.includes(g), `data-gear="${g}"`)).join("")}</div>
+      <div class="lbl">${t("cond")}</div><div class="chips">${["new", "demo"].map((c) => chip(t("c_" + c), state.conds.includes(c), `data-cond="${c}"`)).join("")}</div>
+      <div class="lbl">${t("minBoot")}</div><div class="chips">${[0, 350, 400, 450, 500, 600].map((l) => chip(l ? l + " l" : t("any"), state.minBoot === l, `data-boot="${l}"`)).join("")}</div>
+      <div class="lbl">${t("minRel")}</div><div class="chips">${[0, 3, 3.5, 4, 4.5].map((r) => chip(r ? r + "/5" : t("any"), state.minRel === r, `data-rel="${r}"`)).join("")}</div>
+      <div style="margin-top:8px">
+        ${[["onlyAuth"], ["onlyTwice"], ["hideFin"], ["onlyOfficial"], ["onePer", "onePerModel"]].map(([k, lab]) => `<label class="setrow"><span>${t(lab || k)}</span><span class="switch"><input type="checkbox" data-sw="${k}" ${state[k] ? "checked" : ""}><span></span></span></label>`).join("")}
+      </div>
+      <button class="btn ghost" data-reset="1" style="margin-top:6px">${t("resetF")}</button>
+    </details>`;
+}
+
+function offerHtml(o, extra) {
+  const d = discount(o), r = relOf(o), sp = spaceOf(o), fl = o.flags || [], open = OPEN === o.id;
+  const meta = [t("c_" + o.cond) + (o.cond === "demo" && o.km ? " · " + t("km", { v: Math.round(o.km).toLocaleString(loc()) }) : ""), o.year, t("f_" + o.fuel) + (o.mhev && o.fuel === "petrol" ? " mild-hybrid" : ""), t("g_" + o.gear), o.kw ? Math.round(o.kw) + " kW" : ""].filter(Boolean).join(" · ");
+  const stars = r ? "★★★★★".slice(0, Math.floor(r.s)) + (r.s % 1 ? "½" : "") + "☆☆☆☆☆".slice(0, 5 - Math.ceil(r.s)) : "";
+  const ver = o.twin ? (o.twin.agree ? `<span class="save-t" style="font-weight:700">✓✓ ${t("verified2")}</span>` : `<span class="warn-t" style="font-weight:700">${t("verified2diff", { v: eur(o.twin.price) })}</span>`) : (o.off ? `✓ ${t("official", { b: esc(o.brand) })}` : (o.auth ? `✓ ${t("portal")}` : `<span class="warn-t">${t("notAuth")}</span>`));
+  const flags = fl.filter((f) => f !== "fin_cheaper").map((f) => `<div class="note-w">! ${t("fl_" + f)}</div>`).join("");
+  const fin = [];
+  if (o.fin_price) fin.push(`${t("fl_fin_cheaper")}: <b>${eur(o.fin_price)}</b>`);
+  if (o.fin && o.fin.monthly) fin.push(t("monthly", { v: eur(o.fin.monthly) }));
+  else if (o.monthly) fin.push(t("monthly", { v: eur(o.monthly) }));
+  if (o.zero_rate) fin.push(`<span class="flag s">${t("zero")}</span>`);
+  let more = "";
+  if (open) {
+    const f = o.fin || {};
+    const rows = [];
+    rows.push(`<div class="row"><span>${t("cash")}</span><b>${eur(o.price)}</b></div>`);
+    if (o.list) rows.push(`<div class="row"><span>${t("listP")}</span><span>${eur(o.list)}</span></div>`);
+    if (o.low30) rows.push(`<div class="row"><span>${t("lowest30", { v: "" }).replace(/:\s*$/, "")}</span><span>${eur(o.low30)}</span></div>`);
+    if (f.total) rows.push(`<div>${t(f.rpmn ? "finTotal" : "finTotalNoR", { t: eur(f.total), r: String(f.rpmn).replace(".", state.lang === "sk" ? "," : "."), d: eur(f.total - o.price) })}</div>`);
+    if (f.down_pct != null && f.months) rows.push(`<div class="muted">${t("finTerms", { a: f.down_pct, m: f.months, s: eur(f.monthly), l: f.last ? t("finLast", { v: eur(f.last) }) : "" })}</div>`);
+    if (r) rows.push(`<div class="muted">${t("relWhy", { s: r.s, w: String(r.w).replace(".", state.lang === "sk" ? "," : "."), tuv: r.tuv ? t("relTuv", { v: String(r.tuv).replace(".", state.lang === "sk" ? "," : ".") }) : "", note: r.note ? " · " + esc(r.note) : "" })}</div>`);
+    else rows.push(`<div class="muted">${t("relNoData")}</div>`);
+    rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""} — ${t("bootSrc")}` : t("bootNone")}</div>`);
+    if (o.vin) rows.push(`<div class="muted">${t("vin")}: ${esc(o.vin)}</div>`);
+    if (o.drop) rows.push(`<div class="save-t">${t("dropped", { v: eur(o.drop) })}</div>`);
+    more = `<div class="more">${rows.join("")}</div>`;
+  }
+  return `<article class="offer">
+    <div class="head" data-open="${esc(o.id)}">
+      <div><div class="name">${esc(o.brand)} ${esc(o.model || "")}</div><div class="trim">${esc(o.title.replace(new RegExp("^" + o.brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*", "i"), ""))}</div></div>
+      <div><div class="price">${eur(o.price)}</div>${d ? `<div class="off save-t">${t("disc", { v: eur(d), p: Math.round(d / o.list * 100) })}</div>` : ""}</div>
+    </div>
+    <div class="facts">
+      <div>${esc(meta)}</div>
+      <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} —</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${String(r.s).replace(".", state.lang === "sk" ? "," : ".")}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
+      <div>${esc(o.dealer || "")}${o.city ? (o.dealer ? ", " : "") + esc(o.city) : ""}</div>
+      <div class="small">${ver}</div>
+      ${fin.length ? `<div class="small">${fin.join(" · ")}</div>` : ""}
+    </div>
+    ${flags}${o.stale ? `<div class="note-w">${t("stale")}</div>` : ""}
+    ${more}
+    <div class="acts"><a class="btn primary" href="${esc(o.url)}" target="_blank" rel="noopener">${t("open")} ↗</a>${o.twin ? `<a class="btn" href="${esc(o.twin.url)}" target="_blank" rel="noopener">${t("open2")} ↗</a>` : ""}<button class="btn ghost" data-open="${esc(o.id)}">${open ? t("less") : t("details")}</button></div>
+    <div class="checked">${t("checkedAt", { d: dtTxt(o.checked) })}${o.first ? " · " + t("seenSince", { d: dTxt(o.first) }) : ""}${o.drop ? ` · <span class="save-t">${t("dropped", { v: eur(o.drop) })}</span>` : ""}</div>
+  </article>${extra || ""}`;
+}
+
+function renderList() {
+  if (!DATA) return;
+  const list = sorted(filtered());
+  let shown = list;
+  const groups = {};
+  if (state.onePer) {
+    for (const o of list) { const k = o.brand + "|" + nrm(o.model); (groups[k] = groups[k] || []).push(o); }
+    shown = list.filter((o) => groups[o.brand + "|" + nrm(o.model)][0] === o);
+  }
+  $("summary").innerHTML = list.length ? `<b>${t("nOffers", { n: list.length.toLocaleString(loc()) })}</b><span class="small muted">${t("from", { v: eur(Math.min(...list.map((o) => o.price))) })}</span>
+    <select id="sortSel" aria-label="${t("sort")}">${["price", "disc", "space", "rel", "monthly", "new"].map((s) => `<option value="${s}" ${state.sort === s ? "selected" : ""}>${t("s_" + s)}</option>`).join("")}</select>` : "";
+  if (!list.length) { $("list").innerHTML = `<div class="empty">${t("none")}</div>`; return; }
+  $("list").innerHTML = shown.slice(0, 150).map((o) => {
+    const k = o.brand + "|" + nrm(o.model), g = state.onePer ? groups[k] : null;
+    if (!g || g.length < 2) return offerHtml(o);
+    const exp = EXPAND.has(k);
+    const extra = exp ? g.slice(1).map((x) => offerHtml(x)).join("") + `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("lessOf")}</button></div>`
+      : `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("moreOf", { n: g.length - 1, m: esc(o.brand + " " + (o.model || "")) })} · ${t("from", { v: eur(g[1].price) })}–${eur(g[g.length - 1].price)}</button></div>`;
+    return offerHtml(o, extra);
+  }).join("");
+}
+
+function renderSettings() {
+  const src = DATA?.sources || {};
+  const NAMES = { kia: "Kia — kiaihned.sk (oficiálny)", hyundai: "Hyundai — skladove.hyundai.sk (oficiálny)", st_peugeot: "Peugeot — peugeot.skladovevozidla.sk", st_citroen: "Citroën — skladovevozidla.citroen.sk", st_fiat: "Fiat — fiat.skladovevozidla.sk", st_jeep: "Jeep — jeep.skladovevozidla.sk", st_alfaromeo: "Alfa Romeo — alfaromeo.skladovevozidla.sk", st_ds: "DS — skladovevozidla.dsautomobiles.sk", mitsubishi: "Mitsubishi — mitsubishi-motors.sk", autobazar: "autobazar.eu — nové a predvádzacie autá" };
+  $("setOut").innerHTML = `<div class="card"><h2>${t("set")}</h2>
+    <div class="setrow"><span>${t("lang")}</span><div class="seg" id="lang">${["sk", "en"].map((l) => `<button data-lang="${l}" class="${state.lang === l ? "on" : ""}">${l === "sk" ? "Slovenčina" : "English"}</button>`).join("")}</div></div></div>
+    <div class="card"><h2>${t("sources")}</h2><table><tbody>${Object.entries(src).map(([k, v]) => `<tr><td>${esc(NAMES[k] || k)}</td><td class="num ${v.status === "ok" ? "muted" : "warn-t"}">${v.status === "ok" ? t("src_ok", { n: v.offers }) : v.status === "blocked" ? t("src_blocked") : t("src_error")}</td></tr>`).join("")}</tbody></table>
+    <p class="small muted">${t("notCovered")}</p></div>
+    <div class="card"><h2>${t("how")}</h2><ul class="plain">${["how1", "how2", "how3", "how4", "how5", "how6"].map((k) => `<li>${t(k)}</li>`).join("")}</ul><p class="small muted">${t("relSrc")}</p></div>`;
+}
+
+function renderChrome() {
+  $("title").textContent = state.tab === "set" ? t("tSet") : t("tList");
+  $("gear").classList.toggle("on", state.tab === "set");
+  $("p-list").classList.toggle("on", state.tab !== "set");
+  $("p-set").classList.toggle("on", state.tab === "set");
+  if (DATA) $("updated").textContent = t("checked", { d: dtTxt(DATA.generated) });
+  document.documentElement.lang = state.lang;
+}
+function renderAll() { renderChrome(); renderFilters(); renderList(); renderSettings(); }
+
+// ------------------------------------------------------------------ events
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button, [data-open]");
+  if (!b || e.target.closest("a")) return;
+  const tog = (arr, v) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  if (b.id === "gear") { state.tab = state.tab === "set" ? "list" : "set"; save(); renderChrome(); window.scrollTo(0, 0); return; }
+  if (b.dataset.lang) { state.lang = b.dataset.lang; save(); renderAll(); return; }
+  if (b.dataset.open) { OPEN = OPEN === b.dataset.open ? null : b.dataset.open; renderList(); return; }
+  if (b.dataset.exp) { const k = b.dataset.exp; EXPAND.has(k) ? EXPAND.delete(k) : EXPAND.add(k); renderList(); return; }
+  if (b.dataset.max != null) state.max = +b.dataset.max;
+  else if (b.dataset.body) state.bodies = tog(state.bodies, b.dataset.body);
+  else if (b.dataset.brand) state.brands = tog(state.brands, b.dataset.brand);
+  else if (b.dataset.fuel) state.fuels = tog(state.fuels, b.dataset.fuel);
+  else if (b.dataset.gear) state.gears = tog(state.gears, b.dataset.gear);
+  else if (b.dataset.cond) state.conds = tog(state.conds, b.dataset.cond);
+  else if (b.dataset.boot != null) state.minBoot = +b.dataset.boot;
+  else if (b.dataset.rel != null) state.minRel = +b.dataset.rel;
+  else if (b.dataset.reset) { Object.assign(state, { brands: [], fuels: [], gears: [], conds: [], minBoot: 0, minRel: 0, onlyAuth: true, onlyTwice: false, hideFin: false, onlyOfficial: false }); }
+  else return;
+  save(); renderFilters(); renderList();
+});
+document.addEventListener("change", (e) => {
+  if (e.target.dataset.sw) { state[e.target.dataset.sw] = e.target.checked; save(); renderFilters(); renderList(); }
+  if (e.target.id === "sortSel") { state.sort = e.target.value; save(); renderList(); }
+});
+
+// ------------------------------------------------------------------ load
+async function load() {
+  renderChrome();
+  try {
+    const [r, s] = await Promise.all([fetch("data/offers.json", { cache: "no-cache" }), fetch("data/space.json", { cache: "no-cache" }).catch(() => null)]);
+    DATA = await r.json();
+    if (s && s.ok) Object.assign(SPACE, await s.json());
+  } catch (e) { $("list").innerHTML = `<div class="empty">${t("loadErr")}</div>`; return; }
+  renderAll();
+}
+load();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
