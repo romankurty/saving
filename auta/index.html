@@ -118,6 +118,7 @@
 
   <section class="page on" id="p-list">
     <div class="card" id="filtersCard"></div>
+    <details class="card" id="promoCard" hidden><summary id="promoSum"></summary><div id="promoOut"></div></details>
     <div class="summary" id="summary"></div>
     <div id="list"><div class="loading">…</div></div>
   </section>
@@ -145,8 +146,8 @@ const T = {
     official: "Oficiálny sklad značky {b}", portal: "autobazar.eu · predajca overený portálom", open: "Otvoriť ponuku", open2: "2. zdroj",
     seenSince: "v ponuke od {d}", checkedAt: "skontrolované {d}", dropped: "zlacnené o {v}", stale: "zdroj dnes nedostupný — údaj zo včera",
     fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie",
-    monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %) — o {d} viac ako v hotovosti", finTotalNoR: "Pri financovaní zaplatíš spolu {t} — o {d} viac ako v hotovosti",
-    finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
+    monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %); úver stojí o {d} viac ako hotovosť", finTotalNoR: "Pri financovaní zaplatíš spolu {t}; úver stojí o {d} viac ako hotovosť",
+    finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finIns: "(v sume je aj poistenie ≈ {v}, to platíš aj pri kúpe za hotovosť — preto sa do rozdielu nepočíta)", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
     cash: "Cena v hotovosti", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
     relWhy: "Prečo {s}/5: majitelia (What Car? 2026, autá do 5 rokov) {w} %{tuv}{note}", relTuv: " · TÜV 2026 dlhodobo: {v} % závažných chýb", relNoData: "Pre túto značku nie sú dostupné nezávislé dáta 2026.",
     bootSrc: "zdroj: Cebia", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
@@ -160,6 +161,7 @@ const T = {
     how6: "Údaje sa obnovujú 2× denne (ráno a poobede).",
     relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026. Objem kufra: sprievodca Cebia (pre danú verziu, najnovšia generácia).",
     notCovered: "Nečítame (zakazujú robotov): sklady VW, Audi, Seat, Cupra, Suzuki. Ich autá vidíš cez autorizovaných predajcov na autobazar.eu.",
+    promos: "Leasing a akcie značiek (oficiálne stránky)", promosNote: "Citované priamo z oficiálnych stránok značiek. Operatívny leasing (paušál) a 0 % financovanie môžu byť výhodnejšie ako kúpa — porovnaj celkovú sumu za celé obdobie na odkaze.",
     loadErr: "Ponuky sa nepodarilo načítať. Skontroluj pripojenie.", tSet: "Nastavenia", tList: "Autá",
   },
   en: {
@@ -175,8 +177,8 @@ const T = {
     official: "Official {b} stock", portal: "autobazar.eu · dealer verified by the portal", open: "Open offer", open2: "2nd source",
     seenSince: "listed since {d}", checkedAt: "checked {d}", dropped: "price cut {v}", stale: "source unavailable today — yesterday's data",
     fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing",
-    monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %) — {d} more than cash", finTotalNoR: "With financing you pay {t} in total — {d} more than cash",
-    finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
+    monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %); the credit costs {d} more than cash", finTotalNoR: "With financing you pay {t} in total; the credit costs {d} more than cash",
+    finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finIns: "(the total includes insurance ≈ {v}, which you'd pay with cash too — so it's left out of the difference)", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
     cash: "Cash price", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
     relWhy: "Why {s}/5: owners (What Car? 2026, cars up to 5 years) {w} %{tuv}{note}", relTuv: " · TÜV 2026 long-term: {v} % major defects", relNoData: "No independent 2026 data for this brand.",
     bootSrc: "source: Cebia", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
@@ -190,6 +192,7 @@ const T = {
     how6: "Data refreshes twice a day (morning and afternoon).",
     relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026. Boot volume: Cebia guide (matching version, newest generation).",
     notCovered: "Not read (they forbid robots): VW, Audi, Seat, Cupra and Suzuki stock sites. Their cars appear via authorised dealers on autobazar.eu.",
+    promos: "Brand leasing & promotions (official sites)", promosNote: "Quoted from the brands' official pages. Operating lease (flat monthly) and 0 % financing can beat buying — compare the total over the whole term on the link.",
     loadErr: "Couldn't load offers. Check the connection.", tSet: "Settings", tList: "Cars",
   },
 };
@@ -242,7 +245,7 @@ const dtTxt = (iso) => { try { const d = new Date(iso); return d.toLocaleDateStr
 const dTxt = (iso) => { try { return new Date(iso + "T12:00:00").toLocaleDateString(loc(), { day: "numeric", month: "numeric" }); } catch (e) { return iso; } };
 const nrm = (s) => String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
-let DATA = null, OPEN = null, EXPAND = new Set();
+let DATA = null, PROMOS = [], OPEN = null, EXPAND = new Set();
 
 // ------------------------------------------------------------------ derived values
 function relOf(o) {
@@ -353,7 +356,10 @@ function offerHtml(o, extra) {
     rows.push(`<div class="row"><span>${t("cash")}</span><b>${eur(o.price)}</b></div>`);
     if (o.list) rows.push(`<div class="row"><span>${t("listP")}</span><span>${eur(o.list)}</span></div>`);
     if (o.low30) rows.push(`<div class="row"><span>${t("lowest30", { v: "" }).replace(/:\s*$/, "")}</span><span>${eur(o.low30)}</span></div>`);
-    if (f.total) rows.push(`<div>${t(f.rpmn ? "finTotal" : "finTotalNoR", { t: eur(f.total), r: String(f.rpmn).replace(".", state.lang === "sk" ? "," : "."), d: eur(f.total - o.price) })}</div>`);
+    if (f.total) {
+      const ins = f.months && (f.ins_month || f.pfs_month) ? f.months * ((f.ins_month || 0) + (f.pfs_month || 0)) : 0;
+      rows.push(`<div>${t(f.rpmn ? "finTotal" : "finTotalNoR", { t: eur(f.total), r: String(f.rpmn).replace(".", state.lang === "sk" ? "," : "."), d: eur(Math.max(0, f.total - ins - o.price)) })}${ins ? " " + t("finIns", { v: eur(ins) }) : ""}</div>`);
+    }
     if (f.down_pct != null && f.months) rows.push(`<div class="muted">${t("finTerms", { a: f.down_pct, m: f.months, s: eur(f.monthly), l: f.last ? t("finLast", { v: eur(f.last) }) : "" })}</div>`);
     if (r) rows.push(`<div class="muted">${t("relWhy", { s: r.s, w: String(r.w).replace(".", state.lang === "sk" ? "," : "."), tuv: r.tuv ? t("relTuv", { v: String(r.tuv).replace(".", state.lang === "sk" ? "," : ".") }) : "", note: r.note ? " · " + esc(r.note) : "" })}</div>`);
     else rows.push(`<div class="muted">${t("relNoData")}</div>`);
@@ -403,6 +409,16 @@ function renderList() {
   }).join("");
 }
 
+function renderPromos() {
+  const ps = (PROMOS || []).filter((p) => !state.brands.length || state.brands.includes(p.brand));
+  $("promoCard").hidden = !ps.length;
+  if (!ps.length) return;
+  $("promoSum").innerHTML = `${t("promos")} <span class="small muted">(${ps.length})</span>`;
+  $("promoOut").innerHTML = `<p class="small muted" style="margin:8px 0">${t("promosNote")}</p>` + ps.map((p) => `<div style="padding:10px 0;border-top:1px solid var(--line)">
+    <div class="row"><b>${esc(p.brand)}</b><a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>
+    <div class="tiny muted">${esc(p.title)}</div>
+    <ul class="plain">${p.snips.map((x) => `<li>„${esc(x)}“</li>`).join("")}</ul></div>`).join("");
+}
 function renderSettings() {
   const src = DATA?.sources || {};
   const NAMES = { kia: "Kia — kiaihned.sk (oficiálny)", hyundai: "Hyundai — skladove.hyundai.sk (oficiálny)", st_peugeot: "Peugeot — peugeot.skladovevozidla.sk", st_citroen: "Citroën — skladovevozidla.citroen.sk", st_fiat: "Fiat — fiat.skladovevozidla.sk", st_jeep: "Jeep — jeep.skladovevozidla.sk", st_alfaromeo: "Alfa Romeo — alfaromeo.skladovevozidla.sk", st_ds: "DS — skladovevozidla.dsautomobiles.sk", mitsubishi: "Mitsubishi — mitsubishi-motors.sk", autobazar: "autobazar.eu — nové a predvádzacie autá" };
@@ -421,7 +437,7 @@ function renderChrome() {
   if (DATA) $("updated").textContent = t("checked", { d: dtTxt(DATA.generated) });
   document.documentElement.lang = state.lang;
 }
-function renderAll() { renderChrome(); renderFilters(); renderList(); renderSettings(); }
+function renderAll() { renderChrome(); renderFilters(); renderPromos(); renderList(); renderSettings(); }
 
 // ------------------------------------------------------------------ events
 document.addEventListener("click", (e) => {
@@ -442,7 +458,7 @@ document.addEventListener("click", (e) => {
   else if (b.dataset.rel != null) state.minRel = +b.dataset.rel;
   else if (b.dataset.reset) { Object.assign(state, { brands: [], fuels: [], gears: [], conds: [], minBoot: 0, minRel: 0, onlyAuth: true, onlyTwice: false, hideFin: false, onlyOfficial: false }); }
   else return;
-  save(); renderFilters(); renderList();
+  save(); renderFilters(); renderPromos(); renderList();
 });
 document.addEventListener("change", (e) => {
   if (e.target.dataset.sw) { state[e.target.dataset.sw] = e.target.checked; save(); renderFilters(); renderList(); }
@@ -453,9 +469,10 @@ document.addEventListener("change", (e) => {
 async function load() {
   renderChrome();
   try {
-    const [r, s] = await Promise.all([fetch("data/offers.json", { cache: "no-cache" }), fetch("data/space.json", { cache: "no-cache" }).catch(() => null)]);
+    const [r, s, p] = await Promise.all([fetch("data/offers.json", { cache: "no-cache" }), fetch("data/space.json", { cache: "no-cache" }).catch(() => null), fetch("data/promos.json", { cache: "no-cache" }).catch(() => null)]);
     DATA = await r.json();
     if (s && s.ok) Object.assign(SPACE, await s.json());
+    if (p && p.ok) PROMOS = await p.json();
   } catch (e) { $("list").innerHTML = `<div class="empty">${t("loadErr")}</div>`; return; }
   renderAll();
 }
