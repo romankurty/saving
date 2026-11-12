@@ -779,6 +779,12 @@ def main():
                 keep += lst
                 log("  kept stale offers from", src, len(lst))
     keep.sort(key=lambda o: o["price"])
+    for o in keep:  # keep the file small for phones: drop fields the app doesn't use
+        o.pop("img", None)
+        if o.get("checked") and not o.get("stale"):
+            o.pop("checked", None)
+        for k in [k for k, v in o.items() if v in (None, [], False, "")]:
+            del o[k]
     data = {"generated": NOW.isoformat(timespec="minutes"), "count": len(keep), "dropped_implausible": dropped,
             "sources": {k: {"status": v[0], "offers": v[1]} for k, v in STATUS.items()}, "offers": keep}
     with open(os.path.join(OUT, "offers.json"), "w", encoding="utf-8") as f:

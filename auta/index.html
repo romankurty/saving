@@ -243,6 +243,7 @@ const loc = () => (state.lang === "sk" ? "sk-SK" : "en-GB");
 const eur = (v) => v == null ? "—" : Math.round(v).toLocaleString(loc()).replace(/,/g, " ") + " €";
 const dtTxt = (iso) => { try { const d = new Date(iso); return d.toLocaleDateString(loc(), { day: "numeric", month: "numeric" }) + " " + d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" }); } catch (e) { return iso; } };
 const dTxt = (iso) => { try { return new Date(iso + "T12:00:00").toLocaleDateString(loc(), { day: "numeric", month: "numeric" }); } catch (e) { return iso; } };
+const dec = (x) => String(x).replace(".", state.lang === "sk" ? "," : ".");
 const nrm = (s) => String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 let DATA = null, PROMOS = [], OPEN = null, EXPAND = new Set();
@@ -361,7 +362,7 @@ function offerHtml(o, extra) {
       rows.push(`<div>${t(f.rpmn ? "finTotal" : "finTotalNoR", { t: eur(f.total), r: String(f.rpmn).replace(".", state.lang === "sk" ? "," : "."), d: eur(Math.max(0, f.total - ins - o.price)) })}${ins ? " " + t("finIns", { v: eur(ins) }) : ""}</div>`);
     }
     if (f.down_pct != null && f.months) rows.push(`<div class="muted">${t("finTerms", { a: f.down_pct, m: f.months, s: eur(f.monthly), l: f.last ? t("finLast", { v: eur(f.last) }) : "" })}</div>`);
-    if (r) rows.push(`<div class="muted">${t("relWhy", { s: r.s, w: String(r.w).replace(".", state.lang === "sk" ? "," : "."), tuv: r.tuv ? t("relTuv", { v: String(r.tuv).replace(".", state.lang === "sk" ? "," : ".") }) : "", note: r.note ? " · " + esc(r.note) : "" })}</div>`);
+    if (r) rows.push(`<div class="muted">${t("relWhy", { s: dec(r.s), w: dec(r.w), tuv: r.tuv ? t("relTuv", { v: dec(r.tuv) }) : "", note: r.note ? " · " + esc(r.note) : "" })}</div>`);
     else rows.push(`<div class="muted">${t("relNoData")}</div>`);
     rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.max ? " (" + sp.max + " l " + t("folded") + ")" : ""}${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""} — ${esc(sp.row)} · <a href="${esc(sp.src)}" target="_blank" rel="noopener">${t("bootSrc")}</a>` : t("bootNone")}</div>`);
     if (o.vin) rows.push(`<div class="muted">${t("vin")}: ${esc(o.vin)}</div>`);
@@ -375,7 +376,7 @@ function offerHtml(o, extra) {
     </div>
     <div class="facts">
       <div>${esc(meta)}</div>
-      <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} —</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${String(r.s).replace(".", state.lang === "sk" ? "," : ".")}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
+      <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} —</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${dec(r.s)}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
       <div>${esc(o.dealer || "")}${o.city ? (o.dealer ? ", " : "") + esc(o.city) : ""}</div>
       <div class="small">${ver}</div>
       ${fin.length ? `<div class="small">${fin.join(" · ")}</div>` : ""}
@@ -383,7 +384,7 @@ function offerHtml(o, extra) {
     ${flags}${o.stale ? `<div class="note-w">${t("stale")}</div>` : ""}
     ${more}
     <div class="acts"><a class="btn primary" href="${esc(o.url)}" target="_blank" rel="noopener">${t("open")} ↗</a>${o.twin ? `<a class="btn" href="${esc(o.twin.url)}" target="_blank" rel="noopener">${t("open2")} ↗</a>` : ""}<button class="btn ghost" data-open="${esc(o.id)}">${open ? t("less") : t("details")}</button></div>
-    <div class="checked">${t("checkedAt", { d: dtTxt(o.checked) })}${o.first ? " · " + t("seenSince", { d: dTxt(o.first) }) : ""}${o.drop ? ` · <span class="save-t">${t("dropped", { v: eur(o.drop) })}</span>` : ""}</div>
+    <div class="checked">${t("checkedAt", { d: dtTxt(o.checked || DATA.generated) })}${o.first ? " · " + t("seenSince", { d: dTxt(o.first) }) : ""}${o.drop ? ` · <span class="save-t">${t("dropped", { v: eur(o.drop) })}</span>` : ""}</div>
   </article>${extra || ""}`;
 }
 
