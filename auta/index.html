@@ -140,7 +140,7 @@ const T = {
     filters: "Ďalšie filtre", sort: "Zoradiť", s_price: "Najnižšia cena", s_disc: "Najväčšia zľava", s_space: "Najviac kufra za euro", s_rel: "Najspoľahlivejšie", s_monthly: "Najnižšia splátka", s_new: "Najnovšie ponuky",
     brands: "Značky", fuel: "Palivo", f_petrol: "Benzín", f_hybrid: "Hybrid", f_phev: "Plug-in hybrid", f_ev: "Elektro", f_diesel: "Diesel", f_lpg: "LPG / CNG",
     gear: "Prevodovka", g_man: "Manuál", g_auto: "Automat", cond: "Stav", c_new: "Nové", c_demo: "Predvádzacie", minBoot: "Kufor aspoň", minRel: "Spoľahlivosť aspoň",
-    onlyAuth: "Len autorizovaní predajcovia", onlyTwice: "Len overené 2 zdrojmi (rovnaké VIN)", hideFin: "Skryť ceny platné len s financovaním", onlyOfficial: "Len oficiálne sklady značiek",
+    onlyAuth: "Len autorizovaní predajcovia", onlyTwice: "Len overené 2 zdrojmi (rovnaké VIN)", hideFin: "Ceny bez povinného financovania (v hotovosti)", onlyOfficial: "Len oficiálne sklady značiek",
     onePerModel: "Najlacnejší kus z každého modelu", resetF: "Zrušiť filtre", nOffers: "{n} ponúk", from: "od {v}", none: "Žiadna ponuka nespĺňa filtre. Skús vyšší rozpočet alebo menej filtrov.",
     disc: "−{v} ({p} %)", vsList: "oproti cenníkovej cene {v}", boot: "Kufor", seats: "{n} miest", rel: "Spoľahlivosť", relNone: "bez dát",
     dealer: "Predajca", auth: "autorizovaný predajca {b}", notAuth: "neoverený predajca", verified2: "Overené 2 zdrojmi: rovnaké VIN, cena sedí", verified2diff: "2 zdroje (rovnaké VIN), ale cena sa líši: {v}",
@@ -149,7 +149,7 @@ const T = {
     fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie", fl_fin_bonus: "Ďalšia zľava pri financovaní značky (pozri podmienky)", fl_price_mismatch: "Stránka uvádza dve rôzne ceny — over na odkaze",
     monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %); úver stojí o {d} viac ako hotovosť", finTotalNoR: "Pri financovaní zaplatíš spolu {t}; úver stojí o {d} viac ako hotovosť",
     finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finIns: "(v sume je aj poistenie ≈ {v}, to platíš aj pri kúpe za hotovosť — preto sa do rozdielu nepočíta)", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
-    cash: "Cena v hotovosti", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
+    cash: "Cena v hotovosti", finOnly: "Cena so značkovým financovaním", cashKnown: "V hotovosti {v}", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
     relWhy: "Prečo {s}/5: majitelia (What Car? 2026, autá do 5 rokov) {w} %{tuv}{note}", relTuv: " · TÜV 2026 dlhodobo: {v} % závažných chýb", relNoData: "Pre túto značku nie sú dostupné nezávislé dáta 2026.",
     bootSrc: "zdroj: {s}", bootOff: "oficiálne technické údaje", bootDealer: "údaj predajcu", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
     moreOf: "+ {n} ďalších {m}", lessOf: "Skryť ďalšie", fewer: "",
@@ -172,7 +172,7 @@ const T = {
     filters: "More filters", sort: "Sort", s_price: "Lowest price", s_disc: "Biggest discount", s_space: "Most boot per euro", s_rel: "Most reliable", s_monthly: "Lowest instalment", s_new: "Newest offers",
     brands: "Brands", fuel: "Fuel", f_petrol: "Petrol", f_hybrid: "Hybrid", f_phev: "Plug-in hybrid", f_ev: "Electric", f_diesel: "Diesel", f_lpg: "LPG / CNG",
     gear: "Gearbox", g_man: "Manual", g_auto: "Automatic", cond: "Condition", c_new: "New", c_demo: "Demo", minBoot: "Boot at least", minRel: "Reliability at least",
-    onlyAuth: "Authorised dealers only", onlyTwice: "Only double-checked (same VIN in 2 sources)", hideFin: "Hide prices valid only with financing", onlyOfficial: "Official brand stock only",
+    onlyAuth: "Authorised dealers only", onlyTwice: "Only double-checked (same VIN in 2 sources)", hideFin: "Prices without mandatory financing (cash)", onlyOfficial: "Official brand stock only",
     onePerModel: "Cheapest car of each model", resetF: "Clear filters", nOffers: "{n} offers", from: "from {v}", none: "No offer matches. Try a higher budget or fewer filters.",
     disc: "−{v} ({p} %)", vsList: "vs list price {v}", boot: "Boot", seats: "{n} seats", rel: "Reliability", relNone: "no data",
     dealer: "Dealer", auth: "authorised {b} dealer", notAuth: "unverified dealer", verified2: "Double-checked: same VIN in 2 sources, price matches", verified2diff: "2 sources (same VIN), but price differs: {v}",
@@ -181,7 +181,7 @@ const T = {
     fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing", fl_fin_bonus: "Extra discount with the brand's financing (see terms)", fl_price_mismatch: "The page shows two different prices — confirm on the link",
     monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %); the credit costs {d} more than cash", finTotalNoR: "With financing you pay {t} in total; the credit costs {d} more than cash",
     finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finIns: "(the total includes insurance ≈ {v}, which you'd pay with cash too — so it's left out of the difference)", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
-    cash: "Cash price", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
+    cash: "Cash price", finOnly: "Price with the brand's financing", cashKnown: "Cash {v}", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
     relWhy: "Why {s}/5: owners (What Car? 2026, cars up to 5 years) {w} %{tuv}{note}", relTuv: " · TÜV 2026 long-term: {v} % major defects", relNoData: "No independent 2026 data for this brand.",
     bootSrc: "source: {s}", bootOff: "official technical data", bootDealer: "dealer's figure", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
     moreOf: "+ {n} more {m}", lessOf: "Hide others", fewer: "",
@@ -290,7 +290,8 @@ function finExtra(o) { const f = o.fin; return f && f.total ? f.total - o.price 
 
 // ------------------------------------------------------------------ filtering
 function filtered() {
-  const all = DATA.offers.filter((o) => o.brand && o.price);
+  let all = DATA.offers.filter((o) => o.brand && o.price);
+  if (state.hideFin) all = all.map((o) => ((o.flags || []).includes("fin") && o.cash ? { ...o, price: o.cash, finPrice: o.price, flags: o.flags.filter((f) => f !== "fin") } : o));
   return all.filter((o) => {
     if (state.max && o.price > state.max) return false;
     if (state.bodies.length && !state.bodies.includes(o.body || "other")) return false;
@@ -351,7 +352,7 @@ function offerHtml(o, extra) {
   const meta = [t("c_" + o.cond) + (o.cond === "demo" && o.km ? " · " + t("km", { v: Math.round(o.km).toLocaleString(loc()) }) : ""), o.year, t("f_" + o.fuel) + (o.mhev && o.fuel === "petrol" ? " mild-hybrid" : ""), t("g_" + o.gear), o.kw ? Math.round(o.kw) + " kW" : ""].filter(Boolean).join(" · ");
   const stars = r ? "★★★★★".slice(0, Math.floor(r.s)) + (r.s % 1 ? "½" : "") + "☆☆☆☆☆".slice(0, 5 - Math.ceil(r.s)) : "";
   const ver = o.twin ? (o.twin.agree ? `<span class="save-t" style="font-weight:700">✓✓ ${t("verified2")}</span>` : `<span class="warn-t" style="font-weight:700">${t("verified2diff", { v: eur(o.twin.price) })}</span>`) : (o.off ? `✓ ${t("official", { b: esc(o.brand) })}` : (o.auth ? `✓ ${t("portal")}` : `<span class="warn-t">${t("notAuth")}</span>`));
-  const flags = fl.filter((f) => f !== "fin_cheaper").map((f) => `<div class="note-w">! ${t("fl_" + f)}</div>`).join("");
+  const flags = fl.filter((f) => f !== "fin_cheaper").map((f) => `<div class="note-w">! ${t("fl_" + f)}${f === "fin" && o.cash ? " · " + t("cashKnown", { v: eur(o.cash) }) : ""}</div>`).join("");
   const fin = [];
   if (o.fin_price) fin.push(`${t("fl_fin_cheaper")}: <b>${eur(o.fin_price)}</b>`);
   if (o.fin && o.fin.monthly) fin.push(t("monthly", { v: eur(o.fin.monthly) }));
@@ -361,7 +362,11 @@ function offerHtml(o, extra) {
   if (open) {
     const f = o.fin || {};
     const rows = [];
-    rows.push(`<div class="row"><span>${t("cash")}</span><b>${eur(o.price)}</b></div>`);
+    if ((o.flags || []).includes("fin") && o.cash) {
+      rows.push(`<div class="row"><span>${t("finOnly")}</span><b>${eur(o.price)}</b></div>`);
+      rows.push(`<div class="row"><span>${t("cash")}</span><span>${eur(o.cash)}</span></div>`);
+    } else rows.push(`<div class="row"><span>${t("cash")}</span><b>${eur(o.price)}</b></div>`);
+    if (o.finPrice) rows.push(`<div class="row"><span>${t("finOnly")}</span><span>${eur(o.finPrice)}</span></div>`);
     if (o.list) rows.push(`<div class="row"><span>${t("listP")}</span><span>${eur(o.list)}</span></div>`);
     if (o.low30) rows.push(`<div class="row"><span>${t("lowest30", { v: "" }).replace(/:\s*$/, "")}</span><span>${eur(o.low30)}</span></div>`);
     if (f.total && f.total > o.price * 0.85) {

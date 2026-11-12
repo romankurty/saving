@@ -36,7 +36,7 @@ OUT = os.path.join(ROOT, "auta", "data")
 NOW = dt.datetime.now(dt.timezone.utc)
 TODAY = NOW.date().isoformat()
 PRICE_CAP = 50000          # keep offers up to this price (the app filters the budget)
-DETAIL_BUDGET = 420        # max detail pages per run (conditions, financing, VIN) — cached between runs
+DETAIL_BUDGET = 520        # max detail pages per run (conditions, financing, VIN) — cached between runs
 S = requests.Session()
 S.headers.update({"User-Agent": UA, "Accept-Language": "sk-SK,sk;q=0.9,cs;q=0.8,en;q=0.5"})
 RB = {}
@@ -510,29 +510,36 @@ def stellantis():
         log(brand, len(seen))
 
 
-def stellantis_details(limit=70):
+def stellantis_details(limit=150):
     """VIN + financing legal line for the cheapest offers (cached)."""
     global detail_used
     used = 0
     cand = sorted([o for o in OFFERS if o["src"].startswith("st_")], key=lambda o: o["price"])
     for o in cand:
         c = CACHE.get(o["id"])
-        if used < limit and detail_used < DETAIL_BUDGET and detail_due(o["id"], o["price"]) and o["price"] <= 35000:
+        if used < limit and detail_used < DETAIL_BUDGET and (detail_due(o["id"], o["price"]) or c.get("v") != 2) and o["price"] <= 35000:
             t = get(o["url"])
             detail_used += 1
             used += 1
             if t:
                 vin = (re.search(r"VIN:\s*</p>\s*<p[^>]*>\s*([A-HJ-NPR-Z0-9]{17})", t) or [None, None])[1]
                 yr = (re.search(r"Rok výroby:?\s*</p>\s*<p[^>]*>\s*(\d{4})", t) or [None, None])[1]
-                legal = text(" ".join(re.findall(r"(?:RPMN|Celková výška|úrokov)[^<]{0,900}", H.unescape(t.encode().decode("unicode_escape", "ignore") if "\\u00" in t else t))))[:1500]
-                c = {"price": o["price"], "fetched": TODAY, "vin": vin, "year": yr, "fin": fin_from_text(legal), "cond": conditions(text(t)[:20000])}
+                tt = text(re.sub(r"<script.*?</script>|<style.*?</style>", " ", t, flags=re.S))
+                # the dealer's own price conditions ("Benefity: Cena 14 980€ je platná pre financovanie … Pri platbe v hotovosti je cena 15 990€")
+                ben = (re.search(r"Benefity:(.{0,700}?)(?:Možnosti financ|Prispôsob|Vypočítať|Vypočítat|$)", tt) or [None, ""])[1]
+                cash = num((re.search(r"(?:platbe|úhrade|kúpe) v hotovosti (?:je )?(?:cena )?(?:vozidla )?:?\s*([\d  .]+)\s*€", ben) or [None, None])[1])
+                c = {"price": o["price"], "fetched": TODAY, "vin": vin, "year": yr, "cond": conditions(ben), "cash": cash if cash and o["price"] < cash < o["price"] * 1.4 else None, "ben": ben[:300], "v": 2}
                 CACHE[o["id"]] = c
-        if c:
+        if c and c.get("v") == 2:
             o["vin"] = c.get("vin")
             o["year"] = c.get("year")
-            if c.get("fin"):
-                o["fin"] = c["fin"]
-            o["flags"] = sorted(set(o.get("flags", []) + [x for x in c.get("cond", []) if x in ("fin", "tradein")]))
+            if c.get("cash"):
+                o["cash"] = c["cash"]
+            o["flags"] = sorted(set(o.get("flags", []) + [x for x in c.get("cond", []) if x in ("fin", "tradein", "company", "insurance")]))
+        elif c:
+            # older reading (whole page); keep its financing warning until the page is re-read
+            o["vin"] = c.get("vin")
+            o["flags"] = sorted(set(o.get("flags", []) + [x for x in c.get("cond", []) if x == "fin"]))
 
 
 # ---------------------------------------------------------------- Mitsubishi (official)
