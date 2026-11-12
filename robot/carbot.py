@@ -739,6 +739,10 @@ def promos():
             b0 = tx.find(". ", m.end())
             b0 = min(b0 + 1 if b0 >= 0 else len(tx), m.end() + 160)
             sn = tx[a0:b0].strip(" .,-")
+            if re.search(r'":|\{|\}|false,|true,|data[A-Z]|href|class=|\b(MODELY|KONFIGURÁTOR|CENNÍK|VYHĽADAŤ PREDAJCU)\b', sn):
+                continue  # page code or navigation menus, not an offer
+            if sum(1 for w in sn.split() if w.isupper() and len(w) > 3) > 6:
+                continue
             if len(sn) < 25 or any(sn[:60] in x or x[:60] in sn for x in snips) or re.search(r"cookie|súhlas|newsletter", sn, re.I):
                 continue
             snips.append(sn)
