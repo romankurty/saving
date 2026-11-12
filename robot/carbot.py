@@ -497,7 +497,11 @@ def stellantis():
                     if pr is None and finp:
                         pr = finp
                     flags = ["fin_cheaper"] if finp and pr and finp < pr - 1 else []
-                    add({"id": f"st:{key}:{did}", "src": key, "off": True, "url": url, "brand": brand, "model": model.replace("-", " ").upper() if len(model) <= 4 else model.replace("-", " ").title(),
+                    mname = model.replace("-", " ").upper() if len(model) <= 4 else model.replace("-", " ").title()
+                    mname = re.sub(r" Sw$", " SW", mname)
+                    if norm(mname) == "panda" and "grande" in norm(title):
+                        mname = "Grande Panda"  # a different, bigger car than the classic Panda
+                    add({"id": f"st:{key}:{did}", "src": key, "off": True, "url": url, "brand": brand, "model": mname,
                          "title": title, "body": body_of(brand, model.replace("-", " "), title + " " + body_s) or classify(BODY, body_s + " " + slug, None), "fuel": classify(FUEL, fuel_s + " " + slug + " " + h4, "petrol"), "mhev": mild(slug + " " + h4),
                          "gear": "auto" if ("Automat" in gear_s or re.search(r"eat\d|edcs|dct|edct|at\d|\bat\b|automat|cvt", norm(slug + " " + h4))) else "man", "kw": kw, "km": km, "year": yr,
                          "cond": "demo" if demo else "new", "price": pr, "list": old, "fin_price": finp if finp and pr and finp < pr - 1 else None, "monthly": monthly,
@@ -547,7 +551,14 @@ def mitsubishi():
             title = text((re.search(r'car-title-home1[^>]*>(.*?)</div>', c, re.S) or [None, ""])[1])
             pr = num((re.search(r"Zvýhodnená cena:.*?<strong>([^<]+)", c, re.S) or [None, None])[1])
             lst = num((re.search(r"Cenníková cena:.*?<td>([^<]+)", c, re.S) or [None, None])[1])
-            model = re.sub(r"^Mitsubishi\s+(Nové\s+|Nový\s+)?", "", title).split(" ")[0]
+            if not title:
+                # demo cards have no title block: rebuild it from the link (…/8083-mitsubishi-nov-asx-1-6-hybrid-hev/)
+                sl = re.sub(r"^\d+-mitsubishi-(?:nov[ýéa]?-)?", "", m.group(1).rstrip("/").split("/")[-1])
+                sl = re.sub(r"(\d)-(\d)", r"\1.\2", sl).split("-")
+                two = sl[0] in ("eclipse", "space")
+                title = "Mitsubishi " + " ".join([w.upper() if len(w) <= 3 and not w[0].isdigit() else w.title() for w in sl[: 2 if two else 1]] + sl[2 if two else 1:])
+            model = re.sub(r"^Mitsubishi\s+(Nové\s+|Nový\s+)?", "", title)
+            model = " ".join(model.split(" ")[:2]) if re.match(r"(Eclipse|Space) ", model) else model.split(" ")[0]
             add({"id": "mit:" + m.group(2), "src": key, "off": True, "url": m.group(1), "brand": "Mitsubishi", "model": model, "title": title,
                  "body": classify(BODY, title, "suv"), "fuel": classify(FUEL, title, "petrol"), "mhev": mild(title), "gear": "auto" if re.search(r"cvt|automat|phev|at\b", norm(title)) else "man",
                  "cond": cond, "price": pr, "list": lst, "dealer": None, "city": None, "auth": True})
@@ -823,13 +834,8 @@ def slug(s):
     return re.sub(r"[^a-z0-9]+", "-", s).strip("-")
 
 
-def space():
-    """Boot volume per model from cebia.cz guides ('Objem kufru'), newest generation table, cached 30 days."""
-    sp = load("space.json", {})
-    models = {}
-    for o in OFFERS:
-        if o.get("model"):
-            models[norm(o["brand"]) + "|" + norm(o["model"])] = (o["brand"], o["model"])
+def cebia_space(sp, models):
+    """Boot volume from cebia.cz guides ('Objem kufru'), newest generation rows, cached 30 days."""
     fetched = 0
     idx = get("https://www.cebia.cz/pruvodce") or ""
     have = set(re.findall(r'href="/pruvodce/objem-kufru-([a-z0-9-]+)"', idx))
@@ -887,9 +893,122 @@ def space():
             if len(r) > base_i and litres(r[base_i]) and not re.match(r"^\d", r[0]):
                 rows.append([r[0], litres(r[base_i]), litres(r[fold_i]) if fold_i is not None and len(r) > fold_i else None])
         sp[key] = {"fetched": TODAY, "src": url, "rows": rows[:30], "v": 3}
+    log("cebia: pages fetched", fetched, "models with data", sum(1 for k in models if sp.get(k, {}).get("rows")))
+
+
+
+ADAC = "https://www.adac.de/rund-ums-fahrzeug/autokatalog/marken-modelle/"
+EST_RX = r"combi|kombi|\bsw\b|sportswagon|sports ?tourer|touring|variant|estate|break|avant|tourer|\bst\b|shooting brake"
+AWD_RX = r"4x4|awd|4wd|allgrip|4motion|quattro|xdrive|4matic|e-four|all4|q4\b|4xe"
+
+
+def adac_fuel(ft, name):
+    f = norm(ft) + " " + norm(name)
+    if "elektro" in norm(ft) and not re.search(r"super|diesel|benzin", norm(ft)):
+        return "e"
+    if re.search(r"plug-?in|phev|e-hybrid", f):
+        return "x"
+    if "elektro" in f or re.search(r"\bhybrid|\bhev\b|full hybrid", f):
+        return "h"
+    if "diesel" in f:
+        return "d"
+    return "p"
+
+
+def adac_space(sp_ad, models, budget=80):
+    """Boot volume (manufacturer figure, VDA) per version of the newest generation from the ADAC Autokatalog.
+    One generation page lists the versions; one version page per body / fuel / 4x4 group gives
+    'Kofferraumvolumen normal' and '... mit umgeklappter Rücksitzbank'. Cached 60 days."""
+    need = [k for k, v in models.items() if not (sp_ad.get(k) and (NOW.date() - dt.date.fromisoformat(sp_ad[k]["fetched"])).days < (60 if sp_ad[k].get("rows") else 14))]
+    if not need:
+        return 0
+    sm = get("https://www.adac.de/sitemaps/sitemap-autokatalog.xml")
+    if not sm:
+        log("adac: sitemap not reachable")
+        return 0
+    tree = {}
+    for u in re.findall(r"<loc>([^<]+)</loc>", sm):
+        parts = u[len(ADAC):].strip("/").split("/") if u.startswith(ADAC) else []
+        if len(parts) == 4 and parts[3].isdigit():
+            g = tree.setdefault(parts[0], {}).setdefault(parts[1], {})
+            g[parts[2]] = max(g.get(parts[2], 0), int(parts[3]))
+    comp = lambda x: re.sub(r"[^a-z0-9]", "", norm(x))
+    used = 0
+    # cheapest cars first: they matter most for the default budget
+    for key in sorted(need, key=lambda k: models[k][3]):
+        if used >= budget:
+            break
+        brand, model = models[key][0], models[key][1]
+        bs = {"skoda": "skoda", "mercedes-benz": "mercedes-benz", "alfa romeo": "alfa-romeo", "ssangyong": "ssangyong", "ds": "ds", "mini": "mini"}.get(norm(brand), slug(brand))
+        ranges = tree.get(bs) or tree.get(bs.split("-")[0]) or {}
+        cm = comp(re.sub(r"^(nov[ýéá]|new)\s+", "", model, flags=re.I))
+        rs = [r for r in ranges if comp(r) == cm] or sorted([r for r in ranges if cm.startswith(comp(r)) and len(comp(r)) >= 2], key=lambda r: -len(r))[:1]
+        if not rs:
+            sp_ad[key] = {"fetched": TODAY, "rows": []}
+            continue
+        rng = rs[0]
+        gen = max(ranges[rng], key=lambda g: ranges[rng][g])
+        gurl = f"{ADAC}{bs}/{rng}/{gen}/"
+        t = get(gurl)
+        used += 1
+        cars = []
+        if t:
+            m = re.search(r"window.__APOLLO_STATE__=(\{.*?\});?\s*</script>", t, re.S)
+            try:
+                st = json.loads(m.group(1)) if m else {}
+            except Exception:  # noqa: BLE001
+                st = {}
+            cars = [v for v in st.values() if isinstance(v, dict) and v.get("__typename") == "ApilCarCollectionItem" and v.get("name")]
+        cur = [c for c in cars if "(ab " in c["name"]] or cars
+        groups = {}
+        for c in sorted(cur, key=lambda c: -int(c["id"])):
+            n = norm(c["name"])
+            gk = (bool(re.search(EST_RX, n)), adac_fuel(c.get("fuelType"), c["name"]), bool(re.search(AWD_RX, n)))
+            groups.setdefault(gk, c)
+        rows = []
+        for gk, c in list(groups.items())[:6]:
+            if used >= budget + 6:
+                break
+            t2 = get(f"{gurl}{c['id']}/")
+            used += 1
+            tt = text(t2) if t2 else ""
+            a_ = re.search(r"Kofferraumvolumen normal\s*(\d[\d.]*)\s*l", tt)
+            b_ = re.search(r"Kofferraumvolumen dachhoch[^\d]{0,60}?(\d[\d.]*)\s*l", tt)
+            v = int(a_.group(1).replace(".", "")) if a_ else None
+            if v and 80 <= v <= 2500:
+                rows.append([re.sub(r"\s*\((?:ab|\d\d/).*$", "", c["name"]), v, int(b_.group(1).replace(".", "")) if b_ else None, gk[1], int(gk[0]), int(gk[2]), f"{gurl}{c['id']}/"])
+        sp_ad[key] = {"fetched": TODAY, "src": gurl, "rows": rows}
+    log("adac: pages fetched", used, "models with data", sum(1 for k in models if sp_ad.get(k, {}).get("rows")), "of", len(models))
+    return used
+
+
+def space():
+    """Boot volume per model: ADAC Autokatalog (manufacturer figures per version) first, Cebia guide as fallback.
+    Per-offer official figures (e.g. Kia technical data) win over both in the app."""
+    cache = load("space_cache.json", {})
+    sp_ad = cache.setdefault("adac", {})
+    sp_ce = cache.setdefault("cebia", {})
+    models = {}
+    for o in OFFERS:
+        if o.get("model"):
+            k = norm(o["brand"]) + "|" + norm(o["model"])
+            e = models.setdefault(k, [o["brand"], o["model"], 0, 1e9])
+            e[2] += 1
+            e[3] = min(e[3], o["price"])
+    adac_space(sp_ad, models)
+    rest = {k: (v[0], v[1]) for k, v in models.items() if not sp_ad.get(k, {}).get("rows")}
+    cebia_space(sp_ce, rest)
+    out = {}
+    for k in models:
+        if sp_ad.get(k, {}).get("rows"):
+            out[k] = {"src": sp_ad[k]["src"], "by": "ADAC", "rows": sp_ad[k]["rows"]}
+        elif sp_ce.get(k, {}).get("rows"):
+            out[k] = {"src": sp_ce[k].get("src"), "by": "Cebia", "rows": sp_ce[k]["rows"]}
+    with open(os.path.join(OUT, "space_cache.json"), "w", encoding="utf-8") as f:
+        json.dump(cache, f, ensure_ascii=False, separators=(",", ":"))
     with open(os.path.join(OUT, "space.json"), "w", encoding="utf-8") as f:
-        json.dump(sp, f, ensure_ascii=False, separators=(",", ":"))
-    log("space: models", len(models), "pages fetched", fetched, "with data", sum(1 for k in models if sp.get(k, {}).get("rows")))
+        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+    log("space: models", len(models), "with boot data", len(out), "(ADAC", sum(1 for v in out.values() if v["by"] == "ADAC"), ")")
 
 
 # ---------------------------------------------------------------- double check + output

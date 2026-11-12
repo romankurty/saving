@@ -151,7 +151,7 @@ const T = {
     finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finIns: "(v sume je aj poistenie ≈ {v}, to platíš aj pri kúpe za hotovosť — preto sa do rozdielu nepočíta)", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
     cash: "Cena v hotovosti", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
     relWhy: "Prečo {s}/5: majitelia (What Car? 2026, autá do 5 rokov) {w} %{tuv}{note}", relTuv: " · TÜV 2026 dlhodobo: {v} % závažných chýb", relNoData: "Pre túto značku nie sú dostupné nezávislé dáta 2026.",
-    bootSrc: "zdroj: Cebia", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
+    bootSrc: "zdroj: {s}", bootOff: "oficiálne technické údaje", bootDealer: "údaj predajcu", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
     moreOf: "+ {n} ďalších {m}", lessOf: "Skryť ďalšie", fewer: "",
     set: "Nastavenia a zdroje", lang: "Jazyk", sources: "Zdroje dát", src_ok: "{n} ponúk", src_blocked: "zakazuje robotov — nečítame", src_error: "dnes nedostupné",
     how: "Ako overujeme", how1: "Oficiálne sklady značiek (Kia, Hyundai, Dacia, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi): ponúkajú len autorizovaní predajcovia.",
@@ -160,7 +160,7 @@ const T = {
     how4: "Ceny nižšie o viac ako 45 % oproti cenníku vyraďujeme ako nevierohodné.",
     how5: "Podmienky ceny (len s financovaním, výkup, IČO) čítame z popisu ponuky; vždy over na odkaze.",
     how6: "Údaje sa obnovujú 2× denne (ráno a poobede).", how7: "Pri každej obnove znovu otvoríme ~40 náhodných ponúk a samostatnou kontrolou overíme, že cena a predajca na stránke naozaj sú.",
-    relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026. Objem kufra: sprievodca Cebia (pre danú verziu, najnovšia generácia).",
+    relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026. Objem kufra: oficiálne technické údaje (Kia), inak ADAC Autokatalog – údaj výrobcu pre zodpovedajúcu verziu najnovšej generácie, prípadne sprievodca Cebia.",
     notCovered: "Nečítame (zakazujú robotov): sklady VW, Audi, Seat, Cupra, Suzuki. Ich autá vidíš cez autorizovaných predajcov na autobazar.eu.",
     promos: "Leasing a akcie značiek (oficiálne stránky)", promosNote: "Citované priamo z oficiálnych stránok značiek. Operatívny leasing (paušál) a 0 % financovanie môžu byť výhodnejšie ako kúpa — porovnaj celkovú sumu za celé obdobie na odkaze.",
     sameN: "{n} rovnaké kusy", auditOk: "cena a predajca dnes overení na stránke", auditFail: "dnes sa nepodarilo potvrdiť na stránke — over",
@@ -183,7 +183,7 @@ const T = {
     finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finIns: "(the total includes insurance ≈ {v}, which you'd pay with cash too — so it's left out of the difference)", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
     cash: "Cash price", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
     relWhy: "Why {s}/5: owners (What Car? 2026, cars up to 5 years) {w} %{tuv}{note}", relTuv: " · TÜV 2026 long-term: {v} % major defects", relNoData: "No independent 2026 data for this brand.",
-    bootSrc: "source: Cebia", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
+    bootSrc: "source: {s}", bootOff: "official technical data", bootDealer: "dealer's figure", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
     moreOf: "+ {n} more {m}", lessOf: "Hide others", fewer: "",
     set: "Settings & sources", lang: "Language", sources: "Data sources", src_ok: "{n} offers", src_blocked: "forbids robots — not read", src_error: "unavailable today",
     how: "How we verify", how1: "Official brand stock sites (Kia, Hyundai, Dacia, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi) list authorised dealers only.",
@@ -192,7 +192,7 @@ const T = {
     how4: "Prices more than 45 % below the list price are dropped as implausible.",
     how5: "Price conditions (financing only, trade-in, company) are read from the offer text; always confirm on the link.",
     how6: "Data refreshes twice a day (morning and afternoon).", how7: "On every refresh we re-open ~40 random offers and, with a separate check, confirm the price and dealer really are on the page.",
-    relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026. Boot volume: Cebia guide (matching version, newest generation).",
+    relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026. Boot volume: official technical data (Kia), otherwise the ADAC car catalogue – manufacturer figure for the matching version of the newest generation, or the Cebia guide.",
     notCovered: "Not read (they forbid robots): VW, Audi, Seat, Cupra and Suzuki stock sites. Their cars appear via authorised dealers on autobazar.eu.",
     promos: "Brand leasing & promotions (official sites)", promosNote: "Quoted from the brands' official pages. Operating lease (flat monthly) and 0 % financing can beat buying — compare the total over the whole term on the link.",
     sameN: "{n} identical cars", auditOk: "price and dealer re-checked on the page today", auditFail: "couldn't be confirmed on the page today — check",
@@ -264,22 +264,26 @@ function relOf(o) {
   return { s, w: b.w, tuv: b.tuv, note: mm ? mm[state.lang] || mm.sk : (b.note ? b.note[state.lang] : "") };
 }
 function spaceOf(o) {
-  // boot volume of the matching version (Cebia guide, newest generation); conservative = smallest matching row
+  // boot volume: the offer's own official figure first, else the matching version of the newest generation (ADAC / Cebia); conservative = smallest matching row
+  const seats = /7[\s-]?(miest|miestn|seat|sedadl|spandig)|7s\b|7-seat/.test(nrm(o.title)) ? 7 : 5;
+  if (o.boot && o.boot[0]) return { l: o.boot[0], max: o.boot[1], row: o.title, src: o.boot_url || o.url, by: t(o.boot_src === "dealer" ? "bootDealer" : "bootOff"), s: seats };
   const e = SPACE[nrm(o.brand) + "|" + nrm(o.model)];
   if (!e || !e.rows || !e.rows.length) return null;
-  const est = /combi|kombi|\bsw\b|sportswagon|sports ?wagon|touring|variant|sports ?tourer|sportstourer|\bst\b|estate|break/;
-  let rows = e.rows.filter((r) => (o.body === "estate") === est.test(nrm(r[0])));
+  const est = /combi|kombi|\bsw\b|sportswagon|sports ?wagon|touring|variant|sports ?tourer|sportstourer|\bst\b|estate|break|avant|tourer/;
+  const isEst = (r) => (r.length > 4 ? !!r[4] : est.test(nrm(r[0])));
+  let rows = e.rows.filter((r) => (o.body === "estate") === isEst(r));
   if (!rows.length) rows = e.rows;
-  const elec = /hybrid|hev|phev|plug|e-tech|electric|elektr|\bev\b|e-|kwh/;
+  const elec = /hybrid|hev|phev|plug|e-tech|electric|elektr|\bev\b|kwh/;
   const f = o.fuel;
-  let r2 = rows.filter((r) => (f === "petrol" || f === "diesel" || f === "lpg") ? !elec.test(nrm(r[0])) : elec.test(nrm(r[0])));
+  const fc = f === "ev" ? "e" : f === "phev" ? "x" : f === "hybrid" ? "h" : f === "diesel" ? "d" : "p";
+  let r2 = rows.filter((r) => (r.length > 3 && r[3] ? r[3] === fc : (f === "petrol" || f === "diesel" || f === "lpg") ? !elec.test(nrm(r[0])) : elec.test(nrm(r[0]))));
   if (r2.length) rows = r2;
-  const awd = /4x4|awd|4wd|allgrip|4motion|quattro/;
-  r2 = rows.filter((r) => awd.test(nrm(r[0])) === awd.test(nrm(o.title)));
+  const awd = /4x4|awd|4wd|allgrip|4motion|quattro|xdrive|4matic/;
+  const wantAwd = awd.test(nrm(o.title));
+  r2 = rows.filter((r) => (r.length > 5 ? !!r[5] : awd.test(nrm(r[0]))) === wantAwd);
   if (r2.length) rows = r2;
   const best = rows.reduce((a, b) => (b[1] < a[1] ? b : a));
-  const seats = /7[\s-]?(miest|miestn|seat|sedadl|spandig)|7s\b|7-seat/.test(nrm(o.title)) ? 7 : 5;
-  return { l: best[1], max: best[2], row: best[0], src: e.src, s: seats };
+  return { l: best[1], max: best[2], row: best[0], src: best[6] || e.src, by: e.by || "Cebia", s: seats };
 }
 function discount(o) { return o.list && o.list > o.price ? o.list - o.price : 0; }
 function finExtra(o) { const f = o.fin; return f && f.total ? f.total - o.price : null; }
@@ -367,7 +371,7 @@ function offerHtml(o, extra) {
     if (f.down_pct != null && f.months) rows.push(`<div class="muted">${t("finTerms", { a: f.down_pct, m: f.months, s: eur(f.monthly), l: f.last ? t("finLast", { v: eur(f.last) }) : "" })}</div>`);
     if (r) rows.push(`<div class="muted">${t("relWhy", { s: dec(r.s), w: dec(r.w), tuv: r.tuv ? t("relTuv", { v: dec(r.tuv) }) : "", note: r.note ? " · " + esc(r.note) : "" })}</div>`);
     else rows.push(`<div class="muted">${t("relNoData")}</div>`);
-    rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.max ? " (" + sp.max + " l " + t("folded") + ")" : ""}${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""} — ${esc(sp.row)} · <a href="${esc(sp.src)}" target="_blank" rel="noopener">${t("bootSrc")}</a>` : t("bootNone")}</div>`);
+    rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.max ? " (" + sp.max + " l " + t("folded") + ")" : ""}${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""} — ${esc(sp.row)} · <a href="${esc(sp.src)}" target="_blank" rel="noopener">${t("bootSrc", { s: sp.by })}</a>` : t("bootNone")}</div>`);
     if (o.perks && o.perks.length) rows.push(`<div class="muted">${o.perks.map(esc).join(" · ")}</div>`);
     if (o.vin) rows.push(`<div class="muted">${t("vin")}: ${esc(o.vin)}</div>`);
     if (o.drop) rows.push(`<div class="save-t">${t("dropped", { v: eur(o.drop) })}</div>`);
