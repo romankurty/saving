@@ -1,8 +1,6 @@
-"""Discovery run 55: ADAC generation page Apollo state - versions + boot?"""
-import json
+"""Discovery run 56: Peugeot financing legal text (RPMN ~23 %?)."""
 import re
 import time
-from collections import Counter
 
 import requests
 
@@ -11,36 +9,15 @@ S = requests.Session()
 S.headers.update({"User-Agent": UA})
 
 
-def get(u):
+def txt(h):
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", re.sub(r"<script.*?</script>|<style.*?</style>", " ", h, flags=re.S))).strip()
+
+
+for u in ["https://peugeot.skladovevozidla.sk/skladove-vozidla/detail-vozidla/peugeot/208/hatchback/peugeot-208-style-turbo-100-bvm6/118010"]:
     time.sleep(1.2)
-    r = S.get(u, timeout=30)
-    return r.status_code, r.text
-
-
-B = "https://www.adac.de/rund-ums-fahrzeug/autokatalog/marken-modelle/"
-for g in ["skoda/octavia/4generation-facelift/", "kia/sportage/nq5-facelift/"]:
-    st, t = get(B + g)
-    m = re.search(r"window.__APOLLO_STATE__=(\{.*?\});?\s*</script>", t, re.S)
-    print("\n#####", g, st, bool(m))
-    if not m:
-        continue
-    try:
-        d = json.loads(m.group(1))
-    except Exception as e:  # noqa: BLE001
-        print("json err", e, m.group(1)[-200:])
-        continue
-    print(" typenames", Counter(v.get("__typename") for v in d.values() if isinstance(v, dict)).most_common(20))
-    shown = set()
-    for k, v in d.items():
-        tn = v.get("__typename") if isinstance(v, dict) else None
-        if tn and tn not in shown:
-            shown.add(tn)
-            print("  ", k, json.dumps(v, ensure_ascii=False)[:700])
-    s = json.dumps(d, ensure_ascii=False)
-    for mm in list(re.finditer(r"trunk|Kofferraum", s, re.I))[:8]:
-        print("   trunk ctx:", s[max(0, mm.start() - 200):mm.start() + 200])
-    h = re.search(r'window.__staticRouterHydrationData = JSON.parse\("(.*?)"\);', t, re.S)
-    if h:
-        hd = json.loads(json.loads('"' + h.group(1) + '"'))
-        print(" hydration", json.dumps(hd, ensure_ascii=False)[:1500])
+    t = S.get(u, timeout=30).text
+    tt = txt(t)
+    for m in list(re.finditer(r"RPMN|financ|mesačn|splátk|akontác|úver", tt, re.I))[:14]:
+        print("  >", tt[max(0, m.start() - 300):m.start() + 500])
+        print()
 print("DONE")
