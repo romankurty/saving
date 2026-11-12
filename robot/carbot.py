@@ -508,6 +508,81 @@ def mitsubishi():
     log("Mitsubishi:", n)
 
 
+# ---------------------------------------------------------------- Dacia + Mazda (official, detail pages from sitemaps, cached)
+def sitemap_details(key, sitemap, pat, parse, limit=220, max_age=2):
+    sm = get(sitemap)
+    if sm is None:
+        STATUS[key] = ("blocked", 0)
+        return
+    urls = [u for u in re.findall(r"<loc>([^<]+)</loc>", sm) if re.search(pat, u)]
+    fetched = n = 0
+    # never fetched first, then the oldest
+    urls.sort(key=lambda u: (CACHE.get(key + ":" + u, {}).get("fetched", "0000")))
+    for u in urls:
+        ck = key + ":" + u
+        c = CACHE.get(ck)
+        age = (NOW.date() - dt.date.fromisoformat(c["fetched"])).days if c else 99
+        if (not c or age >= max_age) and fetched < limit:
+            t = get(u)
+            fetched += 1
+            if t:
+                c = parse(u, t)
+                if c:
+                    c["fetched"] = TODAY
+                    CACHE[ck] = c
+        if c and c.get("price") and (NOW.date() - dt.date.fromisoformat(c["fetched"])).days <= 4:
+            o = dict(c["o"])
+            o["price"] = c["price"]
+            o["id"] = key + ":" + re.sub(r"\W+", "", u.split("/")[-2] if u.endswith("/") else u.split("/")[-1])
+            add(o)
+            n += 1
+    STATUS[key] = ("ok", n)
+    log(key, n, "offers,", fetched, "pages fetched")
+
+
+def dacia_parse(u, t):
+    h1 = text((re.findall(r"<h1[^>]*>(.*?)</h1>", t, re.S) or ["", ""])[-1])
+    model = text((re.search(r"<h1[^>]*>\s*<strong>(.*?)</strong>", t, re.S) or [None, h1.split(" ")[0]])[1])
+    lst = num((re.search(r'pricelist_price">[^<]*</p>\s*<strong class="price">([^<]+)', t) or [None, None])[1])
+    pr = num((re.search(r'final-price">([^<]+)', t) or [None, None])[1])
+    dealer = (re.search(r"'dealerName'\s*:\s*'([^']+)'", t) or [None, None])[1]
+    vin = (re.search(r"\b(UU1[A-HJ-NPR-Z0-9]{14}|VF1[A-HJ-NPR-Z0-9]{14})\b", t) or [None, None])[1]
+    perks = [text(x) for x in re.findall(r'<div class="perk-item[^"]*" title="([^"]+)"', t)]
+    flags = ["fin_bonus"] if any(re.search(r"financ", norm(x)) for x in perks) else []
+    title = "Dacia " + h1
+    if not pr:
+        return None
+    return {"price": pr, "o": {"src": "dacia", "off": True, "url": u, "brand": "Dacia", "model": model.title(), "title": title, "body": body_of("Dacia", model, title),
+            "fuel": "lpg" if re.search(r"eco-?g|lpg", norm(h1)) else classify(FUEL, h1, "petrol"), "mhev": mild(h1),
+            "gear": "auto" if re.search(r"\bcvt|edc|automat|hybrid 1[45]5", norm(h1)) else "man", "cond": "new", "list": lst, "dealer": dealer, "auth": True, "vin": vin,
+            "perks": perks[:4], "flags": flags}}
+
+
+def mazda_parse(u, t):
+    og = H.unescape((re.search(r'<meta property="og:title" content="([^"]+)"', t) or [None, ""])[1])
+    pr = num((re.search(r'class="model-price"[^>]*>([^<]+)', t) or [None, None])[1])
+    ld = num((re.search(r'"price":\s*"(\d+)"', t) or [None, None])[1])
+    seller = (re.search(r'"seller":\s*\{\s*"@type":\s*"Organization",\s*"name":\s*"([^"]+)"', t) or [None, None])[1]
+    vin = (re.search(r"\b([A-HJ-NPR-Z0-9]{17})\b", t) or [None, None])[1]
+    m = re.search(r"/Mazda/([^/]+)/", u)
+    model = m.group(1).replace("-", " ").upper().replace("MAZDA ", "") if m else ""
+    model = {"2": "2", "3": "3"}.get(model, model)
+    if not pr:
+        return None
+    flags = ["price_mismatch"] if ld and abs(ld - pr) > 50 else []
+    return {"price": pr, "o": {"src": "mazda", "off": True, "url": u, "brand": "Mazda", "model": model.title() if not re.match(r"^(CX|MX)", model) else model, "title": og or ("Mazda " + model),
+            "body": body_of("Mazda", model, og), "fuel": classify(FUEL, og, "petrol"), "mhev": mild(og) or "m hybrid" in norm(og),
+            "gear": "auto" if re.search(r"\b\d?at\b|automat|aut\.", norm(og)) else "man", "cond": "new", "dealer": seller, "auth": True, "vin": vin, "flags": flags}}
+
+
+def dacia():
+    sitemap_details("dacia", "https://skladove-vozidla.dacia.sk/sitemap.xml", r"-v\d+/$", dacia_parse)
+
+
+def mazda():
+    sitemap_details("mazda", "https://www.mazdaihned.sk/sitemap.xml", r"/Mazda/[^/]+/[a-z0-9]+/$", mazda_parse)
+
+
 # ---------------------------------------------------------------- autobazar.eu (all brands, authorised-dealer check)
 AB_BODY = {"kombi": "estate", "suv": "suv", "hatchback": "hatch", "liftback": "hatch", "sedan": "sedan", "mpv": "mpv", "van": "mpv", "minivan": "mpv", "kupe": "coupe", "kabriolet": "coupe", "pick-up": "other", "terenne": "suv", "crossover": "suv"}
 
@@ -749,7 +824,7 @@ def sanity(o):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for fn in (kia, hyundai, stellantis, mitsubishi, autobazar):
+    for fn in (kia, hyundai, stellantis, mitsubishi, dacia, mazda, autobazar):
         try:
             fn()
         except Exception as e:  # noqa: BLE001
@@ -787,8 +862,11 @@ def main():
         if k not in live and (NOW.date() - dt.date.fromisoformat(HIST[k]["first"])).days > 120:
             del HIST[k]
     for k in list(CACHE):
-        if k not in live:
-            del CACHE[k]
+        if k in live:
+            continue
+        if re.match(r"(dacia|mazda):http", k) and (NOW.date() - dt.date.fromisoformat(CACHE[k].get("fetched", "2000-01-01"))).days <= 7:
+            continue  # sitemap-detail cache, keyed by page URL
+        del CACHE[k]
     # safety net: a source that failed today keeps yesterday's offers (marked stale) for up to 2 days
     prev_by_src = {}
     for o in PREV.get("offers", []):

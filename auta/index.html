@@ -146,7 +146,7 @@ const T = {
     dealer: "Predajca", auth: "autorizovaný predajca {b}", notAuth: "neoverený predajca", verified2: "Overené 2 zdrojmi: rovnaké VIN, cena sedí", verified2diff: "2 zdroje (rovnaké VIN), ale cena sa líši: {v}",
     official: "Oficiálny sklad značky {b}", portal: "autobazar.eu · predajca overený portálom", open: "Otvoriť ponuku", open2: "2. zdroj",
     seenSince: "v ponuke od {d}", checkedAt: "skontrolované {d}", dropped: "zlacnené o {v}", stale: "zdroj dnes nedostupný — údaj zo včera",
-    fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie",
+    fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie", fl_fin_bonus: "Ďalšia zľava pri financovaní značky (pozri podmienky)", fl_price_mismatch: "Stránka uvádza dve rôzne ceny — over na odkaze",
     monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %); úver stojí o {d} viac ako hotovosť", finTotalNoR: "Pri financovaní zaplatíš spolu {t}; úver stojí o {d} viac ako hotovosť",
     finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finIns: "(v sume je aj poistenie ≈ {v}, to platíš aj pri kúpe za hotovosť — preto sa do rozdielu nepočíta)", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
     cash: "Cena v hotovosti", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
@@ -154,7 +154,7 @@ const T = {
     bootSrc: "zdroj: Cebia", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
     moreOf: "+ {n} ďalších {m}", lessOf: "Skryť ďalšie", fewer: "",
     set: "Nastavenia a zdroje", lang: "Jazyk", sources: "Zdroje dát", src_ok: "{n} ponúk", src_blocked: "zakazuje robotov — nečítame", src_error: "dnes nedostupné",
-    how: "Ako overujeme", how1: "Oficiálne sklady značiek (Kia, Hyundai, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi): ponúkajú len autorizovaní predajcovia.",
+    how: "Ako overujeme", how1: "Oficiálne sklady značiek (Kia, Hyundai, Dacia, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi): ponúkajú len autorizovaní predajcovia.",
     how2: "autobazar.eu: zobrazujeme len predajcov, ktorých portál overil ako autorizovaných pre danú značku.",
     how3: "Rovnaké auto (VIN) na oficiálnom sklade aj na portáli = overené 2 zdrojmi; porovnáme ceny.",
     how4: "Ceny nižšie o viac ako 45 % oproti cenníku vyraďujeme ako nevierohodné.",
@@ -177,7 +177,7 @@ const T = {
     dealer: "Dealer", auth: "authorised {b} dealer", notAuth: "unverified dealer", verified2: "Double-checked: same VIN in 2 sources, price matches", verified2diff: "2 sources (same VIN), but price differs: {v}",
     official: "Official {b} stock", portal: "autobazar.eu · dealer verified by the portal", open: "Open offer", open2: "2nd source",
     seenSince: "listed since {d}", checkedAt: "checked {d}", dropped: "price cut {v}", stale: "source unavailable today — yesterday's data",
-    fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing",
+    fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing", fl_fin_bonus: "Extra discount with the brand's financing (see terms)", fl_price_mismatch: "The page shows two different prices — confirm on the link",
     monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %); the credit costs {d} more than cash", finTotalNoR: "With financing you pay {t} in total; the credit costs {d} more than cash",
     finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finIns: "(the total includes insurance ≈ {v}, which you'd pay with cash too — so it's left out of the difference)", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
     cash: "Cash price", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
@@ -185,7 +185,7 @@ const T = {
     bootSrc: "source: Cebia", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
     moreOf: "+ {n} more {m}", lessOf: "Hide others", fewer: "",
     set: "Settings & sources", lang: "Language", sources: "Data sources", src_ok: "{n} offers", src_blocked: "forbids robots — not read", src_error: "unavailable today",
-    how: "How we verify", how1: "Official brand stock sites (Kia, Hyundai, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi) list authorised dealers only.",
+    how: "How we verify", how1: "Official brand stock sites (Kia, Hyundai, Dacia, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi) list authorised dealers only.",
     how2: "autobazar.eu: we show only dealers the portal verified as authorised for that brand.",
     how3: "Same car (VIN) on an official site and on the portal = double-checked; prices compared.",
     how4: "Prices more than 45 % below the list price are dropped as implausible.",
@@ -366,6 +366,7 @@ function offerHtml(o, extra) {
     if (r) rows.push(`<div class="muted">${t("relWhy", { s: dec(r.s), w: dec(r.w), tuv: r.tuv ? t("relTuv", { v: dec(r.tuv) }) : "", note: r.note ? " · " + esc(r.note) : "" })}</div>`);
     else rows.push(`<div class="muted">${t("relNoData")}</div>`);
     rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.max ? " (" + sp.max + " l " + t("folded") + ")" : ""}${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""} — ${esc(sp.row)} · <a href="${esc(sp.src)}" target="_blank" rel="noopener">${t("bootSrc")}</a>` : t("bootNone")}</div>`);
+    if (o.perks && o.perks.length) rows.push(`<div class="muted">${o.perks.map(esc).join(" · ")}</div>`);
     if (o.vin) rows.push(`<div class="muted">${t("vin")}: ${esc(o.vin)}</div>`);
     if (o.drop) rows.push(`<div class="save-t">${t("dropped", { v: eur(o.drop) })}</div>`);
     more = `<div class="more">${rows.join("")}</div>`;
@@ -423,7 +424,7 @@ function renderPromos() {
 }
 function renderSettings() {
   const src = DATA?.sources || {};
-  const NAMES = { kia: "Kia — kiaihned.sk (oficiálny)", hyundai: "Hyundai — skladove.hyundai.sk (oficiálny)", st_peugeot: "Peugeot — peugeot.skladovevozidla.sk", st_citroen: "Citroën — skladovevozidla.citroen.sk", st_fiat: "Fiat — fiat.skladovevozidla.sk", st_jeep: "Jeep — jeep.skladovevozidla.sk", st_alfaromeo: "Alfa Romeo — alfaromeo.skladovevozidla.sk", st_ds: "DS — skladovevozidla.dsautomobiles.sk", mitsubishi: "Mitsubishi — mitsubishi-motors.sk", autobazar: "autobazar.eu — nové a predvádzacie autá" };
+  const NAMES = { kia: "Kia — kiaihned.sk (oficiálny)", hyundai: "Hyundai — skladove.hyundai.sk (oficiálny)", st_peugeot: "Peugeot — peugeot.skladovevozidla.sk", st_citroen: "Citroën — skladovevozidla.citroen.sk", st_fiat: "Fiat — fiat.skladovevozidla.sk", st_jeep: "Jeep — jeep.skladovevozidla.sk", st_alfaromeo: "Alfa Romeo — alfaromeo.skladovevozidla.sk", st_ds: "DS — skladovevozidla.dsautomobiles.sk", mitsubishi: "Mitsubishi — mitsubishi-motors.sk", dacia: "Dacia — skladove-vozidla.dacia.sk", mazda: "Mazda — mazdaihned.sk", autobazar: "autobazar.eu — nové a predvádzacie autá" };
   $("setOut").innerHTML = `<div class="card"><h2>${t("set")}</h2>
     <div class="setrow"><span>${t("lang")}</span><div class="seg" id="lang">${["sk", "en"].map((l) => `<button data-lang="${l}" class="${state.lang === l ? "on" : ""}">${l === "sk" ? "Slovenčina" : "English"}</button>`).join("")}</div></div></div>
     <div class="card"><h2>${t("sources")}</h2><table><tbody>${Object.entries(src).map(([k, v]) => `<tr><td>${esc(NAMES[k] || k)}</td><td class="num ${v.status === "ok" ? "muted" : "warn-t"}">${v.status === "ok" ? t("src_ok", { n: v.offers }) : v.status === "blocked" ? t("src_blocked") : t("src_error")}</td></tr>`).join("")}</tbody></table>
