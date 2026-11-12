@@ -632,7 +632,8 @@ def autobazar():
         if not ad.get("isAuthorized") or not u.get("id"):
             continue
         d = dealers.setdefault(u["id"], {"ids": set(ad.get("brands") or []), "brands": set()})
-        d["brands"].add(r.get("brandValue"))
+        if r.get("brandValue"):
+            d["brands"].add(r["brandValue"])
     nb, nx, nxb = {}, {}, {}
     for d in dealers.values():
         for b in d["ids"]:
@@ -641,10 +642,10 @@ def autobazar():
             nx[x] = nx.get(x, 0) + 1
             for b in d["ids"]:
                 nxb[(x, b)] = nxb.get((x, b), 0) + 1
-    scored = sorted(((c / nx[x]) * (c / nb[b]), x, b, c) for (x, b), c in nxb.items() if c >= 2)
+    scored = sorted(((c / nx[x]) * (c / nb[b]), x, b, c) for (x, b), c in nxb.items() if c >= 4)
     bmap, used = {}, set()
     for sc, x, b, c in reversed(scored):
-        if x in bmap or b in used or c / nx[x] < 0.3:
+        if x in bmap or b in used or c / nx[x] < 0.4:
             continue
         bmap[x] = {b}
         used.add(b)
