@@ -70,7 +70,8 @@
   details > summary::after { content: ""; display: inline-block; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin: 0 0 3px 8px; }
   details[open] > summary::after { transform: rotate(-135deg); margin-bottom: -1px; }
   .filters > summary { padding: 2px 0; }
-  .summary { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 4px 2px 10px; }
+  .summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 2px 10px; }
+  .summary select { flex: none; }
   .summary b { font-size: 1.02rem; }
   select { font: inherit; font-size: 0.88rem; font-weight: 650; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; min-height: 36px; }
   /* offer card */
@@ -283,7 +284,7 @@ function finExtra(o) { const f = o.fin; return f && f.total ? f.total - o.price 
 
 // ------------------------------------------------------------------ filtering
 function filtered() {
-  const all = DATA.offers;
+  const all = DATA.offers.filter((o) => o.brand && o.price);
   return all.filter((o) => {
     if (state.max && o.price > state.max) return false;
     if (state.bodies.length && !state.bodies.includes(o.body || "other")) return false;
@@ -317,7 +318,7 @@ function chip(label, on, attrs) { return `<button class="chip ${on ? "on" : ""}"
 function renderFilters() {
   const budgets = [15000, 18000, 20000, 22000, 25000, 30000, 35000, 40000, 50000];
   const bodies = ["estate", "suv", "hatch", "mpv", "sedan", "coupe"];
-  const brands = [...new Set((DATA?.offers || []).map((o) => o.brand))].sort((a, b) => a.localeCompare(b));
+  const brands = [...new Set((DATA?.offers || []).map((o) => o.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const nf = state.brands.length + state.fuels.length + state.gears.length + state.conds.length + (state.minBoot ? 1 : 0) + (state.minRel ? 1 : 0) + (state.onlyTwice ? 1 : 0) + (state.hideFin ? 1 : 0) + (state.onlyOfficial ? 1 : 0) + (state.onlyAuth ? 0 : 1);
   const wasOpen = $("moreF")?.open;
   $("filtersCard").innerHTML = `
@@ -397,7 +398,7 @@ function renderList() {
     for (const o of list) { const k = o.brand + "|" + nrm(o.model); (groups[k] = groups[k] || []).push(o); }
     shown = list.filter((o) => groups[o.brand + "|" + nrm(o.model)][0] === o);
   }
-  $("summary").innerHTML = list.length ? `<b>${t("nOffers", { n: list.length.toLocaleString(loc()) })}</b><span class="small muted">${t("from", { v: eur(Math.min(...list.map((o) => o.price))) })}</span>
+  $("summary").innerHTML = list.length ? `<div style="min-width:0"><b>${t("nOffers", { n: list.length.toLocaleString(loc()) })}</b> <span class="small muted" style="white-space:nowrap">${t("from", { v: eur(Math.min(...list.map((o) => o.price))) })}</span></div>
     <select id="sortSel" aria-label="${t("sort")}">${["price", "disc", "space", "rel", "monthly", "new"].map((s) => `<option value="${s}" ${state.sort === s ? "selected" : ""}>${t("s_" + s)}</option>`).join("")}</select>` : "";
   if (!list.length) { $("list").innerHTML = `<div class="empty">${t("none")}</div>`; return; }
   $("list").innerHTML = shown.slice(0, 150).map((o) => {
@@ -405,7 +406,7 @@ function renderList() {
     if (!g || g.length < 2) return offerHtml(o);
     const exp = EXPAND.has(k);
     const extra = exp ? g.slice(1).map((x) => offerHtml(x)).join("") + `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("lessOf")}</button></div>`
-      : `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("moreOf", { n: g.length - 1, m: esc(o.brand + " " + (o.model || "")) })} · ${t("from", { v: eur(g[1].price) })}–${eur(g[g.length - 1].price)}</button></div>`;
+      : `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("moreOf", { n: g.length - 1, m: esc(o.brand + " " + (o.model || "")) })} · ${eur(g[1].price).replace(" €", "")} – ${eur(Math.max(...g.map((x) => x.price)))}</button></div>`;
     return offerHtml(o, extra);
   }).join("");
 }

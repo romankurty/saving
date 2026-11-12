@@ -241,7 +241,7 @@ def detail_due(oid, price):
 
 
 def add(o):
-    if not o.get("price") or o["price"] < 3000 or o["price"] > PRICE_CAP:
+    if not o.get("price") or o["price"] < 3000 or o["price"] > PRICE_CAP or not o.get("brand"):
         return
     if re.search(NOT_CAR, norm(o.get("title", "") + " " + (o.get("model") or "") + " " + (o.get("body") or ""))):
         return  # quadricycles and commercial vans are not family cars
