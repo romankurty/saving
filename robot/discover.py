@@ -1,7 +1,6 @@
-"""Discovery run 50: Mazda detail pages that did not parse + Cebia guide list."""
+"""Discovery run 51: Mazda price block + Cebia guide index."""
 import re
 import time
-import urllib.robotparser
 
 import requests
 
@@ -16,35 +15,23 @@ def get(u):
     return r.status_code, r.text
 
 
-st, sm = get("https://www.mazdaihned.sk/sitemap.xml")
-urls = [u for u in re.findall(r"<loc>([^<]+)</loc>", sm) if re.search(r"/Mazda/[^/]+/[a-z0-9]+/$", u)]
-print("mazda urls", len(urls))
-models = {}
-for u in urls:
-    models.setdefault(u.split("/")[4], []).append(u)
-print({k: len(v) for k, v in models.items()})
-for k, v in list(models.items())[:6]:
-    if k in ("CX-6e", "MX-5", "6e"):
-        continue
-    st, t = get(v[0])
-    print("\n=====", st, v[0], len(t))
-    for pat in [r"model-price", r'"price"', r"og:title", r"predan", r"rezerv", r"€", r"seller"]:
-        i = t.find(pat) if pat != "€" else t.find("€")
-        print("  ", pat, i, repr(t[max(0, i - 160):i + 160]) if i >= 0 else "")
+def txt(h):
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h)).strip()
 
-rp = urllib.robotparser.RobotFileParser("https://www.cebia.cz/robots.txt")
-rp.read()
-print("\ncebia sitemaps", rp.site_maps())
-for smu in (rp.site_maps() or [])[:3]:
-    st, t = get(smu)
-    locs = re.findall(r"<loc>([^<]+)</loc>", t)
-    print(smu, st, len(locs), locs[:5])
-    kuf = [u for u in locs if "objem-kufru" in u]
-    print("  objem-kufru", len(kuf), kuf[:40])
-    subs = [u for u in locs if u.endswith(".xml")]
-    for s2 in subs[:6]:
-        st, t2 = get(s2)
-        l2 = re.findall(r"<loc>([^<]+)</loc>", t2)
-        k2 = [u for u in l2 if "objem-kufru" in u]
-        print("  sub", s2, st, len(l2), "objem-kufru", len(k2), k2[:60])
+
+for u in ["https://www.mazdaihned.sk/Mazda/CX-30/kl6xz087/", "https://www.mazdaihned.sk/Mazda/CX-30/mmpfjys0kzg/", "https://www.mazdaihned.sk/Mazda/CX-5/"]:
+    st, t = get(u)
+    print("\n=====", st, u)
+    i = t.find('class="sale"')
+    print("  SALE:", txt(t[i:i + 5000])[:900] if i >= 0 else None)
+    for k in ["369", "poplat", "registr", "financ", "leasing", "mesa", "RPMN", "zľava", "zlava", "akci"]:
+        j = t.find(k)
+        print("  ", k, j, txt(t[max(0, j - 250):j + 250])[:300] if j >= 0 else "")
+
+for u in ["https://www.cebia.cz/pruvodce", "https://www.cebia.cz/pruvodce/", "https://www.cebia.cz/pruvodce?page=2", "https://www.cebia.cz/sitemap.xml"]:
+    st, t = get(u)
+    links = sorted(set(re.findall(r'href="([^"]*objem-kufru[^"]*)"', t)))
+    print("\n=====", st, u, len(t), "objem-kufru links", len(links), links[:50])
+    print("  pager:", sorted(set(re.findall(r'href="([^"]*(?:page|strana|stranka)=\d+[^"]*)"', t)))[:10])
+    print("  locs:", len(re.findall(r"<loc>", t)), re.findall(r"<loc>([^<]+)</loc>", t)[:8])
 print("DONE")
