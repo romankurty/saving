@@ -348,14 +348,16 @@ def hyundai():
     log("Hyundai:", n)
 
 
-def hyundai_details():
+def hyundai_details(limit=60):
     global detail_used
+    used = 0
     cand = sorted([o for o in OFFERS if o["src"] == "hyundai"], key=lambda o: o["price"])
     for o in cand:
         c = CACHE.get(o["id"])
-        if detail_used < DETAIL_BUDGET and detail_due(o["id"], o["price"]):
+        if used < limit and detail_used < DETAIL_BUDGET and detail_due(o["id"], o["price"]):
             t = get(o["url"])
             detail_used += 1
+            used += 1
             if t:
                 desc = text((re.search(r'vdp__description__content">(.*?)</div>', t, re.S) or [None, ""])[1])
                 dealer = text((re.search(r"(?:Predajca|Dealer)</dt>\s*<dd>(.*?)</dd>", t, re.S) or [None, ""])[1])
@@ -437,15 +439,17 @@ def stellantis():
         log(brand, len(seen))
 
 
-def stellantis_details():
+def stellantis_details(limit=70):
     """VIN + financing legal line for the cheapest offers (cached)."""
     global detail_used
+    used = 0
     cand = sorted([o for o in OFFERS if o["src"].startswith("st_")], key=lambda o: o["price"])
     for o in cand:
         c = CACHE.get(o["id"])
-        if detail_used < DETAIL_BUDGET and detail_due(o["id"], o["price"]) and o["price"] <= 35000:
+        if used < limit and detail_used < DETAIL_BUDGET and detail_due(o["id"], o["price"]) and o["price"] <= 35000:
             t = get(o["url"])
             detail_used += 1
+            used += 1
             if t:
                 vin = (re.search(r"VIN:\s*</p>\s*<p[^>]*>\s*([A-HJ-NPR-Z0-9]{17})", t) or [None, None])[1]
                 yr = (re.search(r"Rok výroby:?\s*</p>\s*<p[^>]*>\s*(\d{4})", t) or [None, None])[1]
