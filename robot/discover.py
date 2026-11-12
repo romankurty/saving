@@ -1,7 +1,8 @@
-"""Discovery run 54: ADAC generation pages - embedded version data with boot volume?"""
+"""Discovery run 55: ADAC generation page Apollo state - versions + boot?"""
 import json
 import re
 import time
+from collections import Counter
 
 import requests
 
@@ -16,35 +17,30 @@ def get(u):
     return r.status_code, r.text
 
 
-def txt(h):
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h)).strip()
-
-
-st, sm = get("https://www.adac.de/sitemaps/sitemap-autokatalog.xml")
-locs = re.findall(r"<loc>([^<]+)</loc>", sm)
 B = "https://www.adac.de/rund-ums-fahrzeug/autokatalog/marken-modelle/"
-for bm in ["skoda/octavia", "kia/sportage", "dacia/sandero", "hyundai/i20", "toyota/corolla", "mg/zs"]:
-    gens = sorted({u[len(B):].split("/")[2] for u in locs if u.startswith(B + bm + "/") and len(u[len(B):].strip("/").split("/")) >= 3})
-    print("\n#####", bm, "generations", gens)
-    if not gens:
+for g in ["skoda/octavia/4generation-facelift/", "kia/sportage/nq5-facelift/"]:
+    st, t = get(B + g)
+    m = re.search(r"window.__APOLLO_STATE__=(\{.*?\});?\s*</script>", t, re.S)
+    print("\n#####", g, st, bool(m))
+    if not m:
         continue
-    g = gens[-1]
-    st, t = get(B + bm + "/" + g + "/")
-    print("  gen page", g, st, len(t))
-    scripts = re.findall(r"<script[^>]*>(.*?)</script>", t, re.S)
-    big = sorted(scripts, key=len, reverse=True)[:3]
-    for sc in big:
-        print("  script len", len(sc), sc[:160].replace("\n", " "))
-    for m in list(re.finditer(r"trunkVolume", t))[:6]:
-        print("   tv:", t[max(0, m.start() - 300):m.start() + 200].replace("\n", " ")[:500])
-    vers = sorted({u for u in locs if u.startswith(B + bm + "/" + g + "/") and u.rstrip("/").split("/")[-1].isdigit()})
-    print("  versions in sitemap", len(vers), vers[-3:])
-    if bm in ("skoda/octavia", "kia/sportage") and vers:
-        st, t2 = get(vers[-1])
-        d = re.search(r'<meta name="description" content="([^"]+)"', t2)
-        print("  ver", st, d.group(1)[:200] if d else None)
-        for m in list(re.finditer(r"Kofferraumvolumen", t2))[:3]:
-            print("    ", txt(t2[max(0, m.start() - 40):m.start() + 200])[:200])
-        for m in list(re.finditer(r'"trunkVolume[^"]*"\s*:', t2))[:4]:
-            print("    json", t2[m.start():m.start() + 80])
+    try:
+        d = json.loads(m.group(1))
+    except Exception as e:  # noqa: BLE001
+        print("json err", e, m.group(1)[-200:])
+        continue
+    print(" typenames", Counter(v.get("__typename") for v in d.values() if isinstance(v, dict)).most_common(20))
+    shown = set()
+    for k, v in d.items():
+        tn = v.get("__typename") if isinstance(v, dict) else None
+        if tn and tn not in shown:
+            shown.add(tn)
+            print("  ", k, json.dumps(v, ensure_ascii=False)[:700])
+    s = json.dumps(d, ensure_ascii=False)
+    for mm in list(re.finditer(r"trunk|Kofferraum", s, re.I))[:8]:
+        print("   trunk ctx:", s[max(0, mm.start() - 200):mm.start() + 200])
+    h = re.search(r'window.__staticRouterHydrationData = JSON.parse\("(.*?)"\);', t, re.S)
+    if h:
+        hd = json.loads(json.loads('"' + h.group(1) + '"'))
+        print(" hydration", json.dumps(hd, ensure_ascii=False)[:1500])
 print("DONE")
