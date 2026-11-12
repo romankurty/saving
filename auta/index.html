@@ -159,7 +159,7 @@ const T = {
     how3: "Rovnaké auto (VIN) na oficiálnom sklade aj na portáli = overené 2 zdrojmi; porovnáme ceny.",
     how4: "Ceny nižšie o viac ako 45 % oproti cenníku vyraďujeme ako nevierohodné.",
     how5: "Podmienky ceny (len s financovaním, výkup, IČO) čítame z popisu ponuky; vždy over na odkaze.",
-    how6: "Údaje sa obnovujú 2× denne (ráno a poobede).",
+    how6: "Údaje sa obnovujú 2× denne (ráno a poobede).", how7: "Pri každej obnove znovu otvoríme ~40 náhodných ponúk a samostatnou kontrolou overíme, že cena a predajca na stránke naozaj sú.",
     relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026. Objem kufra: sprievodca Cebia (pre danú verziu, najnovšia generácia).",
     notCovered: "Nečítame (zakazujú robotov): sklady VW, Audi, Seat, Cupra, Suzuki. Ich autá vidíš cez autorizovaných predajcov na autobazar.eu.",
     promos: "Leasing a akcie značiek (oficiálne stránky)", promosNote: "Citované priamo z oficiálnych stránok značiek. Operatívny leasing (paušál) a 0 % financovanie môžu byť výhodnejšie ako kúpa — porovnaj celkovú sumu za celé obdobie na odkaze.",
@@ -191,7 +191,7 @@ const T = {
     how3: "Same car (VIN) on an official site and on the portal = double-checked; prices compared.",
     how4: "Prices more than 45 % below the list price are dropped as implausible.",
     how5: "Price conditions (financing only, trade-in, company) are read from the offer text; always confirm on the link.",
-    how6: "Data refreshes twice a day (morning and afternoon).",
+    how6: "Data refreshes twice a day (morning and afternoon).", how7: "On every refresh we re-open ~40 random offers and, with a separate check, confirm the price and dealer really are on the page.",
     relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026. Boot volume: Cebia guide (matching version, newest generation).",
     notCovered: "Not read (they forbid robots): VW, Audi, Seat, Cupra and Suzuki stock sites. Their cars appear via authorised dealers on autobazar.eu.",
     promos: "Brand leasing & promotions (official sites)", promosNote: "Quoted from the brands' official pages. Operating lease (flat monthly) and 0 % financing can beat buying — compare the total over the whole term on the link.",
@@ -431,7 +431,7 @@ function renderSettings() {
     <div class="setrow"><span>${t("lang")}</span><div class="seg" id="lang">${["sk", "en"].map((l) => `<button data-lang="${l}" class="${state.lang === l ? "on" : ""}">${l === "sk" ? "Slovenčina" : "English"}</button>`).join("")}</div></div></div>
     <div class="card"><h2>${t("sources")}</h2><table><tbody>${Object.entries(src).map(([k, v]) => `<tr><td>${esc(NAMES[k] || k)}</td><td class="num ${v.status === "ok" ? "muted" : "warn-t"}">${v.status === "ok" ? t("src_ok", { n: v.offers }) : v.status === "blocked" ? t("src_blocked") : t("src_error")}</td></tr>`).join("")}</tbody></table>
     <p class="small muted">${t("notCovered")}</p>${DATA?.audit ? `<p class="small">${t("auditSum", { c: DATA.audit.checked, k: DATA.audit.ok })}</p>` : ""}</div>
-    <div class="card"><h2>${t("how")}</h2><ul class="plain">${["how1", "how2", "how3", "how4", "how5", "how6"].map((k) => `<li>${t(k)}</li>`).join("")}</ul><p class="small muted">${t("relSrc")}</p></div>`;
+    <div class="card"><h2>${t("how")}</h2><ul class="plain">${["how1", "how2", "how3", "how7", "how4", "how5", "how6"].map((k) => `<li>${t(k)}</li>`).join("")}</ul><p class="small muted">${t("relSrc")}</p></div>`;
 }
 
 function renderChrome() {
