@@ -45,7 +45,9 @@ def _dealer_ok(dealer, txt):
     return hits >= min(2, len(words[:3]))
 
 
-def audit(offers, n=40, get=None, log=print, seed=None):
+def audit(offers, n=40, get=None, log=print, seed=None, top=()):
+    """top: offers that must be checked (e.g. the cheapest per model); n: extra random sample.
+    get(url) may return text or (text, http_status); 404/410 = sold/removed, other failures = not checked."""
     rnd = random.Random(seed)
     s = requests.Session()
     s.headers.update({"User-Agent": UA, "Accept-Language": "sk-SK,sk;q=0.9"})
@@ -54,31 +56,35 @@ def audit(offers, n=40, get=None, log=print, seed=None):
         time.sleep(1.2)
         try:
             r = s.get(u, timeout=25)
-            return r.text if r.status_code == 200 else None
+            return (r.text if r.status_code == 200 else None), r.status_code
         except Exception:  # noqa: BLE001
-            return None
+            return None, None
     get = get or _get
-    # the offers people actually look at: cheapest per source, plus a random sample
     by_src = {}
     for o in offers:
         if o.get("auth") and not o.get("stale"):
             by_src.setdefault(o["src"], []).append(o)
-    sample = []
+    extra = []
     for src, lst in by_src.items():
         lst = sorted(lst, key=lambda o: o["price"])
-        sample += lst[:2]
+        extra += lst[:2]
         rest = lst[2:]
-        sample += rnd.sample(rest, min(len(rest), 2))
-    rnd.shuffle(sample)
-    sample = sample[:n]
-    ok = fail = 0
+        extra += rnd.sample(rest, min(len(rest), 2))
+    rnd.shuffle(extra)
+    ids = {id(o) for o in top}
+    sample = list(top) + [o for o in extra if id(o) not in ids][:n]
+    ok = fail = gone = unk = 0
     failed = []
     for o in sample:
-        h = get(o["url"])
+        res = get(o["url"])
+        h, code = res if isinstance(res, tuple) else (res, 200 if res is not None else None)
         if h is None:
-            o["audit"] = "gone"
-            fail += 1
-            failed.append((o["src"], o["url"], "page not reachable / sold"))
+            if code in (404, 410):
+                o["audit"] = "gone"
+                gone += 1
+                failed.append((o["src"], o["url"], "page gone (sold / removed)"))
+            else:
+                unk += 1
             continue
         txt = _page_text(h)
         p_ok = any(f in txt for f in _price_forms(o["price"]))
@@ -90,10 +96,10 @@ def audit(offers, n=40, get=None, log=print, seed=None):
             o["audit"] = "fail"
             fail += 1
             failed.append((o["src"], o["url"], ("price " if not p_ok else "") + ("dealer" if d_ok is False else "")))
-    log(f"audit: {ok} ok, {fail} not confirmed of {len(sample)}")
-    for f in failed:
-        log("   not confirmed:", *f)
-    return {"checked": len(sample), "ok": ok, "failed": fail}
+    log(f"audit: {ok} ok, {fail} not confirmed, {gone} gone, {unk} not reachable, of {len(sample)}")
+    for f in failed[:40]:
+        log("   ", *f)
+    return {"checked": len(sample), "ok": ok, "failed": fail, "gone": gone, "unreachable": unk}
 
 
 if __name__ == "__main__":

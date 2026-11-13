@@ -73,7 +73,11 @@ def allowed(url):
     return rp.can_fetch(UA, url)
 
 
+LAST = {"code": None}
+
+
 def get(url, tries=2):
+    LAST["code"] = None
     if not allowed(url):
         log("  robots: not allowed", url)
         return None
@@ -81,6 +85,7 @@ def get(url, tries=2):
         time.sleep(DELAY)
         try:
             r = S.get(url, timeout=30)
+            LAST["code"] = r.status_code
             if r.status_code == 200:
                 return r.text
             log("  HTTP", r.status_code, url)
@@ -518,7 +523,7 @@ def stellantis():
 
 def cash_from(ben):
     """'Pri platbe v hotovosti je cena 15 990€' / 'Cena vozidla v hotovosti 16.190 EUR' / 'cena na hotovosť je 16490€' -> 15990"""
-    mc = re.search(r"hotovos\w*[^0-9]{0,25}?(\d{1,3}(?:[ .\u00a0\u202f]\d{3})+|\d{4,6})\s*(?:€|eur)", norm(ben or ""))
+    mc = re.search(r"hotovos\w*[^0-9]{0,25}?(\d{1,3}(?:[ .\u00a0\u202f]\d{3})+|\d{4,6})(?:,\d{2}|,-)?\s*(?:€|eur)", norm(ben or ""))
     return int(re.sub(r"\D", "", mc.group(1))) if mc else None
 
 
@@ -588,56 +593,147 @@ def mitsubishi():
 
 
 # ---------------------------------------------------------------- Dacia + Mazda (official, detail pages from sitemaps, cached)
-def sitemap_details(key, sitemap, pat, parse, limit=220, max_age=2, ver=1):
+def sitemap_details(key, sitemap, pat, parse, limit=220, max_age=1, ver=1):
+    """Official stock sites without a price list page: one detail page per car, listed in the sitemap.
+    Order of reading: new cars, then pages the site marks as changed (<lastmod> after our last reading), then the oldest.
+    A reading is used for at most 2 days; a page that answers 404/410 (sold) is dropped at once."""
     sm = get(sitemap)
     if sm is None:
-        STATUS[key] = ("blocked", 0)
+        STATUS[key] = ("unreachable", 0)
         return
-    urls = [u for u in re.findall(r"<loc>([^<]+)</loc>", sm) if re.search(pat, u)]
-    fetched = n = 0
-    # never fetched first, then the oldest
-    urls.sort(key=lambda u: (CACHE.get(key + ":" + u, {}).get("fetched", "0000")))
-    for u in urls:
+    ent = []
+    for blk in re.findall(r"<url>(.*?)</url>", sm, re.S) or [f"<loc>{u}</loc>" for u in re.findall(r"<loc>([^<]+)</loc>", sm)]:
+        u = (re.search(r"<loc>\s*([^<\s]+)\s*</loc>", blk) or [None, None])[1]
+        lm = (re.search(r"<lastmod>\s*([^<\s]+)\s*</lastmod>", blk) or [None, ""])[1][:10]
+        if u and re.search(pat, u):
+            ent.append((u, lm))
+
+    def prio(e):
+        c = CACHE.get(key + ":" + e[0])
+        if not c or c.get("v", 1) != ver:
+            return (0, "")
+        if e[1] and e[1] > c["fetched"][:10]:
+            return (1, c["fetched"])
+        return (2, c["fetched"])
+    ent.sort(key=prio)
+    fetched = n = gone = 0
+    for u, lm in ent:
         ck = key + ":" + u
         c = CACHE.get(ck)
         if c and c.get("v", 1) != ver:
             c = None
-        age = (NOW.date() - dt.date.fromisoformat(c["fetched"])).days if c else 99
-        if (not c or age >= max_age) and fetched < limit:
+        if c and not c.get("at"):
+            c["at"] = c["fetched"] + "T06:00+00:00"   # readings from before read times were kept
+        age_h = (NOW - dt.datetime.fromisoformat(c["at"])).total_seconds() / 3600 if c else 999
+        changed = bool(c and lm and lm > c["fetched"][:10])
+        if (not c or changed or age_h >= max_age * 24 - 3) and fetched < limit:
             t = get(u)
             fetched += 1
             if t:
                 c = parse(u, t)
                 if c:
                     c["fetched"] = TODAY
+                    c["at"] = NOW.isoformat(timespec="minutes")
                     c["v"] = ver
                     CACHE[ck] = c
-        if c and c.get("price") and (NOW.date() - dt.date.fromisoformat(c["fetched"])).days <= 4:
+            elif LAST["code"] in (404, 410):
+                CACHE.pop(ck, None)
+                c = None
+                gone += 1
+        if c and c.get("price") and c.get("at") and (NOW - dt.datetime.fromisoformat(c["at"])).total_seconds() <= 50 * 3600:
             o = dict(c["o"])
             o["price"] = c["price"]
             o["id"] = key + ":" + re.sub(r"\W+", "", u.split("/")[-2] if u.endswith("/") else u.split("/")[-1])
+            if c["at"] < NOW.isoformat(timespec="minutes")[:13]:
+                o["read"] = c["at"]   # when this page was last read (earlier run)
             add(o)
             n += 1
     STATUS[key] = ("ok", n)
-    log(key, n, "offers,", fetched, "pages fetched")
+    log(key, n, "offers,", fetched, "pages fetched,", gone, "sold/removed")
 
 
-def dacia_parse(u, t):
+def rgroup_parse(brand, src, u, t):
+    """Renault group stock platform (skladove-vozidla.dacia.sk, ihned.renault.sk): same page template"""
     h1 = text((re.findall(r"<h1[^>]*>(.*?)</h1>", t, re.S) or ["", ""])[-1])
-    model = text((re.search(r"<h1[^>]*>\s*<strong>(.*?)</strong>", t, re.S) or [None, h1.split(" ")[0]])[1])
+    vm = (re.search(r"'vehicleModel'\s*:\s*'([^']+)'", t) or [None, None])[1]
+    model = text((re.search(r"<h1[^>]*>\s*<strong>(.*?)</strong>", t, re.S) or [None, (vm or h1.split(" ")[0])])[1])
+    if vm and not re.search(r"<h1[^>]*>\s*<strong>", t):
+        model = vm
+    model = model.title().replace("Megane", "Mégane").replace("E-Tech", "E-Tech")
     lst = num((re.search(r'pricelist_price">[^<]*</p>\s*<strong class="price">([^<]+)', t) or [None, None])[1])
     pr = num((re.search(r'final-price">([^<]+)', t) or [None, None])[1])
     dealer = (re.search(r"'dealerName'\s*:\s*'([^']+)'", t) or [None, None])[1]
-    vin = (re.search(r"\b(UU1[A-HJ-NPR-Z0-9]{14}|VF1[A-HJ-NPR-Z0-9]{14})\b", t) or [None, None])[1]
+    vin = (re.search(r"\b(UU1[A-HJ-NPR-Z0-9]{14}|VF[168][A-HJ-NPR-Z0-9]{14})\b", t) or [None, None])[1]
     perks = [text(x) for x in re.findall(r'<div class="perk-item[^"]*" title="([^"]+)"', t)]
     flags = ["fin_bonus"] if any(re.search(r"financ", norm(x)) for x in perks) else []
-    title = "Dacia " + h1
+    title = brand + " " + h1
     if not pr:
         return None
-    return {"price": pr, "o": {"src": "dacia", "off": True, "url": u, "brand": "Dacia", "model": model.title(), "title": title, "body": body_of("Dacia", model, title),
-            "fuel": "lpg" if re.search(r"eco-?g|lpg", norm(h1)) else classify(FUEL, h1, "petrol"), "mhev": mild(h1),
-            "gear": "auto" if re.search(r"\bcvt|edc|automat|hybrid 1[45]5", norm(h1)) else "man", "cond": "new", "list": lst, "dealer": dealer, "auth": True, "vin": vin,
+    nh = norm(h1)
+    return {"price": pr, "o": {"src": src, "off": True, "url": u, "brand": brand, "model": model, "title": title, "body": body_of(brand, model, title),
+            "fuel": "lpg" if re.search(r"eco-?g|lpg", nh) else classify(FUEL, h1, "petrol"), "mhev": mild(h1),
+            "gear": "auto" if re.search(r"\bcvt|edc|automat|hybrid 1[45]5|e-tech", nh) else "man", "cond": "new", "list": lst, "dealer": dealer, "auth": True, "vin": vin,
             "perks": perks[:4], "flags": flags}}
+
+
+def dacia_parse(u, t):
+    return rgroup_parse("Dacia", "dacia", u, t)
+
+
+def renault_parse(u, t):
+    return rgroup_parse("Renault", "renault", u, t)
+
+
+def opel_parse(u, t):
+    """online.opel-ihned.sk: one page per car with state, km, VIN, dealer's update date, action price and its conditions"""
+    tt = text(re.sub(r"<script(?! type=\"application/ld\+json\").*?</script>|<style.*?</style>", " ", t, flags=re.S))
+    h1 = text((re.findall(r"<h1[^>]*>(.*?)</h1>", t, re.S) or [""])[0])
+
+    def f(pat, default=None):
+        m = re.search(pat, tt)
+        return m.group(1).strip() if m else default
+    model = f(r"Model Opel ([A-Za-z0-9 -]+?) Karos") or h1.split(" ")[0]
+    karo = norm(f(r"Karoséria (\S+)", ""))
+    stav = norm(f(r"Stav (nové|predvádzacie|jazdené|nov[ée])", "nove"))
+    if "jazden" in stav:
+        return {"skip": "used", "price": None}
+    km = num(f(r"Stav tachometra ([\d  ]+) ?Km")) or 0
+    vin = f(r"VIN ([A-HJ-NPR-Z0-9]{17})")
+    upd = f(r"Aktualizované (\d{1,2}\. ?\d{1,2}\. ?\d{4})")
+    if upd:
+        d_, m_, y_ = [int(x) for x in re.findall(r"\d+", upd)]
+        upd = f"{y_:04d}-{m_:02d}-{d_:02d}"
+    fuel_s = norm(f(r"Palivo (\S+(?: \S+)?) Prevodovka", ""))
+    gear_s = norm(f(r"Prevodovka (\S+)", ""))
+    kw = num(f(r"Výkon (\d+) kW"))
+    pr = num(f(r"Akčná cena ([\d  ]+) €")) or num((re.search(r'"price":\s*"(\d+)"', t) or [None, None])[1])
+    lst = num(f(r"Pôvodná cena s DPH ([\d  ]+) €"))
+    monthly = num(f(r"Mesačná splátka[^€]{0,80}?([\d  ]{2,6}) €"))
+    dealer = H.unescape((re.search(r'"seller":\s*\{\s*"@type":\s*"Organization",\s*"name":\s*"([^"]+)"', t) or [None, ""])[1]) or None
+    note = f(r"Poznámka (.{0,900})", "")
+    fin = bool(re.search(r"Akčná cena [\d  ]+ € s DPH s financovaním", tt)) or bool(re.search(r"(?:plat[ín][áa]?|podmienen\w*) pri financovan|cena .{0,40}financovan", norm(note)))
+    cash = cash_from(note)
+    nt = norm(h1)
+    if "plug" in fuel_s or "phev" in nt:
+        fuel, mh = "phev", False
+    elif "elektr" in fuel_s:
+        fuel, mh = "ev", False
+    elif "nafta" in fuel_s or "diesel" in fuel_s:
+        fuel, mh = "diesel", False
+    elif "hybrid" in fuel_s or "mhev" in nt or "hybrid" in nt:
+        fuel, mh = "petrol", True   # Opel "Hybrid" = 48 V mild hybrid
+    else:
+        fuel, mh = "petrol", False
+    body = {"kombi": "estate", "suv": "suv", "hatchback": "hatch", "mpv": "mpv", "sedan": "sedan", "liftback": "hatch"}.get(karo) or body_of("Opel", model, h1)
+    if re.search(r"\bst\b|sports tourer", nt + " " + norm(model)):
+        body = "estate"
+    if not pr:
+        return None
+    return {"price": pr, "o": {"src": "opel", "off": True, "url": u, "brand": "Opel", "model": re.sub(r"\s+(HB|ST)$", "", model), "title": "Opel " + h1, "body": body,
+            "fuel": fuel, "mhev": mh, "gear": "auto" if "autom" in gear_s else "man", "kw": kw, "km": km or None,
+            "cond": "demo" if ("predvad" in stav or km > 500) else "new", "list": lst if lst and lst > pr else None, "monthly": monthly,
+            "cash": cash if fin and cash and pr < cash < pr * 1.4 else None, "dealer": dealer, "auth": True, "vin": vin, "upd": upd,
+            "flags": ["fin"] if fin else []}}
 
 
 def mazda_parse(u, t):
@@ -668,11 +764,19 @@ def mazda_parse(u, t):
 
 
 def dacia():
-    sitemap_details("dacia", "https://skladove-vozidla.dacia.sk/sitemap.xml", r"-v\d+/$", dacia_parse)
+    sitemap_details("dacia", "https://skladove-vozidla.dacia.sk/sitemap.xml", r"-v\d+/$", dacia_parse, limit=140)
+
+
+def renault():
+    sitemap_details("renault", "https://ihned.renault.sk/sitemap.xml", r"^https://ihned\.renault\.sk/(?!uzitkove)[^/]+-v\d+/$", renault_parse, limit=130)
+
+
+def opel():
+    sitemap_details("opel", "https://online.opel-ihned.sk/sitemap.xml", r"/vozidlo/[a-z0-9]+/$", opel_parse, limit=260)
 
 
 def mazda():
-    sitemap_details("mazda", "https://www.mazdaihned.sk/sitemap.xml", r"/Mazda/[^/]+/[a-z0-9]+/$", mazda_parse, limit=240, ver=2)
+    sitemap_details("mazda", "https://www.mazdaihned.sk/sitemap.xml", r"/Mazda/[^/]+/[a-z0-9]+/$", mazda_parse, limit=140, ver=2)
 
 
 # ---------------------------------------------------------------- autobazar.eu (all brands, authorised-dealer check)
@@ -1106,7 +1210,7 @@ def sanity(o):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for fn in (kia, hyundai, stellantis, mitsubishi, dacia, mazda, autobazar):
+    for fn in (kia, hyundai, stellantis, mitsubishi, dacia, renault, opel, mazda, autobazar):
         try:
             fn()
         except Exception as e:  # noqa: BLE001
@@ -1129,24 +1233,52 @@ def main():
     cross_check()
     keep = [o for o in OFFERS if not o.get("dup") and sanity(o)]
     dropped = len(OFFERS) - len(keep)
-    # history: first seen + price drops
+    # price history per car: source + VIN when known (stays the same when a dealer re-lists the car), else the offer id
+    stamp = NOW.isoformat(timespec="hours")[:13]
+    live = set()
     for o in keep:
-        h = HIST.setdefault(o["id"], {"first": TODAY, "p": []})
+        hk = f"{o['src']}:{o['vin']}" if o.get("vin") else o["id"]
+        if hk not in HIST and o["id"] in HIST and hk != o["id"]:
+            HIST[hk] = HIST.pop(o["id"])
+        live.add(hk)
+        h = HIST.setdefault(hk, {"first": TODAY, "p": []})
+        h["last"] = TODAY
         if not h["p"] or h["p"][-1][1] != o["price"]:
-            h["p"].append([TODAY, o["price"]])
-            h["p"] = h["p"][-12:]
+            h["p"].append([stamp, o["price"]])
+            h["p"] = h["p"][-40:]
         o["first"] = h["first"]
-        prev = [p for d, p in h["p"][:-1]]
-        if prev and max(prev) > o["price"]:
-            o["drop"] = max(prev) - o["price"]
-    live = {o["id"] for o in keep}
+        if len(h["p"]) > 1:
+            o["hist"] = [[d, round(p)] for d, p in h["p"]]
+        prev = [(p, d) for d, p in h["p"][:-1] if (NOW.date() - dt.date.fromisoformat(d[:10])).days <= 90]
+        if prev:
+            hi, d_hi = max(prev)
+            if hi > o["price"]:
+                o["drop"] = round(hi - o["price"])
+                o["drop_from"] = d_hi[:10]
     for k in list(HIST):
-        if k not in live and (NOW.date() - dt.date.fromisoformat(HIST[k]["first"])).days > 120:
+        if k not in live and (NOW.date() - dt.date.fromisoformat(HIST[k].get("last", HIST[k]["first"]))).days > 120:
             del HIST[k]
+    # lowest and median price per model per day (authorised dealers, new + demo) - the market trend behind each offer
+    MH = load("models.json", {})
+    st_ = {}
+    for o in keep:
+        if o.get("auth") and o.get("model") and o.get("cond") in ("new", "demo"):
+            st_.setdefault(norm(o["brand"]) + "|" + norm(o["model"]), []).append(o["price"])
+    for k, ps in st_.items():
+        ps.sort()
+        row = [TODAY, round(ps[0]), round(ps[len(ps) // 2]), len(ps)]
+        arr = MH.setdefault(k, [])
+        if arr and arr[-1][0] == TODAY:
+            arr[-1] = row
+        else:
+            arr.append(row)
+        MH[k] = arr[-400:]
+    with open(os.path.join(OUT, "models.json"), "w", encoding="utf-8") as f:
+        json.dump(MH, f, ensure_ascii=False, separators=(",", ":"))
     for k in list(CACHE):
         if k in live:
             continue
-        if re.match(r"(dacia|mazda):http", k) and (NOW.date() - dt.date.fromisoformat(CACHE[k].get("fetched", "2000-01-01"))).days <= 7:
+        if re.match(r"(dacia|renault|opel|mazda):http", k) and (NOW.date() - dt.date.fromisoformat(CACHE[k].get("fetched", "2000-01-01"))).days <= 7:
             continue  # sitemap-detail cache, keyed by page URL
         del CACHE[k]
     # safety net: a source that failed today keeps yesterday's offers (marked stale) for up to 2 days
@@ -1186,10 +1318,28 @@ def main():
             o.pop("checked", None)
         for k in [k for k, v in o.items() if v in (None, [], False, "")]:
             del o[k]
+    # independent live check: the cheapest offer of every model (what the app shows first) + a random sample per source
+    top, seen_m = [], set()
+    for o in sorted(keep, key=lambda o: o["price"]):
+        mk = (o["brand"], norm(o.get("model") or ""))
+        if o.get("auth") and not o.get("stale") and o["price"] <= 40000 and mk not in seen_m:
+            seen_m.add(mk)
+            top.append(o)
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import caraudit
-        aud = caraudit.audit(keep, n=40, get=lambda u: get(u, tries=1), log=log)
+
+        def get2(u):
+            t = get(u, tries=1)
+            return t, LAST["code"]
+        aud = caraudit.audit(keep, n=40, get=get2, log=log, top=top[:320])
+        gone = [o for o in keep if o.get("audit") == "gone"]
+        if gone:
+            log("removed as sold (page gone at live check):", len(gone))
+            keep = [o for o in keep if o.get("audit") != "gone"]
+        for o in keep:
+            if o.get("audit") == "fail":
+                o["flags"] = sorted(set(o.get("flags", []) + ["unconfirmed"]))
     except Exception as e:  # noqa: BLE001
         log("!! audit failed:", type(e).__name__, e)
         aud = None
