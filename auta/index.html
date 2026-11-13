@@ -96,6 +96,12 @@
   .more { margin-top: 10px; background: var(--soft); border-radius: 12px; padding: 10px 12px; font-size: 0.84rem; display: grid; gap: 4px; }
   .more .row { align-items: flex-start; }
   .more b { font-weight: 700; }
+  .hist { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; display: grid; gap: 4px; }
+  .hist .htitle { font-weight: 700; color: var(--text); }
+  svg.pc { width: 100%; height: auto; display: block; touch-action: pan-y; overflow: visible; }
+  svg.pc text { font-size: 11px; fill: var(--muted); font-family: inherit; }
+  .ctip { font-size: 0.8rem; color: var(--text); min-height: 1.2em; }
+  .drop.big { font-weight: 700; }
   .checked { margin-top: 8px; font-size: 0.74rem; color: var(--muted); }
   .others { margin: -4px 0 12px; padding: 0 6px; }
   .empty { color: var(--muted); padding: 10px 2px; }
@@ -146,6 +152,11 @@ const T = {
     dealer: "Predajca", auth: "autorizovaný predajca {b}", notAuth: "neoverený predajca", verified2: "Overené 2 zdrojmi: rovnaké VIN, cena sedí", verified2diff: "2 zdroje (rovnaké VIN), ale cena sa líši: {v}",
     official: "Oficiálny sklad značky {b}", portal: "autobazar.eu · predajca overený portálom", open: "Otvoriť ponuku", open2: "2. zdroj",
     seenSince: "v ponuke od {d}", checkedAt: "skontrolované {d}", dropped: "zlacnené o {v}", stale: "zdroj dnes nedostupný — údaj zo včera",
+    dropBadge: "↓ {v} od {d}", today: "dnes", s_drop: "Najviac zlacnené v čase", onlyDrop: "Len autá, ktoré zlacneli",
+    hTitle: "Cena tohto auta v čase", hSame: "Cena sa nezmenila od {d}, keď sme auto prvýkrát videli.", hFrom: "Sledujeme od {d}.",
+    mTitle: "Najnižšia cena modelu {m} (autorizovaní predajcovia)", mNow: "dnes {v}", mAgo: "pred {n} dňami {v}", mThis: "Toto auto je najlacnejšie z {n}.", mAbove: "O {v} drahšie ako najlacnejší kus dnes.",
+    mLoading: "Načítavam vývoj cien…", mNone: "Vývoj ceny modelu zatiaľ nemáme.", readAt: "stránku sme čítali {d}", dealerUpd: "predajca aktualizoval {d}",
+    fl_unconfirmed: "Cenu sa pri dnešnej kontrole na stránke nepodarilo potvrdiť — over na odkaze",
     fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie", fl_fin_bonus: "Ďalšia zľava pri financovaní značky (pozri podmienky)", fl_price_mismatch: "Stránka uvádza dve rôzne ceny — over na odkaze",
     monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %); úver stojí o {d} viac ako hotovosť", finTotalNoR: "Pri financovaní zaplatíš spolu {t}; úver stojí o {d} viac ako hotovosť",
     finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finIns: "(v sume je aj poistenie ≈ {v}, to platíš aj pri kúpe za hotovosť — preto sa do rozdielu nepočíta)", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
@@ -154,17 +165,18 @@ const T = {
     bootSrc: "zdroj: {s}", bootOff: "oficiálne technické údaje", bootDealer: "údaj predajcu", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
     moreOf: "+ {n} ďalších {m}", lessOf: "Skryť ďalšie", fewer: "",
     set: "Nastavenia a zdroje", lang: "Jazyk", sources: "Zdroje dát", src_ok: "{n} ponúk", src_blocked: "zakazuje robotov — nečítame", src_error: "dnes nedostupné",
-    how: "Ako overujeme", how1: "Oficiálne sklady značiek (Kia, Hyundai, Dacia, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi): ponúkajú len autorizovaní predajcovia.",
+    how: "Ako overujeme", how1: "Oficiálne sklady značiek (Kia, Hyundai, Dacia, Renault, Opel, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi): ponúkajú len autorizovaní predajcovia.",
     how2: "autobazar.eu: zobrazujeme len predajcov, ktorých portál overil ako autorizovaných pre danú značku.",
     how3: "Rovnaké auto (VIN) na oficiálnom sklade aj na portáli = overené 2 zdrojmi; porovnáme ceny.",
     how4: "Ceny nižšie o viac ako 45 % oproti cenníku vyraďujeme ako nevierohodné.",
     how5: "Podmienky ceny (len s financovaním, výkup, IČO) čítame z popisu ponuky; vždy over na odkaze.",
-    how6: "Údaje sa obnovujú 2× denne (ráno a poobede).", how7: "Pri každej obnove znovu otvoríme ~40 náhodných ponúk a samostatnou kontrolou overíme, že cena a predajca na stránke naozaj sú.",
+    how6: "Údaje sa obnovujú 4× denne (okolo 4:00, 10:00, 14:00 a 19:00). Každé auto má pri sebe čas, kedy sme jeho cenu čítali.", how7: "Pri každej obnove znovu otvoríme najlacnejšie auto z každého modelu (to, čo vidíš ako prvé) a ďalšie náhodné ponuky a samostatnou kontrolou overíme, že cena a predajca na stránke naozaj sú. Predané autá (stránka zmizla) hneď vyradíme.",
+    how8: "Vývoj ceny: pri každej obnove si zapíšeme cenu každého auta (podľa VIN) a najnižšiu cenu každého modelu. Zlacnenie ukážeme pri aute; staršie údaje začínajú 12. 11. 2026.",
     relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026. Objem kufra: oficiálne technické údaje (Kia), inak ADAC Autokatalog – údaj výrobcu pre zodpovedajúcu verziu najnovšej generácie, prípadne sprievodca Cebia.",
     notCovered: "Nečítame (zakazujú robotov): sklady VW, Audi, Seat, Cupra, Suzuki. Ich autá vidíš cez autorizovaných predajcov na autobazar.eu.",
     promos: "Leasing a akcie značiek (oficiálne stránky)", promosNote: "Citované priamo z oficiálnych stránok značiek. Operatívny leasing (paušál) a 0 % financovanie môžu byť výhodnejšie ako kúpa — porovnaj celkovú sumu za celé obdobie na odkaze.",
     sameN: "{n} rovnaké kusy", auditOk: "cena a predajca dnes overení na stránke", auditFail: "dnes sa nepodarilo potvrdiť na stránke — over",
-    auditSum: "Kontrola dnes: znovu sme otvorili {c} náhodných ponúk; cenu a predajcu sme potvrdili pri {k}.", loadErr: "Ponuky sa nepodarilo načítať. Skontroluj pripojenie.", tSet: "Nastavenia", tList: "Autá",
+    auditSum: "Posledná kontrola: znovu sme otvorili {c} ponúk (najlacnejšie z každého modelu + náhodné); cenu a predajcu sme potvrdili pri {k}, predaných vyradených {g}.", loadErr: "Ponuky sa nepodarilo načítať. Skontroluj pripojenie.", tSet: "Nastavenia", tList: "Autá",
   },
   en: {
     checked: "Offers checked {d}", budget: "Budget", upTo: "up to {v}", any: "no limit", body: "Body", allBodies: "All",
@@ -178,6 +190,11 @@ const T = {
     dealer: "Dealer", auth: "authorised {b} dealer", notAuth: "unverified dealer", verified2: "Double-checked: same VIN in 2 sources, price matches", verified2diff: "2 sources (same VIN), but price differs: {v}",
     official: "Official {b} stock", portal: "autobazar.eu · dealer verified by the portal", open: "Open offer", open2: "2nd source",
     seenSince: "listed since {d}", checkedAt: "checked {d}", dropped: "price cut {v}", stale: "source unavailable today — yesterday's data",
+    dropBadge: "↓ {v} since {d}", today: "today", s_drop: "Biggest price drop over time", onlyDrop: "Only cars whose price dropped",
+    hTitle: "This car's price over time", hSame: "No change since {d}, when we first saw this car.", hFrom: "Tracked since {d}.",
+    mTitle: "Lowest price of the {m} (authorised dealers)", mNow: "today {v}", mAgo: "{n} days ago {v}", mThis: "This is the cheapest of {n}.", mAbove: "{v} more than the cheapest one today.",
+    mLoading: "Loading the price trend…", mNone: "No price trend for this model yet.", readAt: "page read {d}", dealerUpd: "dealer updated {d}",
+    fl_unconfirmed: "Today's live check couldn't confirm this price on the page — check the link",
     fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing", fl_fin_bonus: "Extra discount with the brand's financing (see terms)", fl_price_mismatch: "The page shows two different prices — confirm on the link",
     monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %); the credit costs {d} more than cash", finTotalNoR: "With financing you pay {t} in total; the credit costs {d} more than cash",
     finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finIns: "(the total includes insurance ≈ {v}, which you'd pay with cash too — so it's left out of the difference)", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
@@ -186,17 +203,18 @@ const T = {
     bootSrc: "source: {s}", bootOff: "official technical data", bootDealer: "dealer's figure", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
     moreOf: "+ {n} more {m}", lessOf: "Hide others", fewer: "",
     set: "Settings & sources", lang: "Language", sources: "Data sources", src_ok: "{n} offers", src_blocked: "forbids robots — not read", src_error: "unavailable today",
-    how: "How we verify", how1: "Official brand stock sites (Kia, Hyundai, Dacia, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi) list authorised dealers only.",
+    how: "How we verify", how1: "Official brand stock sites (Kia, Hyundai, Dacia, Renault, Opel, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi) list authorised dealers only.",
     how2: "autobazar.eu: we show only dealers the portal verified as authorised for that brand.",
     how3: "Same car (VIN) on an official site and on the portal = double-checked; prices compared.",
     how4: "Prices more than 45 % below the list price are dropped as implausible.",
     how5: "Price conditions (financing only, trade-in, company) are read from the offer text; always confirm on the link.",
-    how6: "Data refreshes twice a day (morning and afternoon).", how7: "On every refresh we re-open ~40 random offers and, with a separate check, confirm the price and dealer really are on the page.",
+    how6: "Data refreshes 4× a day (around 4:00, 10:00, 14:00 and 19:00). Every car shows when its price was read.", how7: "On every refresh we re-open the cheapest car of every model (what you see first) plus random offers and, with a separate check, confirm the price and dealer really are on the page. Sold cars (page gone) are removed at once.",
+    how8: "Price history: every refresh records each car's price (by VIN) and each model's lowest price. Drops are shown on the car; history starts on 12 Nov 2026.",
     relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026. Boot volume: official technical data (Kia), otherwise the ADAC car catalogue – manufacturer figure for the matching version of the newest generation, or the Cebia guide.",
     notCovered: "Not read (they forbid robots): VW, Audi, Seat, Cupra and Suzuki stock sites. Their cars appear via authorised dealers on autobazar.eu.",
     promos: "Brand leasing & promotions (official sites)", promosNote: "Quoted from the brands' official pages. Operating lease (flat monthly) and 0 % financing can beat buying — compare the total over the whole term on the link.",
     sameN: "{n} identical cars", auditOk: "price and dealer re-checked on the page today", auditFail: "couldn't be confirmed on the page today — check",
-    auditSum: "Today's check: we re-opened {c} random offers and confirmed price and dealer for {k}.", loadErr: "Couldn't load offers. Check the connection.", tSet: "Settings", tList: "Cars",
+    auditSum: "Last check: we re-opened {c} offers (cheapest of every model + random); price and dealer confirmed for {k}, sold cars removed {g}.", loadErr: "Couldn't load offers. Check the connection.", tSet: "Settings", tList: "Cars",
   },
 };
 
@@ -237,7 +255,7 @@ const SPACE = window.SPACE || {};
 // ------------------------------------------------------------------ state
 const LS = "auta-v1";
 const DEF = { lang: /^(sk|cs)/i.test(navigator.language || "") ? "sk" : "en", max: 20000, bodies: ["estate", "suv", "hatch"], brands: [], fuels: [], gears: [], conds: [], minBoot: 0, minRel: 0,
-  onlyAuth: true, onlyTwice: false, hideFin: false, onlyOfficial: false, onePer: true, sort: "price", tab: "list" };
+  onlyAuth: true, onlyTwice: false, hideFin: false, onlyOfficial: false, onePer: true, onlyDrop: false, sort: "price", tab: "list" };
 let state = { ...DEF };
 try { Object.assign(state, JSON.parse(localStorage.getItem(LS) || "{}")); } catch (e) {}
 const save = () => { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} };
@@ -249,7 +267,13 @@ const dTxt = (iso) => { try { return new Date(iso + "T12:00:00").toLocaleDateStr
 const dec = (x) => String(x).replace(".", state.lang === "sk" ? "," : ".");
 const nrm = (s) => String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
-let DATA = null, PROMOS = [], OPEN = null, EXPAND = new Set();
+let DATA = null, PROMOS = [], OPEN = null, EXPAND = new Set(), MODELS = null, MODELS_LOADING = false;
+function loadModels() {
+  if (MODELS || MODELS_LOADING) return;
+  MODELS_LOADING = true;
+  fetch("data/models.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : {})).catch(() => ({})).then((m) => { MODELS = m || {}; MODELS_LOADING = false; renderList(); });
+}
+const dropPct = (o) => (o.drop ? o.drop / (o.price + o.drop) : 0);
 
 // ------------------------------------------------------------------ derived values
 function relOf(o) {
@@ -294,6 +318,67 @@ function spaceOf(o) {
   const best = rows.reduce((a, b) => (b[1] < a[1] ? b : a));
   return { l: best[1], max: best[2], row: best[0], src: best[6] || e.src, by: e.by || "Cebia", s: seats };
 }
+// ------------------------------------------------------------------ price history charts (one series each: no legend; values labelled at low and high)
+const tOf = (d) => Date.parse(d.length === 10 ? d + "T12:00:00Z" : d.length === 13 ? d + ":00:00Z" : d);
+function priceChart(pts, step) {
+  // pts: [[date, price], ...] oldest first; step: the price holds until the next change (one car)
+  let P = pts.map(([d, v]) => [tOf(d), v]).filter((p) => !isNaN(p[0]));
+  if (P.length < 2) return "";
+  if (step) P.push([Math.max(Date.now(), P[P.length - 1][0]), P[P.length - 1][1]]);
+  const W = 320, H = 104, L = 6, R = 6, T = 20, B = 20;
+  const x0 = P[0][0], x1 = Math.max(P[P.length - 1][0], x0 + 864e5);
+  let v0 = Math.min(...P.map((p) => p[1])), v1 = Math.max(...P.map((p) => p[1]));
+  if (v1 - v0 < 200) { const m = (v0 + v1) / 2; v0 = m - 100; v1 = m + 100; }
+  const X = (x) => L + ((x - x0) / (x1 - x0)) * (W - L - R), Y = (v) => T + ((v1 - v) / (v1 - v0)) * (H - T - B);
+  let d = `M${X(P[0][0]).toFixed(1)},${Y(P[0][1]).toFixed(1)}`;
+  for (let i = 1; i < P.length; i++) d += step ? `H${X(P[i][0]).toFixed(1)}V${Y(P[i][1]).toFixed(1)}` : `L${X(P[i][0]).toFixed(1)},${Y(P[i][1]).toFixed(1)}`;
+  const real = step ? P.slice(0, -1) : P;
+  const iMax = real.reduce((a, p, i) => (p[1] > real[a][1] ? i : a), 0), iMin = real.reduce((a, p, i) => (p[1] < real[a][1] ? i : a), 0);
+  const lab = (i, above) => { const [x, v] = real[i]; const tx = Math.min(W - R, Math.max(L, X(x))); const anchor = tx < 40 ? "start" : tx > W - 40 ? "end" : "middle"; return `<text x="${tx.toFixed(1)}" y="${(Y(v) + (above ? -8 : 15)).toFixed(1)}" text-anchor="${anchor}">${eur(v)}</text>`; };
+  const dots = (step ? real : real.slice(-1)).map(([x, v]) => `<circle cx="${X(x).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="var(--text)" stroke="var(--soft)" stroke-width="2"/>`).join("");
+  const ds = (ms) => new Date(ms).toLocaleDateString(loc(), { day: "numeric", month: "numeric" });
+  const data = esc(JSON.stringify(real.map(([x, v]) => [Math.round(X(x)), Math.round(Y(v)), ds(x), v])));
+  return `<svg class="pc" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(real.map(([x, v]) => ds(x) + " " + eur(v)).join(", "))}" data-pts="${data}">
+    <line x1="${L}" x2="${W - R}" y1="${H - B + 4}" y2="${H - B + 4}" stroke="var(--line)" stroke-width="1"/>
+    <path d="${d}" fill="none" stroke="var(--text)" stroke-width="2" stroke-linejoin="round"/>
+    ${dots}${lab(iMax, true)}${iMin !== iMax ? lab(iMin, false) : ""}
+    <text x="${L}" y="${H - 2}" text-anchor="start">${ds(x0)}</text><text x="${W - R}" y="${H - 2}" text-anchor="end">${step ? t("today") : ds(P[P.length - 1][0])}</text>
+    <circle class="foc" r="6" fill="none" stroke="var(--text)" stroke-width="2" cx="0" cy="0" visibility="hidden"/>
+    <rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/></svg><div class="ctip"></div>`;
+}
+document.addEventListener("pointermove", (e) => {
+  const svg = e.target.closest && e.target.closest("svg.pc");
+  if (!svg) return;
+  const pts = JSON.parse(svg.dataset.pts), r = svg.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * 320;
+  const p = pts.reduce((a, q) => (Math.abs(q[0] - x) < Math.abs(a[0] - x) ? q : a));
+  const c = svg.querySelector(".foc"); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("visibility", "visible");
+  svg.nextElementSibling.textContent = p[2] + ": " + eur(p[3]);
+});
+function historyHtml(o) {
+  const out = [`<div class="hist"><div class="htitle">${t("hTitle")}</div>`];
+  if (o.hist && o.hist.length > 1) {
+    out.push(priceChart(o.hist, true));
+    out.push(`<div class="muted">${o.hist.map(([d, v]) => dTxt(d.slice(0, 10)) + " " + eur(v)).join(" → ")}</div>`);
+  } else out.push(`<div class="muted">${t("hSame", { d: dTxt(o.first || DATA.generated.slice(0, 10)) })}</div>`);
+  out.push(`</div><div class="hist"><div class="htitle">${t("mTitle", { m: esc(o.brand + " " + (o.model || "")) })}</div>`);
+  const same = DATA.offers.filter((x) => x.auth && !x.stale && x.brand === o.brand && nrm(x.model) === nrm(o.model));
+  if (same.length > 1) {
+    const lo = Math.min(...same.map((x) => x.price));
+    out.push(`<div>${o.price <= lo ? t("mThis", { n: same.length }) : t("mAbove", { v: eur(o.price - lo) })}</div>`);
+  }
+  if (!MODELS) { loadModels(); out.push(`<div class="muted">${t("mLoading")}</div>`); }
+  else {
+    const m = MODELS[nrm(o.brand) + "|" + nrm(o.model || "")];
+    if (!m || !m.length) out.push(`<div class="muted">${t("mNone")}</div>`);
+    else {
+      const last = m[m.length - 1], ago = (n) => { const cut = Date.now() - n * 864e5; const r = m.filter((x) => tOf(x[0]) <= cut).pop(); return r ? t("mAgo", { n, v: eur(r[1]) }) : ""; };
+      if (m.length > 1) out.push(priceChart(m.map((x) => [x[0], x[1]]), false));
+      out.push(`<div class="muted">${[t("mNow", { v: eur(last[1]) }), ago(7), ago(30), ago(90)].filter(Boolean).join(" · ")}${m.length < 8 ? " · " + t("hFrom", { d: dTxt(m[0][0]) }) : ""}</div>`);
+    }
+  }
+  out.push("</div>");
+  return out.join("");
+}
 function discount(o) { return o.list && o.list > o.price ? o.list - o.price : 0; }
 function finExtra(o) { const f = o.fin; return f && f.total ? f.total - o.price : null; }
 
@@ -312,6 +397,7 @@ function filtered() {
     if (state.onlyOfficial && !o.off) return false;
     if (state.onlyTwice && !(o.twin && o.twin.agree)) return false;
     if (state.hideFin && (o.flags || []).includes("fin")) return false;
+    if (state.onlyDrop && !o.drop) return false;
     if (state.minBoot) { const sp = spaceOf(o); if (!sp || sp.l < state.minBoot) return false; }
     if (state.minRel) { const r = relOf(o); if (!r || r.s < state.minRel) return false; }
     return true;
@@ -325,6 +411,7 @@ function sorted(list) {
     rel: (o) => { const r = relOf(o); return (r ? -r.s : 0) * 1e6 + o.price; },
     monthly: (o) => (o.fin && o.fin.monthly) || o.monthly || 1e9,
     new: (o) => -Date.parse(o.first || "2000-01-01"),
+    drop: (o) => -dropPct(o),
   }[state.sort] || ((o) => o.price);
   return list.slice().sort((a, b) => key(a) - key(b) || a.price - b.price);
 }
@@ -335,7 +422,7 @@ function renderFilters() {
   const budgets = [15000, 18000, 20000, 22000, 25000, 30000, 35000, 40000, 50000];
   const bodies = ["estate", "suv", "hatch", "mpv", "sedan", "coupe"];
   const brands = [...new Set((DATA?.offers || []).map((o) => o.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  const nf = state.brands.length + state.fuels.length + state.gears.length + state.conds.length + (state.minBoot ? 1 : 0) + (state.minRel ? 1 : 0) + (state.onlyTwice ? 1 : 0) + (state.hideFin ? 1 : 0) + (state.onlyOfficial ? 1 : 0) + (state.onlyAuth ? 0 : 1);
+  const nf = state.brands.length + state.fuels.length + state.gears.length + state.conds.length + (state.minBoot ? 1 : 0) + (state.minRel ? 1 : 0) + (state.onlyTwice ? 1 : 0) + (state.hideFin ? 1 : 0) + (state.onlyOfficial ? 1 : 0) + (state.onlyDrop ? 1 : 0) + (state.onlyAuth ? 0 : 1);
   const wasOpen = $("moreF")?.open;
   $("filtersCard").innerHTML = `
     <div class="lbl">${t("budget")}</div>
@@ -350,7 +437,7 @@ function renderFilters() {
       <div class="lbl">${t("minBoot")}</div><div class="chips">${[0, 350, 400, 450, 500, 600].map((l) => chip(l ? l + " l" : t("any"), state.minBoot === l, `data-boot="${l}"`)).join("")}</div>
       <div class="lbl">${t("minRel")}</div><div class="chips">${[0, 3, 3.5, 4, 4.5].map((r) => chip(r ? r + "/5" : t("any"), state.minRel === r, `data-rel="${r}"`)).join("")}</div>
       <div style="margin-top:8px">
-        ${[["onlyAuth"], ["onlyTwice"], ["hideFin"], ["onlyOfficial"], ["onePer", "onePerModel"]].map(([k, lab]) => `<label class="setrow"><span>${t(lab || k)}</span><span class="switch"><input type="checkbox" data-sw="${k}" ${state[k] ? "checked" : ""}><span></span></span></label>`).join("")}
+        ${[["onlyAuth"], ["onlyTwice"], ["hideFin"], ["onlyDrop"], ["onlyOfficial"], ["onePer", "onePerModel"]].map(([k, lab]) => `<label class="setrow"><span>${t(lab || k)}</span><span class="switch"><input type="checkbox" data-sw="${k}" ${state[k] ? "checked" : ""}><span></span></span></label>`).join("")}
       </div>
       <button class="btn ghost" data-reset="1" style="margin-top:6px">${t("resetF")}</button>
     </details>`;
@@ -388,13 +475,13 @@ function offerHtml(o, extra) {
     rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.max ? " (" + sp.max + " l " + t("folded") + ")" : ""}${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""} — ${esc(sp.row)} · <a href="${esc(sp.src)}" target="_blank" rel="noopener">${t("bootSrc", { s: sp.by })}</a>` : t("bootNone")}</div>`);
     if (o.perks && o.perks.length) rows.push(`<div class="muted">${o.perks.map(esc).join(" · ")}</div>`);
     if (o.vin) rows.push(`<div class="muted">${t("vin")}: ${esc(o.vin)}</div>`);
-    if (o.drop) rows.push(`<div class="save-t">${t("dropped", { v: eur(o.drop) })}</div>`);
+    rows.push(historyHtml(o));
     more = `<div class="more">${rows.join("")}</div>`;
   }
   return `<article class="offer">
     <div class="head" data-open="${esc(o.id)}">
       <div><div class="name">${esc(o.brand)} ${esc(o.model || "")}</div><div class="trim">${esc(o.title.replace(new RegExp("^" + o.brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*", "i"), ""))}</div></div>
-      <div><div class="price">${eur(o.price)}</div>${d ? `<div class="off save-t">${t("disc", { v: eur(d), p: Math.round(d / o.list * 100) })}</div>` : ""}</div>
+      <div><div class="price">${eur(o.price)}</div>${d ? `<div class="off save-t">${t("disc", { v: eur(d), p: Math.round(d / o.list * 100) })}</div>` : ""}${o.drop ? `<div class="off save-t drop ${dropPct(o) >= 0.05 ? "big" : ""}">${t("dropBadge", { v: eur(o.drop), d: dTxt(o.drop_from) })}</div>` : ""}</div>
     </div>
     <div class="facts">
       <div>${esc(meta)}</div>
@@ -406,7 +493,7 @@ function offerHtml(o, extra) {
     ${flags}${o.stale ? `<div class="note-w">${t("stale")}</div>` : ""}
     ${more}
     <div class="acts"><a class="btn primary" href="${esc(o.url)}" target="_blank" rel="noopener">${t("open")} ↗</a>${o.twin ? `<a class="btn" href="${esc(o.twin.url)}" target="_blank" rel="noopener">${t("open2")} ↗</a>` : ""}<button class="btn ghost" data-open="${esc(o.id)}">${open ? t("less") : t("details")}</button></div>
-    <div class="checked">${t("checkedAt", { d: dtTxt(o.checked || DATA.generated) })}${o.first ? " · " + t("seenSince", { d: dTxt(o.first) }) : ""}${o.drop ? ` · <span class="save-t">${t("dropped", { v: eur(o.drop) })}</span>` : ""}</div>
+    <div class="checked">${t("checkedAt", { d: dtTxt(o.read || o.checked || DATA.generated) })}${o.first ? " · " + t("seenSince", { d: dTxt(o.first) }) : ""}${o.upd ? " · " + t("dealerUpd", { d: dTxt(o.upd) }) : ""}</div>
   </article>${extra || ""}`;
 }
 
@@ -420,7 +507,7 @@ function renderList() {
     shown = list.filter((o) => groups[o.brand + "|" + nrm(o.model)][0] === o);
   }
   $("summary").innerHTML = list.length ? `<div style="min-width:0"><b>${t("nOffers", { n: list.length.toLocaleString(loc()) })}</b> <span class="small muted" style="white-space:nowrap">${t("from", { v: eur(Math.min(...list.map((o) => o.price))) })}</span></div>
-    <select id="sortSel" aria-label="${t("sort")}">${["price", "disc", "space", "rel", "monthly", "new"].map((s) => `<option value="${s}" ${state.sort === s ? "selected" : ""}>${t("s_" + s)}</option>`).join("")}</select>` : "";
+    <select id="sortSel" aria-label="${t("sort")}">${["price", "drop", "disc", "space", "rel", "monthly", "new"].map((s) => `<option value="${s}" ${state.sort === s ? "selected" : ""}>${t("s_" + s)}</option>`).join("")}</select>` : "";
   if (!list.length) { $("list").innerHTML = `<div class="empty">${t("none")}</div>`; return; }
   $("list").innerHTML = shown.slice(0, 150).map((o) => {
     const k = o.brand + "|" + nrm(o.model), g = state.onePer ? groups[k] : null;
@@ -444,12 +531,12 @@ function renderPromos() {
 }
 function renderSettings() {
   const src = DATA?.sources || {};
-  const NAMES = { kia: "Kia — kiaihned.sk (oficiálny)", hyundai: "Hyundai — skladove.hyundai.sk (oficiálny)", st_peugeot: "Peugeot — peugeot.skladovevozidla.sk", st_citroen: "Citroën — skladovevozidla.citroen.sk", st_fiat: "Fiat — fiat.skladovevozidla.sk", st_jeep: "Jeep — jeep.skladovevozidla.sk", st_alfaromeo: "Alfa Romeo — alfaromeo.skladovevozidla.sk", st_ds: "DS — skladovevozidla.dsautomobiles.sk", mitsubishi: "Mitsubishi — mitsubishi-motors.sk", dacia: "Dacia — skladove-vozidla.dacia.sk", mazda: "Mazda — mazdaihned.sk", autobazar: "autobazar.eu — nové a predvádzacie autá" };
+  const NAMES = { kia: "Kia — kiaihned.sk (oficiálny)", hyundai: "Hyundai — skladove.hyundai.sk (oficiálny)", st_peugeot: "Peugeot — peugeot.skladovevozidla.sk", st_citroen: "Citroën — skladovevozidla.citroen.sk", st_fiat: "Fiat — fiat.skladovevozidla.sk", st_jeep: "Jeep — jeep.skladovevozidla.sk", st_alfaromeo: "Alfa Romeo — alfaromeo.skladovevozidla.sk", st_ds: "DS — skladovevozidla.dsautomobiles.sk", mitsubishi: "Mitsubishi — mitsubishi-motors.sk", dacia: "Dacia — skladove-vozidla.dacia.sk", renault: "Renault — ihned.renault.sk", opel: "Opel — online.opel-ihned.sk", mazda: "Mazda — mazdaihned.sk", autobazar: "autobazar.eu — nové a predvádzacie autá" };
   $("setOut").innerHTML = `<div class="card"><h2>${t("set")}</h2>
     <div class="setrow"><span>${t("lang")}</span><div class="seg" id="lang">${["sk", "en"].map((l) => `<button data-lang="${l}" class="${state.lang === l ? "on" : ""}">${l === "sk" ? "Slovenčina" : "English"}</button>`).join("")}</div></div></div>
     <div class="card"><h2>${t("sources")}</h2><table><tbody>${Object.entries(src).map(([k, v]) => `<tr><td>${esc(NAMES[k] || k)}</td><td class="num ${v.status === "ok" ? "muted" : "warn-t"}">${v.status === "ok" ? t("src_ok", { n: v.offers }) : v.status === "blocked" ? t("src_blocked") : t("src_error")}</td></tr>`).join("")}</tbody></table>
-    <p class="small muted">${t("notCovered")}</p>${DATA?.audit ? `<p class="small">${t("auditSum", { c: DATA.audit.checked, k: DATA.audit.ok })}</p>` : ""}</div>
-    <div class="card"><h2>${t("how")}</h2><ul class="plain">${["how1", "how2", "how3", "how7", "how4", "how5", "how6"].map((k) => `<li>${t(k)}</li>`).join("")}</ul><p class="small muted">${t("relSrc")}</p></div>`;
+    <p class="small muted">${t("notCovered")}</p>${DATA?.audit ? `<p class="small">${t("auditSum", { c: DATA.audit.checked, k: DATA.audit.ok, g: DATA.audit.gone || 0 })}</p>` : ""}</div>
+    <div class="card"><h2>${t("how")}</h2><ul class="plain">${["how1", "how2", "how3", "how7", "how8", "how4", "how5", "how6"].map((k) => `<li>${t(k)}</li>`).join("")}</ul><p class="small muted">${t("relSrc")}</p></div>`;
 }
 
 function renderChrome() {
@@ -469,7 +556,7 @@ document.addEventListener("click", (e) => {
   const tog = (arr, v) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   if (b.id === "gear") { state.tab = state.tab === "set" ? "list" : "set"; save(); renderChrome(); window.scrollTo(0, 0); return; }
   if (b.dataset.lang) { state.lang = b.dataset.lang; save(); renderAll(); return; }
-  if (b.dataset.open) { OPEN = OPEN === b.dataset.open ? null : b.dataset.open; renderList(); return; }
+  if (b.dataset.open) { OPEN = OPEN === b.dataset.open ? null : b.dataset.open; if (OPEN) loadModels(); renderList(); return; }
   if (b.dataset.exp) { const k = b.dataset.exp; EXPAND.has(k) ? EXPAND.delete(k) : EXPAND.add(k); renderList(); return; }
   if (b.dataset.max != null) state.max = +b.dataset.max;
   else if (b.dataset.body) state.bodies = tog(state.bodies, b.dataset.body);
@@ -479,7 +566,7 @@ document.addEventListener("click", (e) => {
   else if (b.dataset.cond) state.conds = tog(state.conds, b.dataset.cond);
   else if (b.dataset.boot != null) state.minBoot = +b.dataset.boot;
   else if (b.dataset.rel != null) state.minRel = +b.dataset.rel;
-  else if (b.dataset.reset) { Object.assign(state, { brands: [], fuels: [], gears: [], conds: [], minBoot: 0, minRel: 0, onlyAuth: true, onlyTwice: false, hideFin: false, onlyOfficial: false }); }
+  else if (b.dataset.reset) { Object.assign(state, { brands: [], fuels: [], gears: [], conds: [], minBoot: 0, minRel: 0, onlyAuth: true, onlyTwice: false, hideFin: false, onlyOfficial: false, onlyDrop: false }); }
   else return;
   save(); renderFilters(); renderPromos(); renderList();
 });
