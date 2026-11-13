@@ -933,6 +933,37 @@ PROMO_PAGES = [
 PROMO_PAT = re.compile(r"(?:(?:od|len|už od|za)\s*\d[\d  ]*(?:,\d+)?\s*€\s*(?:/|za|mesa[čc]ne|mes)\s*(?:mes\w*)?|0\s*%\s*(?:úrok|navýšen|akontác)\w*|operatívn\w* (?:leasing|lízing)|paušál\w*|bonus\w*\s*(?:až\s*)?\d[\d  ]*\s*€|zvýhodnen\w*\s*(?:až\s*)?\d[\d  ]*\s*€|RPMN\s*\d)", re.I)
 
 
+def deal_facts(tx):
+    """the numbers that matter from a brand's offers page, as plain facts (the app words them)"""
+    n = tx.replace("\xa0", " ").replace("\u202f", " ")
+    amt = r"(\d{1,3}(?:[ .]\d{3})+|\d{3,5})\s*€"
+    f = {}
+
+    def keep_max(k, v):
+        if 100 <= v <= 15000:
+            f[k] = max(f.get(k, 0), v)
+    if re.search(r"\b0\s*%\s*(?:úrok|urok)", n, re.I):
+        f["zero"] = "rate"
+    elif re.search(r"\b0\s*%\s*navýšen", n, re.I):
+        f["zero"] = "markup"
+    for m in re.finditer(r"(finan\w*|výkupn\w*)?\s*bonus\w*\s*(?:až\s*)?(?:do\s*)?" + amt, n, re.I):
+        k = "fin" if (m.group(1) or "").lower().startswith("finan") else "trade" if (m.group(1) or "").lower().startswith("výkup") else "bonus"
+        keep_max(k, int(re.sub(r"\D", "", m.group(2))))
+    for m in re.finditer(r"zvýhodneni\w*\s*(?:až\s*)?(?:do\s*)?" + amt, n, re.I):
+        keep_max("adv", int(re.sub(r"\D", "", m.group(1))))
+    for m in re.finditer(r"zľav\w*\s*(?:až\s*)?(?:do\s*)?" + amt, n, re.I):
+        keep_max("disc", int(re.sub(r"\D", "", m.group(1))))
+    mon = [int(re.sub(r"\D", "", m.group(1))) for m in re.finditer(r"(?:od|za)\s*(\d{2,4})\s*€\s*(?:/\s*mes|mesačne|mes\.)", n, re.I)]
+    mon = [v for v in mon if 50 <= v <= 2000]
+    if mon:
+        f["monthly"] = min(mon)
+    if re.search(r"bez akontáci", n, re.I):
+        f["noDown"] = True
+    if re.search(r"operatívn\w* (?:leasing|lízing)|paušál", n, re.I):
+        f["lease"] = True
+    return f
+
+
 def promos():
     out = []
     for brand, url in PROMO_PAGES:
@@ -963,8 +994,9 @@ def promos():
             snips.append(sn)
             if len(snips) >= 4:
                 break
-        if snips:
-            out.append({"brand": brand, "url": url, "title": title, "snips": snips, "checked": NOW.isoformat(timespec="minutes")})
+        facts = deal_facts(tx)
+        if snips or facts:
+            out.append({"brand": brand, "url": url, "title": title, "facts": facts, "snips": snips[:2], "checked": NOW.isoformat(timespec="minutes")})
     with open(os.path.join(OUT, "promos.json"), "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
     log("promos:", len(out), "pages with leasing/financing offers")

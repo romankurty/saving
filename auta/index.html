@@ -169,7 +169,7 @@ const T = {
     how8: "Cenu každého auta si zapisujeme, takže uvidíš, keď zlacnie. Sledujeme od 12. 11. 2026.",
     relSrc: "Spoľahlivosť: What Car? 2026, TÜV 2026, ADAC 2026. Kufor: údaje výrobcu (Kia, katalóg ADAC), inak Cebia.",
     notCovered: "Sklady VW, Audi, Seat, Cupra, Suzuki, Škoda a Toyota nevieme čítať priamo. Ich autá tu sú od autorizovaných predajcov z autobazar.eu.", promos: "Akcie a leasing značiek",
-    promosNote: "Úryvky z oficiálnych stránok. Pri leasingu porovnaj, koľko zaplatíš spolu za celé obdobie.", sameN: "{n} rovnaké kusy", auditOk: "cena overená na stránke",
+    promosNote: "Čísla z oficiálnych stránok značiek. Podmienky sú na odkaze. Pri leasingu porovnaj, koľko zaplatíš spolu.", termsN: "podmienky {n}", d_zero: "0 % úrok", d_zeroM: "úver bez navýšenia", d_adv: "zvýhodnenie až {v}", d_disc: "zľava až {v}", d_bonus: "bonus až {v}", d_fin: "bonus pri úvere až {v}", d_trade: "výkupný bonus až {v}", d_monthly: "splátky od {v}/mes.", d_noDown: "bez akontácie", d_lease: "operatívny leasing", sameN: "{n} rovnaké kusy", auditOk: "cena overená na stránke",
     auditFail: "cenu sme na stránke nenašli", auditSum: "Posledná kontrola: otvorili sme {c} ponúk, cena a predajca sedeli pri {k}. Predaných vyradených: {g}.",
     loadErr: "Ponuky sa nenačítali. Skontroluj internet.", tSet: "Nastavenia", tList: "Autá",
   },
@@ -202,7 +202,7 @@ const T = {
     how8: "We record every car's price, so you'll see when it drops. Tracking since 12 Nov 2026.",
     relSrc: "Reliability: What Car? 2026, TÜV 2026, ADAC 2026. Boot: manufacturer figures (Kia, ADAC catalogue), otherwise Cebia.",
     notCovered: "We can't read the VW, Audi, Seat, Cupra, Suzuki, Škoda and Toyota stock sites directly. Their cars come from authorised dealers on autobazar.eu.", promos: "Brand deals and leasing",
-    promosNote: "Quoted from the official sites. For leasing, compare what you pay in total over the whole term.", sameN: "{n} identical cars", auditOk: "price checked on the page",
+    promosNote: "Numbers from the brands' official sites. Terms are on the link. For leasing, compare what you pay in total.", termsN: "terms {n}", d_zero: "0 % interest", d_zeroM: "loan at no extra cost", d_adv: "up to {v} off", d_disc: "discount up to {v}", d_bonus: "bonus up to {v}", d_fin: "loan bonus up to {v}", d_trade: "trade-in bonus up to {v}", d_monthly: "from {v}/month", d_noDown: "no down payment", d_lease: "operating lease", sameN: "{n} identical cars", auditOk: "price checked on the page",
     auditFail: "price not found on the page", auditSum: "Last check: we opened {c} offers; price and dealer matched for {k}. Sold cars removed: {g}.",
     loadErr: "Offers didn't load. Check your connection.", tSet: "Settings", tList: "Cars",
   },
@@ -251,7 +251,7 @@ try { Object.assign(state, JSON.parse(localStorage.getItem(LS) || "{}")); } catc
 const save = () => { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} };
 const t = (k, v) => { let s = (T[state.lang] || T.sk)[k] ?? T.sk[k] ?? k; if (v) for (const [a, b] of Object.entries(v)) s = s.split("{" + a + "}").join(b); return s; };
 const loc = () => (state.lang === "sk" ? "sk-SK" : "en-GB");
-const eur = (v) => v == null ? "—" : Math.round(v).toLocaleString(loc()).replace(/,/g, " ") + " €";
+const eur = (v) => v == null ? "–" : Math.round(v).toLocaleString(loc()).replace(/[,\s]/g, "\u00a0") + "\u00a0€";   // no line break inside a price
 const dtTxt = (iso) => { try { const d = new Date(iso); return d.toLocaleDateString(loc(), { day: "numeric", month: "numeric" }) + " " + d.toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" }); } catch (e) { return iso; } };
 const dTxt = (iso) => { try { return new Date(iso + "T12:00:00").toLocaleDateString(loc(), { day: "numeric", month: "numeric" }); } catch (e) { return iso; } };
 const dec = (x) => String(x).replace(".", state.lang === "sk" ? "," : ".");
@@ -430,7 +430,7 @@ function renderFilters() {
       <div class="lbl">${t("gear")}</div><div class="chips">${["man", "auto"].map((g) => chip(t("g_" + g), state.gears.includes(g), `data-gear="${g}"`)).join("")}</div>
       <div class="lbl">${t("cond")}</div><div class="chips">${["new", "demo"].map((c) => chip(t("c_" + c), state.conds.includes(c), `data-cond="${c}"`)).join("")}</div>
       <div class="lbl">${t("minBoot")}</div><div class="chips">${[0, 350, 400, 450, 500, 600].map((l) => chip(l ? l + " l" : t("any"), state.minBoot === l, `data-boot="${l}"`)).join("")}</div>
-      <div class="lbl">${t("minRel")}</div><div class="chips">${[0, 3, 3.5, 4, 4.5].map((r) => chip(r ? r + "/5" : t("any"), state.minRel === r, `data-rel="${r}"`)).join("")}</div>
+      <div class="lbl">${t("minRel")}</div><div class="chips">${[0, 3, 3.5, 4, 4.5].map((r) => chip(r ? dec(r) + "/5" : t("any"), state.minRel === r, `data-rel="${r}"`)).join("")}</div>
       <div style="margin-top:8px">
         ${[["onlyAuth"], ["onlyTwice"], ["hideFin"], ["onlyDrop"], ["onlyOfficial"], ["onePer", "onePerModel"]].map(([k, lab]) => `<label class="setrow"><span>${t(lab || k)}</span><span class="switch"><input type="checkbox" data-sw="${k}" ${state[k] ? "checked" : ""}><span></span></span></label>`).join("")}
       </div>
@@ -510,20 +510,42 @@ function renderList() {
     if (!g || g.length < 2) return offerHtml(o);
     const exp = EXPAND.has(k);
     const extra = exp ? g.slice(1).map((x) => offerHtml(x)).join("") + `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("lessOf")}</button></div>`
-      : `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("moreOf", { n: g.length - 1, m: esc(o.brand + " " + (o.model || "")) })} · ${eur(g[1].price).replace(" €", "")} – ${eur(Math.max(...g.map((x) => x.price)))}</button></div>`;
+      : `<div class="others"><button class="btn ghost" data-exp="${esc(k)}">${t("moreOf", { n: g.length - 1, m: esc(o.brand + " " + (o.model || "")) })} · ${eur(g[1].price).replace("\u00a0€", "")} – ${eur(Math.max(...g.map((x) => x.price)))}</button></div>`;
     return offerHtml(o, extra);
   }).join("");
 }
 
+// brand deals: one plain line of facts per brand (numbers from the official pages), links to the pages for the terms
+function dealLine(f) {
+  const out = [];
+  if (f.zero) out.push(t(f.zero === "rate" ? "d_zero" : "d_zeroM"));
+  if (f.adv) out.push(t("d_adv", { v: eur(f.adv) }));
+  if (f.disc) out.push(t("d_disc", { v: eur(f.disc) }));
+  if (f.bonus) out.push(t("d_bonus", { v: eur(f.bonus) }));
+  if (f.fin) out.push(t("d_fin", { v: eur(f.fin) }));
+  if (f.trade) out.push(t("d_trade", { v: eur(f.trade) }));
+  if (f.monthly) out.push(t("d_monthly", { v: eur(f.monthly) }));
+  if (f.noDown) out.push(t("d_noDown"));
+  if (f.lease) out.push(t("d_lease"));
+  return out;
+}
 function renderPromos() {
   const ps = (PROMOS || []).filter((p) => !state.brands.length || state.brands.includes(p.brand));
-  $("promoCard").hidden = !ps.length;
-  if (!ps.length) return;
-  $("promoSum").innerHTML = `${t("promos")} <span class="small muted">(${ps.length})</span>`;
-  $("promoOut").innerHTML = `<p class="small muted" style="margin:8px 0">${t("promosNote")}</p>` + ps.map((p) => `<div style="padding:10px 0;border-top:1px solid var(--line)">
-    <div class="row"><b>${esc(p.brand)}</b><a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">${t("open")} ↗</a></div>
-    <div class="tiny muted">${esc(p.title)}</div>
-    <ul class="plain">${p.snips.map((x) => `<li>„${esc(x)}“</li>`).join("")}</ul></div>`).join("");
+  const by = {};
+  for (const p of ps) {
+    const b = (by[p.brand] = by[p.brand] || { f: {}, links: [] });
+    for (const [k, v] of Object.entries(p.facts || {})) b.f[k] = k === "monthly" ? Math.min(b.f[k] || 1e9, v) : typeof v === "number" ? Math.max(b.f[k] || 0, v) : v;
+    b.links.push(p);
+  }
+  // older data without facts: show the first quoted line instead
+  for (const b of Object.keys(by)) if (!dealLine(by[b].f).length && by[b].links[0].snips && by[b].links[0].snips.length) by[b].q = by[b].links[0].snips[0].slice(0, 140);
+  const brands = Object.keys(by).filter((b) => dealLine(by[b].f).length || by[b].q);
+  $("promoCard").hidden = !brands.length;
+  if (!brands.length) return;
+  $("promoSum").innerHTML = `${t("promos")} <span class="small muted">(${brands.length})</span>`;
+  $("promoOut").innerHTML = `<p class="small muted" style="margin:8px 0">${t("promosNote")}</p>` + brands.map((b) => `<div style="padding:10px 0;border-top:1px solid var(--line)">
+    <div><b>${esc(b)}</b>: ${dealLine(by[b].f).length ? dealLine(by[b].f).join(" · ") : `<span class="muted">„${esc(by[b].q)}…“</span>`}</div>
+    <div class="small" style="margin-top:4px">${by[b].links.map((p, i) => `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(t("termsN", { n: by[b].links.length > 1 ? i + 1 : "" }).trim())} ↗</a>`).join(" &nbsp; ")}</div></div>`).join("");
 }
 function renderSettings() {
   const src = DATA?.sources || {};
