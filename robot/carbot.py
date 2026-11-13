@@ -251,7 +251,13 @@ def detail_due(oid, price):
 VIN_RX = re.compile(r"[A-HJ-NPR-Z0-9]{17}")
 
 
+BRAND_FIX = {"mg": "MG", "hongqi": "Hongqi"}
+
+
 def add(o):
+    o["brand"] = BRAND_FIX.get(norm(o.get("brand") or ""), o.get("brand"))
+    if o.get("model"):
+        o["model"] = re.sub(r"^(Nov[éýáa]|New)\s+", "", o["model"], flags=re.I)
     v = (o.get("vin") or "").strip().upper()
     o["vin"] = v if VIN_RX.fullmatch(v) and len(set(v)) > 4 else None   # portals carry "XXXX", "..." or "bez VIN"
     if o.get("cond") == "new" and (o.get("km") or 0) > 500:
@@ -1245,6 +1251,15 @@ def main():
     cross_check()
     keep = [o for o in OFFERS if not o.get("dup") and sanity(o)]
     dropped = len(OFFERS) - len(keep)
+    by_id = {}
+    for o in sorted(keep, key=lambda o: o["price"]):
+        if o["id"] in by_id:
+            a = by_id[o["id"]]
+            if abs(a["price"] - o["price"]) > 1:
+                a["flags"] = sorted(set(a.get("flags", []) + ["price_mismatch"]))
+            continue
+        by_id[o["id"]] = o
+    keep = list(by_id.values())
     # price history per car: source + VIN when known (stays the same when a dealer re-lists the car), else the offer id
     stamp = NOW.isoformat(timespec="hours")[:13]
     live = set()
@@ -1253,6 +1268,14 @@ def main():
         if o.get("vin"):
             vk = f"{o['src']}:{o['vin']}"
             vcount[vk] = vcount.get(vk, 0) + 1
+    for k, h in HIST.items():
+        p_ = h.get("p", [])
+        i = 1
+        while i < len(p_) - 1:
+            if p_[i - 1][1] == p_[i + 1][1] and len(p_[i][0]) >= 13 and len(p_[i + 1][0]) >= 13 and (dt.datetime.fromisoformat(p_[i + 1][0] + ":00") - dt.datetime.fromisoformat(p_[i][0] + ":00")).total_seconds() <= 3 * 3600:
+                del p_[i:i + 2]
+            else:
+                i += 1
     for k in list(HIST):
         if vcount.get(k, 0) > 1 or (k.startswith("autobazar:") and not VIN_RX.fullmatch(k[10:])):
             del HIST[k]   # VIN shared by several listings or not a real VIN ("XXXX", "bez VIN"): that history mixes cars
