@@ -141,80 +141,70 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 // ------------------------------------------------------------------ texts
 const T = {
   sk: {
-    checked: "Ponuky skontrolované {d}", budget: "Rozpočet", upTo: "do {v}", any: "bez limitu", body: "Karoséria", allBodies: "Všetky",
-    b_estate: "Kombi", b_suv: "SUV", b_hatch: "Hatchback", b_mpv: "MPV / 7 miest", b_sedan: "Sedan", b_coupe: "Kupé / kabrio", b_other: "Iné",
-    filters: "Ďalšie filtre", sort: "Zoradiť", s_price: "Najnižšia cena", s_disc: "Najväčšia zľava", s_space: "Najviac kufra za euro", s_rel: "Najspoľahlivejšie", s_monthly: "Najnižšia splátka", s_new: "Najnovšie ponuky",
-    brands: "Značky", fuel: "Palivo", f_petrol: "Benzín", f_hybrid: "Hybrid", f_phev: "Plug-in hybrid", f_ev: "Elektro", f_diesel: "Diesel", f_lpg: "LPG / CNG",
-    gear: "Prevodovka", g_man: "Manuál", g_auto: "Automat", cond: "Stav", c_new: "Nové", c_demo: "Predvádzacie", minBoot: "Kufor aspoň", minRel: "Spoľahlivosť aspoň",
-    onlyAuth: "Len autorizovaní predajcovia", onlyTwice: "Len overené 2 zdrojmi (rovnaké VIN)", hideFin: "Ceny bez povinného financovania (v hotovosti)", onlyOfficial: "Len oficiálne sklady značiek",
-    onePerModel: "Najlacnejší kus z každého modelu", resetF: "Zrušiť filtre", nOffers: "{n} ponúk", from: "od {v}", none: "Žiadna ponuka nespĺňa filtre. Skús vyšší rozpočet alebo menej filtrov.",
-    disc: "−{v} ({p} %)", vsList: "oproti cenníkovej cene {v}", boot: "Kufor", seats: "{n} miest", rel: "Spoľahlivosť", relNone: "bez dát",
-    dealer: "Predajca", auth: "autorizovaný predajca {b}", notAuth: "neoverený predajca", verified2: "Overené 2 zdrojmi: rovnaké VIN, cena sedí", verified2diff: "2 zdroje (rovnaké VIN), ale cena sa líši: {v}",
-    official: "Oficiálny sklad značky {b}", portal: "autobazar.eu · predajca overený portálom", open: "Otvoriť ponuku", open2: "2. zdroj",
-    seenSince: "v ponuke od {d}", checkedAt: "skontrolované {d}", dropped: "zlacnené o {v}", stale: "zdroj dnes nedostupný — údaj zo včera",
-    dropBadge: "↓ {v} od {d}", today: "dnes", s_drop: "Najviac zlacnené v čase", onlyDrop: "Len autá, ktoré zlacneli",
-    hTitle: "Cena tohto auta v čase", hSame: "Cena sa nezmenila od {d}, keď sme auto prvýkrát videli.", hFrom: "Sledujeme od {d}.",
-    mTitle: "Najnižšia cena modelu {m} (autorizovaní predajcovia)", mNow: "dnes {v}", mAgo: "pred {n} dňami {v}", mThis: "Toto auto je najlacnejšie z {n}.", mAbove: "O {v} drahšie ako najlacnejší kus dnes.",
-    mLoading: "Načítavam vývoj cien…", mNone: "Vývoj ceny modelu zatiaľ nemáme.", readAt: "stránku sme čítali {d}", dealerUpd: "predajca aktualizoval {d}",
-    fl_unconfirmed: "Cenu sa pri dnešnej kontrole na stránke nepodarilo potvrdiť — over na odkaze",
-    fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie", fl_fin_bonus: "Ďalšia zľava pri financovaní značky (pozri podmienky)", fl_price_mismatch: "Stránka uvádza dve rôzne ceny — over na odkaze",
-    monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %); úver stojí o {d} viac ako hotovosť", finTotalNoR: "Pri financovaní zaplatíš spolu {t}; úver stojí o {d} viac ako hotovosť",
-    finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finIns: "(v sume je aj poistenie ≈ {v}, to platíš aj pri kúpe za hotovosť — preto sa do rozdielu nepočíta)", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
-    cash: "Cena v hotovosti", priceCond: "Cena (s podmienkami vyššie)", finOnly: "Cena so značkovým financovaním", cashKnown: "V hotovosti {v}", listP: "Cenníková cena", wasAd: "Pôvodná cena v inzeráte (údaj predajcu)", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
-    relWhy: "Prečo {s}/5: majitelia (What Car? 2026, autá do 5 rokov) {w} %{tuv}{note}", relTuv: " · TÜV 2026 dlhodobo: {v} % závažných chýb", relNoData: "Pre túto značku nie sú dostupné nezávislé dáta 2026.",
-    bootSrc: "zdroj: {s}", bootOff: "oficiálne technické údaje", bootDealer: "údaj predajcu", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
-    moreOf: "+ {n} ďalších {m}", lessOf: "Skryť ďalšie", fewer: "",
-    set: "Nastavenia a zdroje", lang: "Jazyk", sources: "Zdroje dát", src_ok: "{n} ponúk", src_blocked: "zakazuje robotov — nečítame", src_error: "dnes nedostupné",
-    how: "Ako overujeme", how1: "Oficiálne sklady značiek (Kia, Hyundai, Dacia, Renault, Opel, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi): ponúkajú len autorizovaní predajcovia.",
-    how2: "autobazar.eu: zobrazujeme len predajcov, ktorých portál overil ako autorizovaných pre danú značku.",
-    how3: "Rovnaké auto (VIN) na oficiálnom sklade aj na portáli = overené 2 zdrojmi; porovnáme ceny.",
-    how4: "Ceny nižšie o viac ako 45 % oproti cenníku vyraďujeme ako nevierohodné.",
-    how5: "Podmienky ceny (len s financovaním, výkup, IČO) čítame z popisu ponuky; vždy over na odkaze.",
-    how6: "Údaje sa obnovujú 4× denne (okolo 4:00, 10:00, 14:00 a 19:00). Každé auto má pri sebe čas, kedy sme jeho cenu čítali.", how7: "Pri každej obnove znovu otvoríme najlacnejšie auto z každého modelu (to, čo vidíš ako prvé) a ďalšie náhodné ponuky a samostatnou kontrolou overíme, že cena a predajca na stránke naozaj sú. Predané autá (stránka zmizla) hneď vyradíme.",
-    how8: "Vývoj ceny: pri každej obnove si zapíšeme cenu každého auta (podľa VIN) a najnižšiu cenu každého modelu. Zlacnenie ukážeme pri aute; staršie údaje začínajú 12. 11. 2026.",
-    relSrc: "Spoľahlivosť: What Car? Reliability Survey 2026 (značky), TÜV Report 2026, ADAC Pannenstatistik 2026. Objem kufra: oficiálne technické údaje (Kia), inak ADAC Autokatalog – údaj výrobcu pre zodpovedajúcu verziu najnovšej generácie, prípadne sprievodca Cebia.",
-    notCovered: "Nečítame (zakazujú robotov): sklady VW, Audi, Seat, Cupra, Suzuki. Ich autá vidíš cez autorizovaných predajcov na autobazar.eu.",
-    promos: "Leasing a akcie značiek (oficiálne stránky)", promosNote: "Citované priamo z oficiálnych stránok značiek. Operatívny leasing (paušál) a 0 % financovanie môžu byť výhodnejšie ako kúpa — porovnaj celkovú sumu za celé obdobie na odkaze.",
-    sameN: "{n} rovnaké kusy", auditOk: "cena a predajca dnes overení na stránke", auditFail: "dnes sa nepodarilo potvrdiť na stránke — over",
-    auditSum: "Posledná kontrola: znovu sme otvorili {c} ponúk (najlacnejšie z každého modelu + náhodné); cenu a predajcu sme potvrdili pri {k}, predaných vyradených {g}.", loadErr: "Ponuky sa nepodarilo načítať. Skontroluj pripojenie.", tSet: "Nastavenia", tList: "Autá",
+    checked: "Aktualizované {d}", budget: "Rozpočet", upTo: "do {v}", any: "bez limitu", body: "Karoséria", allBodies: "Všetky", b_estate: "Kombi", b_suv: "SUV", b_hatch: "Hatchback",
+    b_mpv: "MPV / 7 miest", b_sedan: "Sedan", b_coupe: "Kupé / kabrio", b_other: "Iné", filters: "Ďalšie filtre", sort: "Zoradiť", s_price: "Najlacnejšie", s_disc: "Najväčšia zľava",
+    s_space: "Najviac kufra za euro", s_rel: "Najspoľahlivejšie", s_monthly: "Najnižšia splátka", s_new: "Najnovšie", brands: "Značky", fuel: "Palivo", f_petrol: "Benzín", f_hybrid: "Hybrid",
+    f_phev: "Plug-in hybrid", f_ev: "Elektro", f_diesel: "Diesel", f_lpg: "LPG / CNG", gear: "Prevodovka", g_man: "Manuál", g_auto: "Automat", cond: "Stav", c_new: "Nové", c_demo: "Predvádzacie",
+    minBoot: "Kufor aspoň", minRel: "Spoľahlivosť aspoň", onlyAuth: "Len autorizovaní predajcovia", onlyTwice: "Len autá overené na 2 weboch", hideFin: "Ceny za hotovosť (bez povinného úveru)",
+    onlyOfficial: "Len oficiálne sklady značiek", onePerModel: "Z každého modelu len najlacnejší", resetF: "Zrušiť filtre", nOffers: "{n} ponúk", from: "od {v}",
+    none: "Nič sa nenašlo. Skús vyšší rozpočet alebo menej filtrov.", disc: "zľava {v}", boot: "Kufor", seats: "{n} miest", rel: "Spoľahlivosť", relNone: "bez dát", dealer: "Predajca",
+    auth: "autorizovaný predajca {b}", notAuth: "Predajca nie je overený", verified2: "Rovnaké auto na 2 weboch, cena sedí", verified2diff: "Na 2. webe iná cena: {v}", official: "Oficiálny sklad {b}",
+    portal: "Autorizovaný predajca", open: "Otvoriť ponuku", open2: "2. web", seenSince: "v ponuke od {d}", checkedAt: "cena zistená {d}", stale: "Zdroj dnes nefungoval, cena je z posledného načítania",
+    dropBadge: "zlacnelo o {v}", today: "dnes", s_drop: "Najviac zlacnené", onlyDrop: "Len zlacnené autá", hTitle: "Cena tohto auta", hSame: "Od {d} sa nemenila.", hFrom: "sledujeme od {d}",
+    mTitle: "Najlacnejší {m} u autorizovaných predajcov", mNow: "dnes {v}", mAgo: "pred {n} dňami {v}", mThis: "Toto je najlacnejší z {n} kusov.", mAbove: "Najlacnejší kus je o {v} lacnejší.",
+    mLoading: "Načítavam…", mNone: "Zatiaľ bez histórie.", readAt: "stránka čítaná {d}", dealerUpd: "predajca upravil {d}", fl_unconfirmed: "Cenu sme dnes na stránke nenašli, over si ju",
+    fl_fin: "Táto cena len pri úvere cez značku", fl_tradein: "Táto cena len pri výkupe tvojho auta", fl_company: "Táto cena možno len pre firmy", fl_insurance: "Táto cena len s poistením u predajcu",
+    fl_fin_cheaper: "S úverom lacnejšie", fl_fin_bonus: "Pri úvere cez značku zľava navyše", fl_price_mismatch: "Stránka uvádza 2 rôzne ceny, over si", monthly: "Splátka od {v}/mes.", zero: "0 % úrok",
+    finTotal: "Na úver zaplatíš spolu {t} (RPMN {r} %), o {d} viac ako za hotovosť.", finTotalNoR: "Na úver zaplatíš spolu {t}, o {d} viac ako za hotovosť.",
+    finTerms: "Akontácia {a} %, {m} mesiacov, splátka {s}{l}", finIns: "(bez poistenia ≈ {v}, to platíš aj tak)", finLast: ", posledná {v}", lowest30: "Najnižšia cena za 30 dní (údaj predajcu)",
+    cash: "Za hotovosť", priceCond: "Cena s podmienkami", finOnly: "Pri úvere cez značku", cashKnown: "za hotovosť {v}", listP: "Cenníková cena", wasAd: "Pôvodná cena v inzeráte", km: "{v} km",
+    year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej", relWhy: "Hodnotenie od majiteľov {w} % (What Car? 2026){tuv}{note}",
+    relTuv: ", vážne chyby na STK pri 10-ročných: {v} % (TÜV 2026)", relNoData: "Pre túto značku nemáme nezávislé dáta.", bootSrc: "podľa {s}", bootOff: "údajov výrobcu", bootDealer: "predajcu",
+    folded: "so sklopenými sedadlami", bootNone: "Kufor: zatiaľ bez údaja", moreOf: "+ {n} ďalších {m}", lessOf: "Skryť", set: "Nastavenia", lang: "Jazyk", sources: "Odkiaľ sú autá", src_ok: "{n}",
+    src_blocked: "nečítame", src_error: "dnes nefunguje", how: "Ako kontrolujeme",
+    how1: "Len autorizovaní predajcovia: oficiálne sklady 13 značiek a predajcov, ktorých autobazar.eu overil pre danú značku.", how2: "",
+    how3: "Keď je to isté auto (rovnaké VIN) na 2 weboch, porovnáme ceny.", how4: "Cenu o viac ako 45 % pod cenníkom vyradíme, je to takmer isto chyba.",
+    how5: "Podmienky ceny (úver, výkup, firma) čítame z textu ponuky. Pred kúpou si ich over u predajcu.", how6: "Obnova 4× denne: okolo 4:00, 10:00, 14:00 a 19:00.",
+    how7: "Pri každej obnove znova otvoríme stránku najlacnejšieho auta z každého modelu a skontrolujeme cenu aj predajcu. Predané autá hneď vyradíme.",
+    how8: "Cenu každého auta si zapisujeme, takže uvidíš, keď zlacnie. Sledujeme od 12. 11. 2026.",
+    relSrc: "Spoľahlivosť: What Car? 2026, TÜV 2026, ADAC 2026. Kufor: údaje výrobcu (Kia, katalóg ADAC), inak Cebia.",
+    notCovered: "Sklady VW, Audi, Seat, Cupra, Suzuki, Škoda a Toyota nevieme čítať priamo. Ich autá tu sú od autorizovaných predajcov z autobazar.eu.", promos: "Akcie a leasing značiek",
+    promosNote: "Úryvky z oficiálnych stránok. Pri leasingu porovnaj, koľko zaplatíš spolu za celé obdobie.", sameN: "{n} rovnaké kusy", auditOk: "cena overená na stránke",
+    auditFail: "cenu sme na stránke nenašli", auditSum: "Posledná kontrola: otvorili sme {c} ponúk, cena a predajca sedeli pri {k}. Predaných vyradených: {g}.",
+    loadErr: "Ponuky sa nenačítali. Skontroluj internet.", tSet: "Nastavenia", tList: "Autá",
   },
   en: {
-    checked: "Offers checked {d}", budget: "Budget", upTo: "up to {v}", any: "no limit", body: "Body", allBodies: "All",
-    b_estate: "Estate", b_suv: "SUV", b_hatch: "Hatchback", b_mpv: "MPV / 7 seats", b_sedan: "Sedan", b_coupe: "Coupé / convertible", b_other: "Other",
-    filters: "More filters", sort: "Sort", s_price: "Lowest price", s_disc: "Biggest discount", s_space: "Most boot per euro", s_rel: "Most reliable", s_monthly: "Lowest instalment", s_new: "Newest offers",
-    brands: "Brands", fuel: "Fuel", f_petrol: "Petrol", f_hybrid: "Hybrid", f_phev: "Plug-in hybrid", f_ev: "Electric", f_diesel: "Diesel", f_lpg: "LPG / CNG",
-    gear: "Gearbox", g_man: "Manual", g_auto: "Automatic", cond: "Condition", c_new: "New", c_demo: "Demo", minBoot: "Boot at least", minRel: "Reliability at least",
-    onlyAuth: "Authorised dealers only", onlyTwice: "Only double-checked (same VIN in 2 sources)", hideFin: "Prices without mandatory financing (cash)", onlyOfficial: "Official brand stock only",
-    onePerModel: "Cheapest car of each model", resetF: "Clear filters", nOffers: "{n} offers", from: "from {v}", none: "No offer matches. Try a higher budget or fewer filters.",
-    disc: "−{v} ({p} %)", vsList: "vs list price {v}", boot: "Boot", seats: "{n} seats", rel: "Reliability", relNone: "no data",
-    dealer: "Dealer", auth: "authorised {b} dealer", notAuth: "unverified dealer", verified2: "Double-checked: same VIN in 2 sources, price matches", verified2diff: "2 sources (same VIN), but price differs: {v}",
-    official: "Official {b} stock", portal: "autobazar.eu · dealer verified by the portal", open: "Open offer", open2: "2nd source",
-    seenSince: "listed since {d}", checkedAt: "checked {d}", dropped: "price cut {v}", stale: "source unavailable today — yesterday's data",
-    dropBadge: "↓ {v} since {d}", today: "today", s_drop: "Biggest price drop over time", onlyDrop: "Only cars whose price dropped",
-    hTitle: "This car's price over time", hSame: "No change since {d}, when we first saw this car.", hFrom: "Tracked since {d}.",
-    mTitle: "Lowest price of the {m} (authorised dealers)", mNow: "today {v}", mAgo: "{n} days ago {v}", mThis: "This is the cheapest of {n}.", mAbove: "{v} more than the cheapest one today.",
-    mLoading: "Loading the price trend…", mNone: "No price trend for this model yet.", readAt: "page read {d}", dealerUpd: "dealer updated {d}",
-    fl_unconfirmed: "Today's live check couldn't confirm this price on the page — check the link",
-    fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing", fl_fin_bonus: "Extra discount with the brand's financing (see terms)", fl_price_mismatch: "The page shows two different prices — confirm on the link",
-    monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %); the credit costs {d} more than cash", finTotalNoR: "With financing you pay {t} in total; the credit costs {d} more than cash",
-    finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finIns: "(the total includes insurance ≈ {v}, which you'd pay with cash too — so it's left out of the difference)", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
-    cash: "Cash price", priceCond: "Price (with the conditions above)", finOnly: "Price with the brand's financing", cashKnown: "Cash {v}", listP: "List price", wasAd: "Original price in the ad (dealer's figure)", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
-    relWhy: "Why {s}/5: owners (What Car? 2026, cars up to 5 years) {w} %{tuv}{note}", relTuv: " · TÜV 2026 long-term: {v} % major defects", relNoData: "No independent 2026 data for this brand.",
-    bootSrc: "source: {s}", bootOff: "official technical data", bootDealer: "dealer's figure", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
-    moreOf: "+ {n} more {m}", lessOf: "Hide others", fewer: "",
-    set: "Settings & sources", lang: "Language", sources: "Data sources", src_ok: "{n} offers", src_blocked: "forbids robots — not read", src_error: "unavailable today",
-    how: "How we verify", how1: "Official brand stock sites (Kia, Hyundai, Dacia, Renault, Opel, Mazda, Peugeot, Citroën, Fiat, Jeep, Alfa Romeo, DS, Mitsubishi) list authorised dealers only.",
-    how2: "autobazar.eu: we show only dealers the portal verified as authorised for that brand.",
-    how3: "Same car (VIN) on an official site and on the portal = double-checked; prices compared.",
-    how4: "Prices more than 45 % below the list price are dropped as implausible.",
-    how5: "Price conditions (financing only, trade-in, company) are read from the offer text; always confirm on the link.",
-    how6: "Data refreshes 4× a day (around 4:00, 10:00, 14:00 and 19:00). Every car shows when its price was read.", how7: "On every refresh we re-open the cheapest car of every model (what you see first) plus random offers and, with a separate check, confirm the price and dealer really are on the page. Sold cars (page gone) are removed at once.",
-    how8: "Price history: every refresh records each car's price (by VIN) and each model's lowest price. Drops are shown on the car; history starts on 12 Nov 2026.",
-    relSrc: "Reliability: What Car? Reliability Survey 2026 (brands), TÜV Report 2026, ADAC breakdown statistics 2026. Boot volume: official technical data (Kia), otherwise the ADAC car catalogue – manufacturer figure for the matching version of the newest generation, or the Cebia guide.",
-    notCovered: "Not read (they forbid robots): VW, Audi, Seat, Cupra and Suzuki stock sites. Their cars appear via authorised dealers on autobazar.eu.",
-    promos: "Brand leasing & promotions (official sites)", promosNote: "Quoted from the brands' official pages. Operating lease (flat monthly) and 0 % financing can beat buying — compare the total over the whole term on the link.",
-    sameN: "{n} identical cars", auditOk: "price and dealer re-checked on the page today", auditFail: "couldn't be confirmed on the page today — check",
-    auditSum: "Last check: we re-opened {c} offers (cheapest of every model + random); price and dealer confirmed for {k}, sold cars removed {g}.", loadErr: "Couldn't load offers. Check the connection.", tSet: "Settings", tList: "Cars",
+    checked: "Updated {d}", budget: "Budget", upTo: "up to {v}", any: "no limit", body: "Body", allBodies: "All", b_estate: "Estate", b_suv: "SUV", b_hatch: "Hatchback", b_mpv: "MPV / 7 seats",
+    b_sedan: "Sedan", b_coupe: "Coupé / convertible", b_other: "Other", filters: "More filters", sort: "Sort", s_price: "Cheapest", s_disc: "Biggest discount", s_space: "Most boot per euro",
+    s_rel: "Most reliable", s_monthly: "Lowest instalment", s_new: "Newest", brands: "Brands", fuel: "Fuel", f_petrol: "Petrol", f_hybrid: "Hybrid", f_phev: "Plug-in hybrid", f_ev: "Electric",
+    f_diesel: "Diesel", f_lpg: "LPG / CNG", gear: "Gearbox", g_man: "Manual", g_auto: "Automatic", cond: "Condition", c_new: "New", c_demo: "Demo", minBoot: "Boot at least",
+    minRel: "Reliability at least", onlyAuth: "Authorised dealers only", onlyTwice: "Only cars confirmed on 2 sites", hideFin: "Cash prices (no required loan)", onlyOfficial: "Official brand stock only",
+    onePerModel: "Only the cheapest of each model", resetF: "Clear filters", nOffers: "{n} offers", from: "from {v}", none: "Nothing found. Try a higher budget or fewer filters.", disc: "{v} off",
+    boot: "Boot", seats: "{n} seats", rel: "Reliability", relNone: "no data", dealer: "Dealer", auth: "authorised {b} dealer", notAuth: "Dealer not verified",
+    verified2: "Same car on 2 sites, price matches", verified2diff: "Different price on the 2nd site: {v}", official: "Official {b} stock", portal: "Authorised dealer", open: "Open offer",
+    open2: "2nd site", seenSince: "listed since {d}", checkedAt: "price read {d}", stale: "Source down today, price from the last reading", dropBadge: "{v} cheaper", today: "today",
+    s_drop: "Biggest price drop", onlyDrop: "Only cars that got cheaper", hTitle: "This car's price", hSame: "Unchanged since {d}.", hFrom: "tracked since {d}",
+    mTitle: "Cheapest {m} at authorised dealers", mNow: "today {v}", mAgo: "{n} days ago {v}", mThis: "This is the cheapest of {n}.", mAbove: "The cheapest one is {v} less.", mLoading: "Loading…",
+    mNone: "No history yet.", readAt: "page read {d}", dealerUpd: "dealer updated {d}", fl_unconfirmed: "We couldn't find this price on the page today, check it",
+    fl_fin: "This price only with the brand's loan", fl_tradein: "This price only if you trade in your car", fl_company: "This price may be for companies only",
+    fl_insurance: "This price only with the dealer's insurance", fl_fin_cheaper: "Cheaper with a loan", fl_fin_bonus: "Extra discount with the brand's loan",
+    fl_price_mismatch: "The page shows 2 different prices, check it", monthly: "From {v}/month", zero: "0 % interest", finTotal: "With the loan you pay {t} in total (APR {r} %), {d} more than cash.",
+    finTotalNoR: "With the loan you pay {t} in total, {d} more than cash.", finTerms: "Down payment {a} %, {m} months, {s} a month{l}", finIns: "(excluding insurance ≈ {v}, which you pay anyway)",
+    finLast: ", final {v}", lowest30: "Lowest price in 30 days (dealer's figure)", cash: "Cash", priceCond: "Price with conditions", finOnly: "With the brand's loan", cashKnown: "cash {v}",
+    listP: "List price", wasAd: "Original price in the ad", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
+    relWhy: "Owners' reliability score {w} % (What Car? 2026){tuv}{note}", relTuv: ", serious MOT defects at 10 years: {v} % (TÜV 2026)", relNoData: "No independent data for this brand.",
+    bootSrc: "per {s}", bootOff: "the manufacturer", bootDealer: "the dealer", folded: "seats folded", bootNone: "Boot: no figure yet", moreOf: "+ {n} more {m}", lessOf: "Hide", set: "Settings",
+    lang: "Language", sources: "Where the cars come from", src_ok: "{n}", src_blocked: "not read", src_error: "down today", how: "How we check",
+    how1: "Authorised dealers only: official stock of 13 brands, plus dealers autobazar.eu has verified for that brand.", how2: "",
+    how3: "When the same car (same VIN) is on 2 sites, we compare the prices.", how4: "A price more than 45 % under the list price is dropped; it's almost certainly an error.",
+    how5: "Price conditions (loan, trade-in, company) come from the offer text. Confirm them with the dealer before buying.", how6: "Refreshed 4× a day: around 4:00, 10:00, 14:00 and 19:00.",
+    how7: "On every refresh we reopen the cheapest car of every model and check the price and dealer. Sold cars are removed right away.",
+    how8: "We record every car's price, so you'll see when it drops. Tracking since 12 Nov 2026.",
+    relSrc: "Reliability: What Car? 2026, TÜV 2026, ADAC 2026. Boot: manufacturer figures (Kia, ADAC catalogue), otherwise Cebia.",
+    notCovered: "We can't read the VW, Audi, Seat, Cupra, Suzuki, Škoda and Toyota stock sites directly. Their cars come from authorised dealers on autobazar.eu.", promos: "Brand deals and leasing",
+    promosNote: "Quoted from the official sites. For leasing, compare what you pay in total over the whole term.", sameN: "{n} identical cars", auditOk: "price checked on the page",
+    auditFail: "price not found on the page", auditSum: "Last check: we opened {c} offers; price and dealer matched for {k}. Sold cars removed: {g}.",
+    loadErr: "Offers didn't load. Check your connection.", tSet: "Settings", tList: "Cars",
   },
 };
 
@@ -379,6 +369,10 @@ function historyHtml(o) {
   out.push("</div>");
   return out.join("");
 }
+function trimOf(o) {
+  const tr = o.title.replace(new RegExp("^" + o.brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*", "i"), "").trim();
+  return nrm(tr) === nrm(o.model) ? "" : tr;
+}
 function discount(o) { return o.list && o.list > o.price ? o.list - o.price : 0; }
 function finExtra(o) { const f = o.fin; return f && f.total ? f.total - o.price : null; }
 
@@ -448,12 +442,13 @@ function offerHtml(o, extra) {
   const meta = [t("c_" + o.cond) + (o.cond === "demo" && o.km ? " · " + t("km", { v: Math.round(o.km).toLocaleString(loc()) }) : ""), o.year, t("f_" + o.fuel) + (o.mhev && o.fuel === "petrol" ? " mild-hybrid" : ""), t("g_" + o.gear), o.kw ? Math.round(o.kw) + " kW" : ""].filter(Boolean).join(" · ");
   const stars = r ? "★★★★★".slice(0, Math.floor(r.s)) + (r.s % 1 ? "½" : "") + "☆☆☆☆☆".slice(0, 5 - Math.ceil(r.s)) : "";
   const ver = o.twin ? (o.twin.agree ? `<span class="save-t" style="font-weight:700">✓✓ ${t("verified2")}</span>` : `<span class="warn-t" style="font-weight:700">${t("verified2diff", { v: eur(o.twin.price) })}</span>`) : (o.off ? `✓ ${t("official", { b: esc(o.brand) })}` : (o.auth ? `✓ ${t("portal")}` : `<span class="warn-t">${t("notAuth")}</span>`));
-  const flags = fl.filter((f) => f !== "fin_cheaper").map((f) => `<div class="note-w">! ${t("fl_" + f)}${f === "fin" && o.cash ? " · " + t("cashKnown", { v: eur(o.cash) }) : ""}</div>`).join("");
+  const flags = fl.filter((f) => f !== "fin_cheaper" && f !== "fin_bonus").map((f) => `<div class="note-w">! ${t("fl_" + f)}${f === "fin" && o.cash ? ", " + t("cashKnown", { v: eur(o.cash) }) : ""}</div>`).join("");
   const fin = [];
   if (o.fin_price) fin.push(`${t("fl_fin_cheaper")}: <b>${eur(o.fin_price)}</b>`);
   if (o.fin && o.fin.monthly) fin.push(t("monthly", { v: eur(o.fin.monthly) }));
   else if (o.monthly) fin.push(t("monthly", { v: eur(o.monthly) }));
   if (o.zero_rate) fin.push(`<span class="flag s">${t("zero")}</span>`);
+  if (fl.includes("fin_bonus")) fin.push(t("fl_fin_bonus"));
   let more = "";
   if (open) {
     const f = o.fin || {};
@@ -464,7 +459,7 @@ function offerHtml(o, extra) {
     } else rows.push(`<div class="row"><span>${t(fl.some((f) => ["fin", "tradein", "company", "insurance"].includes(f)) ? "priceCond" : "cash")}</span><b>${eur(o.price)}</b></div>`);
     if (o.finPrice) rows.push(`<div class="row"><span>${t("finOnly")}</span><span>${eur(o.finPrice)}</span></div>`);
     if (o.list) rows.push(`<div class="row"><span>${t(o.src === "autobazar" ? "wasAd" : "listP")}</span><span>${eur(o.list)}</span></div>`);
-    if (o.low30) rows.push(`<div class="row"><span>${t("lowest30", { v: "" }).replace(/:\s*$/, "")}</span><span>${eur(o.low30)}</span></div>`);
+    if (o.low30) rows.push(`<div class="row"><span>${t("lowest30")}</span><span>${eur(o.low30)}</span></div>`);
     if (f.total && f.total > o.price * 0.85) {
       const ins = f.months && (f.ins_month || f.pfs_month) ? f.months * ((f.ins_month || 0) + (f.pfs_month || 0)) : 0;
       rows.push(`<div>${t(f.rpmn ? "finTotal" : "finTotalNoR", { t: eur(f.total), r: String(f.rpmn).replace(".", state.lang === "sk" ? "," : "."), d: eur(Math.max(0, f.total - ins - o.price)) })}${ins ? " " + t("finIns", { v: eur(ins) }) : ""}</div>`);
@@ -472,28 +467,28 @@ function offerHtml(o, extra) {
     if (f.down_pct != null && f.months) rows.push(`<div class="muted">${t("finTerms", { a: f.down_pct, m: f.months, s: eur(f.monthly), l: f.last ? t("finLast", { v: eur(f.last) }) : "" })}</div>`);
     if (r) rows.push(`<div class="muted">${t("relWhy", { s: dec(r.s), w: dec(r.w), tuv: r.tuv ? t("relTuv", { v: dec(r.tuv) }) : "", note: r.note ? " · " + esc(r.note) : "" })}</div>`);
     else rows.push(`<div class="muted">${t("relNoData")}</div>`);
-    rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.max ? " (" + sp.max + " l " + t("folded") + ")" : ""}${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""} — ${esc(sp.row)} · <a href="${esc(sp.src)}" target="_blank" rel="noopener">${t("bootSrc", { s: sp.by })}</a>` : t("bootNone")}</div>`);
+    rows.push(`<div class="muted">${sp ? `${t("boot")} ${sp.l} l${sp.max ? " (" + Math.round(sp.max).toLocaleString(loc()).replace(/,/g, " ") + " l " + t("folded") + ")" : ""}${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}, <a href="${esc(sp.src)}" target="_blank" rel="noopener">${t("bootSrc", { s: sp.by })}</a>` : t("bootNone")}</div>`);
     if (o.perks && o.perks.length) rows.push(`<div class="muted">${o.perks.map(esc).join(" · ")}</div>`);
-    if (o.vin) rows.push(`<div class="muted">${t("vin")}: ${esc(o.vin)}</div>`);
+    if (o.vin) rows.push(`<div class="muted">${t("vin")}: ${esc(o.vin)}${o.upd ? " · " + t("dealerUpd", { d: dTxt(o.upd) }) : ""}</div>`);
     rows.push(historyHtml(o));
     more = `<div class="more">${rows.join("")}</div>`;
   }
   return `<article class="offer">
     <div class="head" data-open="${esc(o.id)}">
-      <div><div class="name">${esc(o.brand)} ${esc(o.model || "")}</div><div class="trim">${esc(o.title.replace(new RegExp("^" + o.brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*", "i"), ""))}</div></div>
-      <div><div class="price">${eur(o.price)}</div>${d ? `<div class="off save-t">${t("disc", { v: eur(d), p: Math.round(d / o.list * 100) })}</div>` : ""}${o.drop ? `<div class="off save-t drop ${dropPct(o) >= 0.05 ? "big" : ""}">${t("dropBadge", { v: eur(o.drop), d: dTxt(o.drop_from) })}</div>` : ""}</div>
+      <div><div class="name">${esc(o.brand)} ${esc(o.model || "")}</div>${trimOf(o) ? `<div class="trim">${esc(trimOf(o))}</div>` : ""}</div>
+      <div><div class="price">${eur(o.price)}</div>${d ? `<div class="off save-t">${t("disc", { v: eur(d), p: Math.round(d / o.list * 100) })}</div>` : ""}${o.drop ? `<div class="off save-t drop ${dropPct(o) >= 0.05 ? "big" : ""}">↓ ${t("dropBadge", { v: eur(o.drop) })}</div>` : ""}</div>
     </div>
     <div class="facts">
       <div>${esc(meta)}</div>
-      <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} —</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${dec(r.s)}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
+      <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} ?</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${dec(r.s)}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
       <div>${esc(o.dealer || "")}${o.city ? (o.dealer ? ", " : "") + esc(o.city) : ""}${o.n > 1 ? ` <span class="muted">· ${t("sameN", { n: o.n })}</span>` : ""}</div>
-      <div class="small">${ver}${o.audit === "ok" ? ` · <span class="save-t">${t("auditOk")}</span>` : o.audit === "fail" || o.audit === "gone" ? ` · <span class="warn-t">${t("auditFail")}</span>` : ""}</div>
+      <div class="small">${ver}${o.audit === "ok" ? ` · <span class="save-t">${t("auditOk")}</span>` : ""}</div>
       ${fin.length ? `<div class="small">${fin.join(" · ")}</div>` : ""}
     </div>
     ${flags}${o.stale ? `<div class="note-w">${t("stale")}</div>` : ""}
     ${more}
     <div class="acts"><a class="btn primary" href="${esc(o.url)}" target="_blank" rel="noopener">${t("open")} ↗</a>${o.twin ? `<a class="btn" href="${esc(o.twin.url)}" target="_blank" rel="noopener">${t("open2")} ↗</a>` : ""}<button class="btn ghost" data-open="${esc(o.id)}">${open ? t("less") : t("details")}</button></div>
-    <div class="checked">${t("checkedAt", { d: dtTxt(o.read || o.checked || DATA.generated) })}${o.first ? " · " + t("seenSince", { d: dTxt(o.first) }) : ""}${o.upd ? " · " + t("dealerUpd", { d: dTxt(o.upd) }) : ""}</div>
+    <div class="checked">${t("checkedAt", { d: dtTxt(o.read || o.checked || DATA.generated) })}${o.first ? " · " + t("seenSince", { d: dTxt(o.first) }) : ""}</div>
   </article>${extra || ""}`;
 }
 
@@ -531,12 +526,12 @@ function renderPromos() {
 }
 function renderSettings() {
   const src = DATA?.sources || {};
-  const NAMES = { kia: "Kia — kiaihned.sk (oficiálny)", hyundai: "Hyundai — skladove.hyundai.sk (oficiálny)", st_peugeot: "Peugeot — peugeot.skladovevozidla.sk", st_citroen: "Citroën — skladovevozidla.citroen.sk", st_fiat: "Fiat — fiat.skladovevozidla.sk", st_jeep: "Jeep — jeep.skladovevozidla.sk", st_alfaromeo: "Alfa Romeo — alfaromeo.skladovevozidla.sk", st_ds: "DS — skladovevozidla.dsautomobiles.sk", mitsubishi: "Mitsubishi — mitsubishi-motors.sk", dacia: "Dacia — skladove-vozidla.dacia.sk", renault: "Renault — ihned.renault.sk", opel: "Opel — online.opel-ihned.sk", mazda: "Mazda — mazdaihned.sk", autobazar: "autobazar.eu — nové a predvádzacie autá" };
-  $("setOut").innerHTML = `<div class="card"><h2>${t("set")}</h2>
+  const NAMES = { kia: "Kia (kiaihned.sk)", hyundai: "Hyundai (skladove.hyundai.sk)", st_peugeot: "Peugeot (oficiálny sklad)", st_citroen: "Citroën (oficiálny sklad)", st_fiat: "Fiat (oficiálny sklad)", st_jeep: "Jeep (oficiálny sklad)", st_alfaromeo: "Alfa Romeo (oficiálny sklad)", st_ds: "DS (oficiálny sklad)", mitsubishi: "Mitsubishi (mitsubishi-motors.sk)", dacia: "Dacia (skladove-vozidla.dacia.sk)", renault: "Renault (ihned.renault.sk)", opel: "Opel (online.opel-ihned.sk)", mazda: "Mazda (mazdaihned.sk)", autobazar: "autobazar.eu (autorizovaní predajcovia)" };
+  $("setOut").innerHTML = `<div class="card">
     <div class="setrow"><span>${t("lang")}</span><div class="seg" id="lang">${["sk", "en"].map((l) => `<button data-lang="${l}" class="${state.lang === l ? "on" : ""}">${l === "sk" ? "Slovenčina" : "English"}</button>`).join("")}</div></div></div>
     <div class="card"><h2>${t("sources")}</h2><table><tbody>${Object.entries(src).map(([k, v]) => `<tr><td>${esc(NAMES[k] || k)}</td><td class="num ${v.status === "ok" ? "muted" : "warn-t"}">${v.status === "ok" ? t("src_ok", { n: v.offers }) : v.status === "blocked" ? t("src_blocked") : t("src_error")}</td></tr>`).join("")}</tbody></table>
     <p class="small muted">${t("notCovered")}</p>${DATA?.audit ? `<p class="small">${t("auditSum", { c: DATA.audit.checked, k: DATA.audit.ok, g: DATA.audit.gone || 0 })}</p>` : ""}</div>
-    <div class="card"><h2>${t("how")}</h2><ul class="plain">${["how1", "how2", "how3", "how7", "how8", "how4", "how5", "how6"].map((k) => `<li>${t(k)}</li>`).join("")}</ul><p class="small muted">${t("relSrc")}</p></div>`;
+    <div class="card"><h2>${t("how")}</h2><ul class="plain">${["how1", "how3", "how7", "how8", "how5", "how4", "how6"].map((k) => `<li>${t(k)}</li>`).join("")}</ul><p class="small muted">${t("relSrc")}</p></div>`;
 }
 
 function renderChrome() {
