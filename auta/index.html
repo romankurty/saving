@@ -521,7 +521,7 @@ function dealLine(f) {
   if (f.zero) out.push(t(f.zero === "rate" ? "d_zero" : "d_zeroM"));
   if (f.adv) out.push(t("d_adv", { v: eur(f.adv) }));
   if (f.disc) out.push(t("d_disc", { v: eur(f.disc) }));
-  if (f.bonus) out.push(t("d_bonus", { v: eur(f.bonus) }));
+  if (f.bonus && f.bonus !== f.adv && f.bonus !== f.disc) out.push(t("d_bonus", { v: eur(f.bonus) }));   // same amount = same deal, say it once
   if (f.fin) out.push(t("d_fin", { v: eur(f.fin) }));
   if (f.trade) out.push(t("d_trade", { v: eur(f.trade) }));
   if (f.monthly) out.push(t("d_monthly", { v: eur(f.monthly) }));
