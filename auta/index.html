@@ -149,7 +149,7 @@ const T = {
     fl_fin: "Cena platí len s financovaním značky", fl_tradein: "Cena s bonusom za výkup starého auta", fl_company: "Cena môže byť len pre firmy (IČO)", fl_insurance: "Podmienka: havarijné poistenie u predajcu", fl_fin_cheaper: "S financovaním ešte lacnejšie", fl_fin_bonus: "Ďalšia zľava pri financovaní značky (pozri podmienky)", fl_price_mismatch: "Stránka uvádza dve rôzne ceny — over na odkaze",
     monthly: "Financovanie od {v}/mes.", zero: "0 % úrok", finTotal: "Pri financovaní zaplatíš spolu {t} (RPMN {r} %); úver stojí o {d} viac ako hotovosť", finTotalNoR: "Pri financovaní zaplatíš spolu {t}; úver stojí o {d} viac ako hotovosť",
     finTerms: "Akontácia {a} % · {m} mesiacov · splátka {s}{l}", finIns: "(v sume je aj poistenie ≈ {v}, to platíš aj pri kúpe za hotovosť — preto sa do rozdielu nepočíta)", finLast: " · posledná {v}", lowest30: "Najnižšia cena za 30 dní: {v}",
-    cash: "Cena v hotovosti", finOnly: "Cena so značkovým financovaním", cashKnown: "V hotovosti {v}", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
+    cash: "Cena v hotovosti", priceCond: "Cena (s podmienkami vyššie)", finOnly: "Cena so značkovým financovaním", cashKnown: "V hotovosti {v}", listP: "Cenníková cena", km: "{v} km", year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej",
     relWhy: "Prečo {s}/5: majitelia (What Car? 2026, autá do 5 rokov) {w} %{tuv}{note}", relTuv: " · TÜV 2026 dlhodobo: {v} % závažných chýb", relNoData: "Pre túto značku nie sú dostupné nezávislé dáta 2026.",
     bootSrc: "zdroj: {s}", bootOff: "oficiálne technické údaje", bootDealer: "údaj predajcu", folded: "sklopené", bootNone: "objem kufra: zatiaľ bez overeného údaja",
     moreOf: "+ {n} ďalších {m}", lessOf: "Skryť ďalšie", fewer: "",
@@ -181,7 +181,7 @@ const T = {
     fl_fin: "Price valid only with the brand's financing", fl_tradein: "Price includes a trade-in bonus", fl_company: "Price may be for companies only", fl_insurance: "Condition: insurance via the dealer", fl_fin_cheaper: "Even cheaper with financing", fl_fin_bonus: "Extra discount with the brand's financing (see terms)", fl_price_mismatch: "The page shows two different prices — confirm on the link",
     monthly: "Financing from {v}/month", zero: "0 % interest", finTotal: "With financing you pay {t} in total (APR {r} %); the credit costs {d} more than cash", finTotalNoR: "With financing you pay {t} in total; the credit costs {d} more than cash",
     finTerms: "Down payment {a} % · {m} months · instalment {s}{l}", finIns: "(the total includes insurance ≈ {v}, which you'd pay with cash too — so it's left out of the difference)", finLast: " · final {v}", lowest30: "Lowest price in 30 days: {v}",
-    cash: "Cash price", finOnly: "Price with the brand's financing", cashKnown: "Cash {v}", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
+    cash: "Cash price", priceCond: "Price (with the conditions above)", finOnly: "Price with the brand's financing", cashKnown: "Cash {v}", listP: "List price", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
     relWhy: "Why {s}/5: owners (What Car? 2026, cars up to 5 years) {w} %{tuv}{note}", relTuv: " · TÜV 2026 long-term: {v} % major defects", relNoData: "No independent 2026 data for this brand.",
     bootSrc: "source: {s}", bootOff: "official technical data", bootDealer: "dealer's figure", folded: "seats folded", bootNone: "boot volume: no verified figure yet",
     moreOf: "+ {n} more {m}", lessOf: "Hide others", fewer: "",
@@ -273,6 +273,13 @@ function spaceOf(o) {
   const isEst = (r) => (r.length > 4 ? !!r[4] : est.test(nrm(r[0])));
   let rows = e.rows.filter((r) => (o.body === "estate") === isEst(r));
   if (!rows.length) rows = e.rows;
+  // body variant from the catalogue (e.g. "C4 X", "Sandero Stepway", "Yaris Cross"): use it only when the offer names it
+  const ot = " " + nrm(o.model + " " + o.title).replace(/[^a-z0-9]+/g, " ") + " ";
+  if (rows.some((r) => r.length > 8)) {
+    const vm = rows.filter((r) => r[8] && r[8].split(" ").every((w) => ot.includes(" " + w + " ")));
+    if (vm.length) { const L = Math.max(...vm.map((r) => r[8].length)); rows = vm.filter((r) => r[8].length === L); }
+    else { const plain = rows.filter((r) => !r[8]); if (plain.length) rows = plain; }
+  }
   const elec = /hybrid|hev|phev|plug|e-tech|electric|elektr|\bev\b|kwh/;
   const f = o.fuel;
   const fc = f === "ev" ? "e" : f === "phev" ? "x" : f === "hybrid" ? "h" : f === "diesel" ? "d" : "p";
@@ -281,6 +288,8 @@ function spaceOf(o) {
   const awd = /4x4|awd|4wd|allgrip|4motion|quattro|xdrive|4matic/;
   const wantAwd = awd.test(nrm(o.title));
   r2 = rows.filter((r) => (r.length > 5 ? !!r[5] : awd.test(nrm(r[0]))) === wantAwd);
+  if (r2.length) rows = r2;
+  r2 = rows.filter((r) => (r[7] || 5) === seats);
   if (r2.length) rows = r2;
   const best = rows.reduce((a, b) => (b[1] < a[1] ? b : a));
   return { l: best[1], max: best[2], row: best[0], src: best[6] || e.src, by: e.by || "Cebia", s: seats };
@@ -365,7 +374,7 @@ function offerHtml(o, extra) {
     if ((o.flags || []).includes("fin") && o.cash) {
       rows.push(`<div class="row"><span>${t("finOnly")}</span><b>${eur(o.price)}</b></div>`);
       rows.push(`<div class="row"><span>${t("cash")}</span><span>${eur(o.cash)}</span></div>`);
-    } else rows.push(`<div class="row"><span>${t("cash")}</span><b>${eur(o.price)}</b></div>`);
+    } else rows.push(`<div class="row"><span>${t(fl.some((f) => ["fin", "tradein", "company", "insurance"].includes(f)) ? "priceCond" : "cash")}</span><b>${eur(o.price)}</b></div>`);
     if (o.finPrice) rows.push(`<div class="row"><span>${t("finOnly")}</span><span>${eur(o.finPrice)}</span></div>`);
     if (o.list) rows.push(`<div class="row"><span>${t("listP")}</span><span>${eur(o.list)}</span></div>`);
     if (o.low30) rows.push(`<div class="row"><span>${t("lowest30", { v: "" }).replace(/:\s*$/, "")}</span><span>${eur(o.low30)}</span></div>`);

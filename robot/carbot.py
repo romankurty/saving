@@ -341,6 +341,7 @@ def kia_details(limit=80):
             known.add(k)
             c = CACHE.setdefault(o["id"], {"price": o["price"], "fetched": TODAY})
             c["boot"] = b
+            o["boot"], o["boot_src"] = b, "off"
     table = {}
     for o in OFFERS:
         if o["src"] == "kia" and o.get("boot"):
@@ -647,7 +648,7 @@ def mazda_parse(u, t):
         return None
     # the portal shows the price incl. the 369 € preparation fee; the structured data leaves it out
     flags = ["price_mismatch"] if ld and not (0 <= pr - ld <= 400) else []
-    cond = "new" if f.get("condition", "1") == "1" else "demo"
+    cond = "new" if f.get("condition", "1") == "1" and km <= 100 else "demo"
     return {"price": pr, "o": {"src": "mazda", "off": True, "url": u, "brand": "Mazda", "model": model, "title": og or ("Mazda " + model), "list": lst if lst and lst > pr else None,
             "km": km or None, "year": num(f.get("made_date")),
             "body": body_of("Mazda", model, og), "fuel": classify(FUEL, og, "petrol"), "mhev": mild(og) or "m hybrid" in norm(og),
@@ -922,11 +923,27 @@ def adac_fuel(ft, name):
     return "p"
 
 
-def adac_space(sp_ad, models, budget=80):
-    """Boot volume (manufacturer figure, VDA) per version of the newest generation from the ADAC Autokatalog.
-    One generation page lists the versions; one version page per body / fuel / 4x4 group gives
+ENGINE_TOK = re.compile(r"^(eco-?g|tce|tsi|e-?tsi|tfsi|tdi|puretech|bluehdi|hdi|dci|blue|t-?gdi|gdi|crdi|mpi|e-?tech|hybrid|plug-in.*|phev|hev|mhev|e-?hybrid|electric|elektro|ev|turbo|mild|ecoboost|skyactiv.*|e-skyactiv.*|vti|i-?vtec|d-?4d|vvt-?i|firefly|multiair|multijet|jtd.*|t-?jet|edc|dsg|dct|cvt|lpg|cng|bifuel|tgi|g-?tec|smartstream|allgrip|4x4|awd|4wd|xdrive|quattro|4motion)$")
+
+
+def adac_variant(name, brand_slug, rng):
+    """'Citroen C4 X 1.2 PureTech …' -> 'x'; 'Skoda Octavia Combi 1.5 TSI' -> 'combi'; plain versions -> ''"""
+    toks = norm(name).split()
+    rn = norm(rng).replace("-", " ").split()
+    i = next((j + len(rn) for j in range(min(6, len(toks))) if toks[j:j + len(rn)] == rn), 1)
+    out = []
+    for tk in toks[i:]:
+        if any(ch.isdigit() for ch in tk) or ENGINE_TOK.match(tk):
+            break
+        out.append(tk)
+    return " ".join(out[:3])
+
+
+def adac_space(sp_ad, models, budget=100):
+    """Boot volume (manufacturer figure, VDA) per version of the current generation from the ADAC Autokatalog.
+    One generation page lists the versions; one version page per body variant / fuel / 4x4 / seats group gives
     'Kofferraumvolumen normal' and '... mit umgeklappter Rücksitzbank'. Cached 60 days."""
-    need = [k for k, v in models.items() if not (sp_ad.get(k) and (NOW.date() - dt.date.fromisoformat(sp_ad[k]["fetched"])).days < (60 if sp_ad[k].get("rows") else 14))]
+    need = [k for k, v in models.items() if not (sp_ad.get(k) and sp_ad[k].get("v") == 2 and (NOW.date() - dt.date.fromisoformat(sp_ad[k]["fetched"])).days < (60 if sp_ad[k].get("rows") else 14))]
     if not need:
         return 0
     sm = get("https://www.adac.de/sitemaps/sitemap-autokatalog.xml")
@@ -937,8 +954,7 @@ def adac_space(sp_ad, models, budget=80):
     for u in re.findall(r"<loc>([^<]+)</loc>", sm):
         parts = u[len(ADAC):].strip("/").split("/") if u.startswith(ADAC) else []
         if len(parts) == 4 and parts[3].isdigit():
-            g = tree.setdefault(parts[0], {}).setdefault(parts[1], {})
-            g[parts[2]] = max(g.get(parts[2], 0), int(parts[3]))
+            tree.setdefault(parts[0], {}).setdefault(parts[1], {}).setdefault(parts[2], []).append(int(parts[3]))
     comp = lambda x: re.sub(r"[^a-z0-9]", "", norm(x))
     used = 0
     # cheapest cars first: they matter most for the default budget
@@ -946,35 +962,45 @@ def adac_space(sp_ad, models, budget=80):
         if used >= budget:
             break
         brand, model = models[key][0], models[key][1]
-        bs = {"skoda": "skoda", "mercedes-benz": "mercedes-benz", "alfa romeo": "alfa-romeo", "ssangyong": "ssangyong", "ds": "ds", "mini": "mini"}.get(norm(brand), slug(brand))
+        bs = {"skoda": "skoda", "mercedes-benz": "mercedes-benz", "alfa romeo": "alfa-romeo", "ssangyong": "ssangyong", "kgm": "kgm", "ds": "ds", "mini": "mini"}.get(norm(brand), slug(brand))
         ranges = tree.get(bs) or tree.get(bs.split("-")[0]) or {}
         cm = comp(re.sub(r"^(nov[ýéá]|new)\s+", "", model, flags=re.I))
         rs = [r for r in ranges if comp(r) == cm] or sorted([r for r in ranges if cm.startswith(comp(r)) and len(comp(r)) >= 2], key=lambda r: -len(r))[:1]
         if not rs:
-            sp_ad[key] = {"fetched": TODAY, "rows": []}
+            sp_ad[key] = {"fetched": TODAY, "rows": [], "v": 2}
             continue
         rng = rs[0]
-        gen = max(ranges[rng], key=lambda g: ranges[rng][g])
-        gurl = f"{ADAC}{bs}/{rng}/{gen}/"
-        t = get(gurl)
-        used += 1
-        cars = []
-        if t:
-            m = re.search(r"window.__APOLLO_STATE__=(\{.*?\});?\s*</script>", t, re.S)
-            try:
-                st = json.loads(m.group(1)) if m else {}
-            except Exception:  # noqa: BLE001
-                st = {}
-            cars = [v for v in st.values() if isinstance(v, dict) and v.get("__typename") == "ApilCarCollectionItem" and v.get("name")]
-        cur = [c for c in cars if "(ab " in c["name"]] or cars
+        # newest generation = highest median version id (single odd ids exist in old generations)
+        gens = sorted(ranges[rng], key=lambda g: -sorted(ranges[rng][g])[len(ranges[rng][g]) // 2])
+        gurl, cur = None, []
+        for gen in gens[:2]:
+            t = get(f"{ADAC}{bs}/{rng}/{gen}/")
+            used += 1
+            cars = []
+            if t:
+                m = re.search(r"window.__APOLLO_STATE__=(\{.*?\});?\s*</script>", t, re.S)
+                try:
+                    st = json.loads(m.group(1)) if m else {}
+                except Exception:  # noqa: BLE001
+                    st = {}
+                cars = [v for v in st.values() if isinstance(v, dict) and v.get("__typename") == "ApilCarCollectionItem" and v.get("name")]
+            cur = [c for c in cars if "(ab " in c["name"]]
+            if cur:
+                gurl = f"{ADAC}{bs}/{rng}/{gen}/"
+                break
+        if not gurl:
+            # no version on sale any more in the two newest generations: no figure rather than an outdated one
+            sp_ad[key] = {"fetched": TODAY, "rows": [], "v": 2}
+            continue
         groups = {}
         for c in sorted(cur, key=lambda c: -int(c["id"])):
             n = norm(c["name"])
-            gk = (bool(re.search(EST_RX, n)), adac_fuel(c.get("fuelType"), c["name"]), bool(re.search(AWD_RX, n)))
+            seats = 7 if re.search(r"7-?sitzer|siebensitzer|7 sitze", n) else 5
+            gk = (adac_variant(c["name"], bs, rng), bool(re.search(EST_RX, n)), adac_fuel(c.get("fuelType"), c["name"]), bool(re.search(AWD_RX, n)), seats)
             groups.setdefault(gk, c)
         rows = []
-        for gk, c in list(groups.items())[:6]:
-            if used >= budget + 6:
+        for gk, c in list(groups.items())[:8]:
+            if used >= budget + 8:
                 break
             t2 = get(f"{gurl}{c['id']}/")
             used += 1
@@ -983,8 +1009,8 @@ def adac_space(sp_ad, models, budget=80):
             b_ = re.search(r"Kofferraumvolumen dachhoch[^\d]{0,60}?(\d[\d.]*)\s*l", tt)
             v = int(a_.group(1).replace(".", "")) if a_ else None
             if v and 80 <= v <= 2500:
-                rows.append([re.sub(r"\s*\((?:ab|\d\d/).*$", "", c["name"]), v, int(b_.group(1).replace(".", "")) if b_ else None, gk[1], int(gk[0]), int(gk[2]), f"{gurl}{c['id']}/"])
-        sp_ad[key] = {"fetched": TODAY, "src": gurl, "rows": rows}
+                rows.append([re.sub(r"\s*\((?:ab|\d\d/).*$", "", c["name"]), v, int(b_.group(1).replace(".", "")) if b_ else None, gk[2], int(gk[1]), int(gk[3]), f"{gurl}{c['id']}/", gk[4], gk[0]])
+        sp_ad[key] = {"fetched": TODAY, "src": gurl, "rows": rows, "v": 2}
     log("adac: pages fetched", used, "models with data", sum(1 for k in models if sp_ad.get(k, {}).get("rows")), "of", len(models))
     return used
 
@@ -1003,6 +1029,8 @@ def space():
             e[2] += 1
             e[3] = min(e[3], o["price"])
     adac_space(sp_ad, models)
+    for k in [k for k, v in sp_ad.items() if v.get("v") != 2]:
+        del sp_ad[k]  # first catalogue reading picked some old generations; never show those
     rest = {k: (v[0], v[1]) for k, v in models.items() if not sp_ad.get(k, {}).get("rows")}
     cebia_space(sp_ce, rest)
     out = {}
