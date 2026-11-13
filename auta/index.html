@@ -160,7 +160,7 @@ const T = {
     cash: "Za hotovosť", priceCond: "Cena s podmienkami", finOnly: "Pri úvere cez značku", cashKnown: "za hotovosť {v}", listP: "Cenníková cena", wasAd: "Pôvodná cena v inzeráte", km: "{v} km",
     year: "rok {v}", vin: "VIN", details: "Detail", less: "Menej", relWhy: "Hodnotenie od majiteľov {w} % (What Car? 2026){tuv}{note}",
     relTuv: ", vážne chyby na STK pri 10-ročných: {v} % (TÜV 2026)", relNoData: "Pre túto značku nemáme nezávislé dáta.", bootSrc: "podľa {s}", bootOff: "údajov výrobcu", bootDealer: "predajcu",
-    folded: "so sklopenými sedadlami", bootNone: "Kufor: zatiaľ bez údaja", moreOf: "+ {n} ďalších {m}", lessOf: "Skryť", set: "Nastavenia", lang: "Jazyk", sources: "Odkiaľ sú autá", src_ok: "{n}",
+    folded: "so sklopenými sedadlami", bootNone: "Kufor: zatiaľ bez údaja", noFig: "bez údaja", moreOf: "+ {n} ďalších {m}", lessOf: "Skryť", set: "Nastavenia", lang: "Jazyk", sources: "Odkiaľ sú autá", src_ok: "{n}",
     src_blocked: "nečítame", src_error: "dnes nefunguje", how: "Ako kontrolujeme",
     how1: "Len autorizovaní predajcovia: oficiálne sklady 13 značiek a predajcov, ktorých autobazar.eu overil pre danú značku.", how2: "",
     how3: "Keď je to isté auto (rovnaké VIN) na 2 weboch, porovnáme ceny.", how4: "Cenu o viac ako 45 % pod cenníkom vyradíme, je to takmer isto chyba.",
@@ -193,7 +193,7 @@ const T = {
     finLast: ", final {v}", lowest30: "Lowest price in 30 days (dealer's figure)", cash: "Cash", priceCond: "Price with conditions", finOnly: "With the brand's loan", cashKnown: "cash {v}",
     listP: "List price", wasAd: "Original price in the ad", km: "{v} km", year: "year {v}", vin: "VIN", details: "Details", less: "Less",
     relWhy: "Owners' reliability score {w} % (What Car? 2026){tuv}{note}", relTuv: ", serious MOT defects at 10 years: {v} % (TÜV 2026)", relNoData: "No independent data for this brand.",
-    bootSrc: "per {s}", bootOff: "the manufacturer", bootDealer: "the dealer", folded: "seats folded", bootNone: "Boot: no figure yet", moreOf: "+ {n} more {m}", lessOf: "Hide", set: "Settings",
+    bootSrc: "per {s}", bootOff: "the manufacturer", bootDealer: "the dealer", folded: "seats folded", bootNone: "Boot: no figure yet", noFig: "no figure", moreOf: "+ {n} more {m}", lessOf: "Hide", set: "Settings",
     lang: "Language", sources: "Where the cars come from", src_ok: "{n}", src_blocked: "not read", src_error: "down today", how: "How we check",
     how1: "Authorised dealers only: official stock of 13 brands, plus dealers autobazar.eu has verified for that brand.", how2: "",
     how3: "When the same car (same VIN) is on 2 sites, we compare the prices.", how4: "A price more than 45 % under the list price is dropped; it's almost certainly an error.",
@@ -324,7 +324,8 @@ function priceChart(pts, step) {
   for (let i = 1; i < P.length; i++) d += step ? `H${X(P[i][0]).toFixed(1)}V${Y(P[i][1]).toFixed(1)}` : `L${X(P[i][0]).toFixed(1)},${Y(P[i][1]).toFixed(1)}`;
   const real = step ? P.slice(0, -1) : P;
   const iMax = real.reduce((a, p, i) => (p[1] > real[a][1] ? i : a), 0), iMin = real.reduce((a, p, i) => (p[1] < real[a][1] ? i : a), 0);
-  const lab = (i, above) => { const [x, v] = real[i]; const tx = Math.min(W - R, Math.max(L, X(x))); const anchor = tx < 40 ? "start" : tx > W - 40 ? "end" : "middle"; return `<text x="${tx.toFixed(1)}" y="${(Y(v) + (above ? -8 : 15)).toFixed(1)}" text-anchor="${anchor}">${eur(v)}</text>`; };
+  // value labels sit beside their dot, on the side with room, so they never touch the date labels
+  const lab = (i, above) => { const [x, v] = real[i]; const px = X(x), right = px < W / 2; return `<text x="${(px + (right ? 9 : -9)).toFixed(1)}" y="${(Y(v) + (above ? -6 : 4)).toFixed(1)}" text-anchor="${right ? "start" : "end"}">${eur(v)}</text>`; };
   const dots = (step ? real : real.slice(-1)).map(([x, v]) => `<circle cx="${X(x).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="var(--text)" stroke="var(--soft)" stroke-width="2"/>`).join("");
   const ds = (ms) => new Date(ms).toLocaleDateString(loc(), { day: "numeric", month: "numeric" });
   const data = esc(JSON.stringify(real.map(([x, v]) => [Math.round(X(x)), Math.round(Y(v)), ds(x), v])));
@@ -476,11 +477,11 @@ function offerHtml(o, extra) {
   return `<article class="offer">
     <div class="head" data-open="${esc(o.id)}">
       <div><div class="name">${esc(o.brand)} ${esc(o.model || "")}</div>${trimOf(o) ? `<div class="trim">${esc(trimOf(o))}</div>` : ""}</div>
-      <div><div class="price">${eur(o.price)}</div>${d ? `<div class="off save-t">${t("disc", { v: eur(d), p: Math.round(d / o.list * 100) })}</div>` : ""}${o.drop ? `<div class="off save-t drop ${dropPct(o) >= 0.05 ? "big" : ""}">↓ ${t("dropBadge", { v: eur(o.drop) })}</div>` : ""}</div>
+      <div><div class="price">${eur(o.price)}</div>${d && !(o.drop && Math.abs(d - o.drop) < 2) ? `<div class="off save-t">${t("disc", { v: eur(d), p: Math.round(d / o.list * 100) })}</div>` : ""}${o.drop ? `<div class="off save-t drop ${dropPct(o) >= 0.05 ? "big" : ""}">↓ ${t("dropBadge", { v: eur(o.drop) })}</div>` : ""}</div>
     </div>
     <div class="facts">
       <div>${esc(meta)}</div>
-      <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} ?</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${dec(r.s)}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
+      <div>${sp ? `${t("boot")} <b>${sp.l} l</b>${sp.s && sp.s !== 5 ? " · " + t("seats", { n: sp.s }) : ""}` : `<span class="muted">${t("boot")} ${t("noFig")}</span>`} · ${t("rel")} ${r ? `<span class="stars" aria-label="${r.s}/5">${stars}</span> ${dec(r.s)}/5` : `<span class="muted">${t("relNone")}</span>`}</div>
       <div>${esc(o.dealer || "")}${o.city ? (o.dealer ? ", " : "") + esc(o.city) : ""}${o.n > 1 ? ` <span class="muted">· ${t("sameN", { n: o.n })}</span>` : ""}</div>
       <div class="small">${ver}${o.audit === "ok" ? ` · <span class="save-t">${t("auditOk")}</span>` : ""}</div>
       ${fin.length ? `<div class="small">${fin.join(" · ")}</div>` : ""}
