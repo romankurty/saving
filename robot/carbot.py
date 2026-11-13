@@ -165,7 +165,7 @@ MODEL_BODY = {
     "mg": {"mg3": "hatch", "3": "hatch", "zs": "suv", "hs": "suv", "mg4": "hatch", "4": "hatch", "mg5": "estate", "s5": "suv"}, "nissan": {"micra": "hatch", "juke": "suv", "qashqai": "suv", "x-trail": "suv", "ariya": "suv", "leaf": "hatch"},
     "honda": {"jazz": "hatch", "civic": "hatch", "hr-v": "suv", "zr-v": "suv", "cr-v": "suv"}, "byd": {"dolphin": "hatch", "atto 2": "suv", "atto 3": "suv", "seal u": "suv", "seal": "sedan", "sealion": "suv"},
 }
-NOT_CAR = r"topolino|\bami\b|rocks-e|furgon|\bvan\b|cargo|pv5|uzitkov|úžitkov|chassis|valn[ií]k|boxer|jumper|ducato|kasten|podvozok|pick-?up|l200|ranger"
+NOT_CAR = r"trafic|\bmaster\b|movano|topolino|\bami\b|rocks-e|furgon|\bvan\b|cargo|pv5|uzitkov|úžitkov|chassis|valn[ií]k|boxer|jumper|ducato|kasten|podvozok|pick-?up|l200|ranger"
 
 
 def body_of(brand, model, title, default=None):
@@ -248,7 +248,12 @@ def detail_due(oid, price):
     return (NOW.date() - dt.date.fromisoformat(c.get("fetched", "2000-01-01"))).days >= 7
 
 
+VIN_RX = re.compile(r"[A-HJ-NPR-Z0-9]{17}")
+
+
 def add(o):
+    v = (o.get("vin") or "").strip().upper()
+    o["vin"] = v if VIN_RX.fullmatch(v) and len(set(v)) > 4 else None   # portals carry "XXXX", "..." or "bez VIN"
     if o.get("cond") == "new" and (o.get("km") or 0) > 500:
         o["cond"] = "demo"   # "new" with real kilometres is a demo / pre-registered car
     if not o.get("price") or o["price"] < 3000 or o["price"] > PRICE_CAP or not o.get("brand"):
@@ -659,7 +664,7 @@ def rgroup_parse(brand, src, u, t):
     model = text((re.search(r"<h1[^>]*>\s*<strong>(.*?)</strong>", t, re.S) or [None, (vm or h1.split(" ")[0])])[1])
     if vm and not re.search(r"<h1[^>]*>\s*<strong>", t):
         model = vm
-    model = model.title().replace("Megane", "Mégane").replace("E-Tech", "E-Tech")
+    model = re.sub(r"^(Nov[éýá]|New)\s+", "", model.title()).replace("Megane", "Mégane")
     lst = num((re.search(r'pricelist_price">[^<]*</p>\s*<strong class="price">([^<]+)', t) or [None, None])[1])
     pr = num((re.search(r'final-price">([^<]+)', t) or [None, None])[1])
     dealer = (re.search(r"'dealerName'\s*:\s*'([^']+)'", t) or [None, None])[1]
@@ -724,7 +729,7 @@ def opel_parse(u, t):
         fuel, mh = "petrol", True   # Opel "Hybrid" = 48 V mild hybrid
     else:
         fuel, mh = "petrol", False
-    body = {"kombi": "estate", "suv": "suv", "hatchback": "hatch", "mpv": "mpv", "sedan": "sedan", "liftback": "hatch"}.get(karo) or body_of("Opel", model, h1)
+    body = "estate" if karo == "kombi" else (body_of("Opel", model, h1) or {"suv": "suv", "hatchback": "hatch", "mpv": "mpv", "sedan": "sedan", "liftback": "hatch"}.get(karo))
     if re.search(r"\bst\b|sports tourer", nt + " " + norm(model)):
         body = "estate"
     if not pr:
@@ -1236,8 +1241,17 @@ def main():
     # price history per car: source + VIN when known (stays the same when a dealer re-lists the car), else the offer id
     stamp = NOW.isoformat(timespec="hours")[:13]
     live = set()
+    vcount = {}
     for o in keep:
-        hk = f"{o['src']}:{o['vin']}" if o.get("vin") else o["id"]
+        if o.get("vin"):
+            vk = f"{o['src']}:{o['vin']}"
+            vcount[vk] = vcount.get(vk, 0) + 1
+    for k in list(HIST):
+        if vcount.get(k, 0) > 1 or (k.startswith("autobazar:") and not VIN_RX.fullmatch(k[10:])):
+            del HIST[k]   # VIN shared by several listings or not a real VIN ("XXXX", "bez VIN"): that history mixes cars
+    for o in keep:
+        vk = f"{o['src']}:{o['vin']}" if o.get("vin") else None
+        hk = vk if vk and vcount.get(vk) == 1 else o["id"]
         if hk not in HIST and o["id"] in HIST and hk != o["id"]:
             HIST[hk] = HIST.pop(o["id"])
         live.add(hk)
