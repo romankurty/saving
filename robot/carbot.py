@@ -67,7 +67,10 @@ def allowed(url):
     rp, st = RB[base]
     if st == 404:
         return True
-    return st == 200 and rp.can_fetch(UA, url)
+    if st != 200:
+        log("  robots.txt not readable (status", st, ") - not fetching", base)
+        return False
+    return rp.can_fetch(UA, url)
 
 
 def get(url, tries=2):
@@ -1150,17 +1153,16 @@ def main():
     prev_by_src = {}
     for o in PREV.get("offers", []):
         prev_by_src.setdefault(o["src"], []).append(o)
-    for src, (st, n) in list(STATUS.items()):
-        pass
     have = {o["src"] for o in keep}
+    prev_gen = (PREV.get("generated") or "2000-01-01T00:00+00:00")[:10]
     for src, lst in prev_by_src.items():
         if src not in have and lst:
-            age = (NOW - dt.datetime.fromisoformat(lst[0]["checked"])).days if lst[0].get("checked") else 9
-            if age <= 2:
+            since = lst[0].get("stale") if isinstance(lst[0].get("stale"), str) else prev_gen
+            if (NOW.date() - dt.date.fromisoformat(since)).days <= 2:
                 for o in lst:
-                    o["stale"] = True
+                    o["stale"] = since   # date of the last successful reading
                 keep += lst
-                log("  kept stale offers from", src, len(lst))
+                log("  kept stale offers from", src, len(lst), "last read", since)
     keep.sort(key=lambda o: o["price"])
     # financing total must be what you pay in total — a figure below the price is the loan amount, not the total
     for o in keep:
