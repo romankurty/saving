@@ -241,6 +241,8 @@ def detail_due(oid, price):
 
 
 def add(o):
+    if o.get("cond") == "new" and (o.get("km") or 0) > 500:
+        o["cond"] = "demo"   # "new" with real kilometres is a demo / pre-registered car
     if not o.get("price") or o["price"] < 3000 or o["price"] > PRICE_CAP or not o.get("brand"):
         return
     if re.search(NOT_CAR, norm(o.get("title", "") + " " + (o.get("model") or "") + " " + (o.get("body") or ""))):
@@ -511,6 +513,12 @@ def stellantis():
         log(brand, len(seen))
 
 
+def cash_from(ben):
+    """'Pri platbe v hotovosti je cena 15 990€' / 'Cena vozidla v hotovosti 16.190 EUR' / 'cena na hotovosť je 16490€' -> 15990"""
+    mc = re.search(r"hotovos\w*[^0-9]{0,25}?(\d{1,3}(?:[ .\u00a0\u202f]\d{3})+|\d{4,6})\s*(?:€|eur)", norm(ben or ""))
+    return int(re.sub(r"\D", "", mc.group(1))) if mc else None
+
+
 def stellantis_details(limit=150):
     """VIN + financing legal line for the cheapest offers (cached)."""
     global detail_used
@@ -528,14 +536,15 @@ def stellantis_details(limit=150):
                 tt = text(re.sub(r"<script.*?</script>|<style.*?</style>", " ", t, flags=re.S))
                 # the dealer's own price conditions ("Benefity: Cena 14 980€ je platná pre financovanie … Pri platbe v hotovosti je cena 15 990€")
                 ben = (re.search(r"Benefity:(.{0,700}?)(?:Možnosti financ|Prispôsob|Vypočítať|Vypočítat|$)", tt) or [None, ""])[1]
-                cash = num((re.search(r"(?:platbe|úhrade|kúpe) v hotovosti (?:je )?(?:cena )?(?:vozidla )?:?\s*([\d  .]+)\s*€", ben) or [None, None])[1])
+                cash = cash_from(ben)
                 c = {"price": o["price"], "fetched": TODAY, "vin": vin, "year": yr, "cond": conditions(ben), "cash": cash if cash and o["price"] < cash < o["price"] * 1.4 else None, "ben": ben[:300], "v": 2}
                 CACHE[o["id"]] = c
         if c and c.get("v") == 2:
             o["vin"] = c.get("vin")
             o["year"] = c.get("year")
-            if c.get("cash"):
-                o["cash"] = c["cash"]
+            cash = c.get("cash") or cash_from(c.get("ben"))
+            if cash and o["price"] < cash < o["price"] * 1.4:
+                o["cash"] = cash
             o["flags"] = sorted(set(o.get("flags", []) + [x for x in c.get("cond", []) if x in ("fin", "tradein", "company", "insurance")]))
         elif c:
             # older reading (whole page); keep its financing warning until the page is re-read
@@ -943,7 +952,7 @@ def adac_space(sp_ad, models, budget=100):
     """Boot volume (manufacturer figure, VDA) per version of the current generation from the ADAC Autokatalog.
     One generation page lists the versions; one version page per body variant / fuel / 4x4 / seats group gives
     'Kofferraumvolumen normal' and '... mit umgeklappter Rücksitzbank'. Cached 60 days."""
-    need = [k for k, v in models.items() if not (sp_ad.get(k) and sp_ad[k].get("v") == 2 and (NOW.date() - dt.date.fromisoformat(sp_ad[k]["fetched"])).days < (60 if sp_ad[k].get("rows") else 14))]
+    need = [k for k, v in models.items() if not (sp_ad.get(k) and sp_ad[k].get("v") == 3 and (NOW.date() - dt.date.fromisoformat(sp_ad[k]["fetched"])).days < (60 if sp_ad[k].get("rows") else 14))]
     if not need:
         return 0
     sm = get("https://www.adac.de/sitemaps/sitemap-autokatalog.xml")
@@ -965,15 +974,21 @@ def adac_space(sp_ad, models, budget=100):
         bs = {"skoda": "skoda", "mercedes-benz": "mercedes-benz", "alfa romeo": "alfa-romeo", "ssangyong": "ssangyong", "kgm": "kgm", "ds": "ds", "mini": "mini"}.get(norm(brand), slug(brand))
         ranges = tree.get(bs) or tree.get(bs.split("-")[0]) or {}
         cm = comp(re.sub(r"^(nov[ýéá]|new)\s+", "", model, flags=re.I))
-        rs = [r for r in ranges if comp(r) == cm] or sorted([r for r in ranges if cm.startswith(comp(r)) and len(comp(r)) >= 2], key=lambda r: -len(r))[:1]
+        exact = [r for r in ranges if comp(r) == cm]
+        rs = exact or sorted([r for r in ranges if cm.startswith(comp(r)) and len(comp(r)) >= 2], key=lambda r: -len(r))[:1]
         if not rs:
-            sp_ad[key] = {"fetched": TODAY, "rows": [], "v": 2}
+            sp_ad[key] = {"fetched": TODAY, "rows": [], "v": 3}
             continue
         rng = rs[0]
-        # newest generation = highest median version id (single odd ids exist in old generations)
-        gens = sorted(ranges[rng], key=lambda g: -sorted(ranges[rng][g])[len(ranges[rng][g]) // 2])
+        extra = "" if exact else cm[len(comp(rng)):]   # e.g. "x" for "C4 X" found under "c4"
+
+        def med(ids):
+            ids = sorted(i for i in ids if i < 900000)   # a few catalogue ids (99xxxx) are not chronological
+            return ids[len(ids) // 2] if ids else 0
+        # newest generation = highest median version id; it must still have versions on sale ("ab MM/YY")
+        gens = sorted(ranges[rng], key=lambda g: -med(ranges[rng][g]))
         gurl, cur = None, []
-        for gen in gens[:2]:
+        for gen in gens[:3]:
             t = get(f"{ADAC}{bs}/{rng}/{gen}/")
             used += 1
             cars = []
@@ -990,13 +1005,13 @@ def adac_space(sp_ad, models, budget=100):
                 break
         if not gurl:
             # no version on sale any more in the two newest generations: no figure rather than an outdated one
-            sp_ad[key] = {"fetched": TODAY, "rows": [], "v": 2}
+            sp_ad[key] = {"fetched": TODAY, "rows": [], "v": 3}
             continue
         groups = {}
         for c in sorted(cur, key=lambda c: -int(c["id"])):
             n = norm(c["name"])
             seats = 7 if re.search(r"7-?sitzer|siebensitzer|7 sitze", n) else 5
-            gk = (adac_variant(c["name"], bs, rng), bool(re.search(EST_RX, n)), adac_fuel(c.get("fuelType"), c["name"]), bool(re.search(AWD_RX, n)), seats)
+            gk = (adac_variant(re.sub(r"\s*\((?:ab|\d\d/).*$", "", c["name"]), bs, rng), bool(re.search(EST_RX, n)), adac_fuel(c.get("fuelType"), c["name"]), bool(re.search(AWD_RX, n)), seats)
             groups.setdefault(gk, c)
         rows = []
         for gk, c in list(groups.items())[:8]:
@@ -1010,7 +1025,10 @@ def adac_space(sp_ad, models, budget=100):
             v = int(a_.group(1).replace(".", "")) if a_ else None
             if v and 80 <= v <= 2500:
                 rows.append([re.sub(r"\s*\((?:ab|\d\d/).*$", "", c["name"]), v, int(b_.group(1).replace(".", "")) if b_ else None, gk[2], int(gk[1]), int(gk[3]), f"{gurl}{c['id']}/", gk[4], gk[0]])
-        sp_ad[key] = {"fetched": TODAY, "src": gurl, "rows": rows, "v": 2}
+        if extra:
+            # the offer names a body variant the catalogue lists under the bigger range: only that variant counts
+            rows = [r for r in rows if re.sub(r"[^a-z0-9]", "", r[8]) == extra]
+        sp_ad[key] = {"fetched": TODAY, "src": gurl, "rows": rows, "v": 3}
     log("adac: pages fetched", used, "models with data", sum(1 for k in models if sp_ad.get(k, {}).get("rows")), "of", len(models))
     return used
 
@@ -1029,7 +1047,7 @@ def space():
             e[2] += 1
             e[3] = min(e[3], o["price"])
     adac_space(sp_ad, models)
-    for k in [k for k, v in sp_ad.items() if v.get("v") != 2]:
+    for k in [k for k, v in sp_ad.items() if v.get("v") not in (2, 3)]:
         del sp_ad[k]  # first catalogue reading picked some old generations; never show those
     rest = {k: (v[0], v[1]) for k, v in models.items() if not sp_ad.get(k, {}).get("rows")}
     cebia_space(sp_ce, rest)
