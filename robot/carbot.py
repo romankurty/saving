@@ -1219,6 +1219,21 @@ def cross_check():
     log("VIN double-checked pairs:", pairs)
 
 
+def when(d):
+    """'2026-11-12' (noon) or '2026-11-13T14' -> datetime"""
+    return dt.datetime.fromisoformat(d + ":00" if len(d) == 13 else d + "T12:00")
+
+
+def unblip(p_):
+    """drop a price that showed up for under 3 hours and then went back to the earlier one (a misreading, not a change)"""
+    i = 1
+    while i < len(p_) - 1:
+        if p_[i - 1][1] == p_[i + 1][1] and (when(p_[i + 1][0]) - when(p_[i][0])).total_seconds() <= 3 * 3600:
+            del p_[i:i + 2]
+        else:
+            i += 1
+
+
 def sanity(o):
     """drop prices that can't be right: >45 % below list price, or list price far below price"""
     if o.get("list") and o["price"] < 0.55 * o["list"]:
@@ -1228,12 +1243,25 @@ def sanity(o):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    for fn in (kia, hyundai, stellantis, mitsubishi, dacia, renault, opel, mazda, autobazar):
+    sources = (kia, hyundai, stellantis, mitsubishi, dacia, renault, opel, mazda, autobazar)
+    for fn in sources:
         try:
             fn()
         except Exception as e:  # noqa: BLE001
             log("!! source failed:", fn.__name__, type(e).__name__, e)
             STATUS[fn.__name__] = ("error", 0)
+    # a source that came back empty because the site (or its robots.txt) didn't answer gets one more try at the end
+    for fn in sources:
+        keys = [k for k in STATUS if k == fn.__name__ or (fn.__name__ == "stellantis" and k.startswith("st_"))]
+        if keys and all(STATUS[k][1] == 0 and STATUS[k][0] != "ok" for k in keys):
+            for host in [h for h, v in RB.items() if v[1] is None]:
+                del RB[host]   # robots.txt was unreachable, read it again
+            log("retrying source:", fn.__name__)
+            try:
+                time.sleep(20)
+                fn()
+            except Exception as e:  # noqa: BLE001
+                log("!! retry failed:", fn.__name__, type(e).__name__, e)
     for fn in (kia_details, hyundai_details, stellantis_details, autobazar_details):
         try:
             fn()
@@ -1269,13 +1297,7 @@ def main():
             vk = f"{o['src']}:{o['vin']}"
             vcount[vk] = vcount.get(vk, 0) + 1
     for k, h in HIST.items():
-        p_ = h.get("p", [])
-        i = 1
-        while i < len(p_) - 1:
-            if p_[i - 1][1] == p_[i + 1][1] and len(p_[i][0]) >= 13 and len(p_[i + 1][0]) >= 13 and (dt.datetime.fromisoformat(p_[i + 1][0] + ":00") - dt.datetime.fromisoformat(p_[i][0] + ":00")).total_seconds() <= 3 * 3600:
-                del p_[i:i + 2]
-            else:
-                i += 1
+        unblip(h.get("p", []))
     for k in list(HIST):
         if vcount.get(k, 0) > 1 or (k.startswith("autobazar:") and not VIN_RX.fullmatch(k[10:])):
             del HIST[k]   # VIN shared by several listings or not a real VIN ("XXXX", "bez VIN"): that history mixes cars
@@ -1290,10 +1312,16 @@ def main():
         if not h["p"] or h["p"][-1][1] != o["price"]:
             h["p"].append([stamp, o["price"]])
             h["p"] = h["p"][-40:]
+        unblip(h["p"])
         o["first"] = h["first"]
         if len(h["p"]) > 1:
             o["hist"] = [[d, round(p)] for d, p in h["p"]]
-        prev = [(p, d) for d, p in h["p"][:-1] if (NOW.date() - dt.date.fromisoformat(d[:10])).days <= 90]
+        # a drop counts only from a price that stood for at least 6 hours (one odd reading is not a price change)
+        prev = []
+        for i, (d, p) in enumerate(h["p"][:-1]):
+            held = (when(h["p"][i + 1][0]) - when(d)).total_seconds() / 3600
+            if held >= 6 and (NOW.date() - dt.date.fromisoformat(d[:10])).days <= 90:
+                prev.append((p, d))
         if prev:
             hi, d_hi = max(prev)
             if hi > o["price"]:
