@@ -937,10 +937,17 @@ def promos():
         tx = text(re.sub(r"<(nav|header|footer)\b.*?</\1>", " ", t, flags=re.S))
         snips = []
         for m in PROMO_PAT.finditer(tx):
-            a0 = max(0, tx.rfind(". ", 0, m.start()) + 2, m.start() - 160)
+            # one readable sentence around the offer: start and end on whole words, never mid-word
+            a0 = max(0, tx.rfind(". ", 0, m.start()) + 2)
+            if m.start() - a0 > 110:
+                a0 = tx.find(" ", m.start() - 110) + 1
             b0 = tx.find(". ", m.end())
-            b0 = min(b0 + 1 if b0 >= 0 else len(tx), m.end() + 160)
-            sn = tx[a0:b0].strip(" .,-")
+            b0 = b0 + 1 if 0 <= b0 <= m.end() + 120 else tx.rfind(" ", m.end(), m.end() + 120)
+            if b0 <= m.end():
+                b0 = min(len(tx), m.end() + 120)
+            sn = tx[a0:b0].strip(" .,-|")
+            if not re.search(r"\d\s*(?:€|%)", sn):
+                continue
             if re.search(r'":|\{|\}|false,|true,|data[A-Z]|href|class=|\b(MODELY|KONFIGURÁTOR|CENNÍK|VYHĽADAŤ PREDAJCU)\b', sn):
                 continue  # page code or navigation menus, not an offer
             if sum(1 for w in sn.split() if w.isupper() and len(w) > 3) > 6:
